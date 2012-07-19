@@ -8,6 +8,8 @@ Desktop.ini
 config
 auto-save-list
 backups
+autosaves
+server
 *~
 .places
 session.*

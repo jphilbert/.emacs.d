@@ -22,7 +22,6 @@
  redisplay-dont-pause			t
  scroll-preserve-screen-position	1	; Keeps cursor in one spot
  delete-old-versions			t)	; delete backups
-;; backup-directory-alist		`((".*" . ,temporary-file-directory))
 
 (cua-mode			nil)	; CUA mode
 ;; (desktop-save-mode		t)	; Reload previous files
@@ -38,6 +37,19 @@
 (setq-default
  initial-scratch-message
  ";; ----- Scratch Buffer ----- ")
+
+;; -----------------------------------------------------------------------------
+;; Directories / Backups
+;; -----------------------------------------------------------------------------
+(make-directory "~/.emacs.d/server/" t)
+(make-directory "~/.emacs.d/backups/" t)
+(make-directory "~/.emacs.d/autosaves/" t)
+
+;; Put autosave files (ie #foo#) and backup files (ie foo~) in ~/.emacs.d/.
+(custom-set-variables
+  '(auto-save-file-name-transforms '((".*" "~/.emacs.d/autosaves/\\1" t)))
+  '(backup-directory-alist '((".*" . "~/.emacs.d/backups/"))))
+
 
 ;; -----------------------------------------------------------------------------
 ;; Opens Files with Emacs (if Emacs is running)
