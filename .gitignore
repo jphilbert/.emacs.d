@@ -1,0 +1,15 @@
+# Windows image file caches
+Thumbs.db
+
+# Folder config file
+Desktop.ini
+
+#Emacs
+config
+auto-save-list
+backups
+*~
+.places
+session.*
+*.elc
+ac-comphist.dat

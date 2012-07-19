@@ -1,0 +1,19 @@
+# -*- mode: snippet -*-
+# name: function
+# key: ;func
+# --
+${1:Function.Name} <- function(${2:parameters}) {
+  ## ########################################################################
+  ## ${1:$(upcase text)}(${2:$(upcase text)})
+  ## ${3:SUMMARY OF FUNCTION}
+  ##
+  ## PARAMETERS:
+  ##   - ${2:$(replace-regexp-in-string "," "\n  ##   -" text)}
+  ##
+  ## OUTPUT:
+  ##   - ${5:NULL}
+  ##
+  ## ########################################################################
+  $0
+  return($5)
+}
