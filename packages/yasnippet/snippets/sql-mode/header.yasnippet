@@ -1,0 +1,32 @@
+# -*- mode: snippet -*-
+# name: header
+# key: ;header
+# --
+-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+-- `(upcase (file-name-nondirectory (buffer-file-name)))`
+--   ${1:Simple description}
+-- .
+-- AUTHOR:	`user-full-name`
+-- CREATED:	`(format-time-string "%Y-%m-%d")`
+-- MODIFIED:	`(format-time-string "%Y-%m-%d")`
+-- .  
+-- SUMMARY - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+--   $3
+-- .
+-- REVISIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+--   - None
+-- .
+-- REQUIRE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+--   - $4
+-- .
+-- TO DO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+--   - $5
+-- .
+-- EXAMPLES  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+--   - None
+-- .
+-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+prompt ++++++++++ Starting `(upcase (file-name-nondirectory (buffer-file-name)))` ++++++++++;
+
+def this_path = '`(upcase (file-name-directory (buffer-file-name)))`'
+$0

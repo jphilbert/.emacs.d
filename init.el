@@ -3,29 +3,41 @@
 ;; ----------------------------------------------------------------------------
 (require 'cl)
 (defvar *emacs-load-start* (current-time))
+
 ;; maps path of emacs files
-(load "~/.emacs.d/packages/miscellaneous/tiny-tools/lisp/tiny/tinypath")
+(let ((default-directory "~/.emacs.d/packages/"))
+      (normal-top-level-add-subdirs-to-load-path))
+(add-to-list 'load-path "~/.emacs.d/settings/")
+(add-to-list 'load-path "~/.emacs.d/settings/modes/")
+
+
+;; (load "~/.emacs.d/packages/tiny-tools/lisp/tiny/tinypath")
+
+
 (require 'user-info)
-;; ------------------------------ Header --------------------------------------
+
 
 ;; ----------------------------------------------------------------------------
 ;; General Settings
 ;; ----------------------------------------------------------------------------
 (setq-default
- auto-fill-function			'do-auto-fill	; turn on auto fill 
+ ;; auto-fill-function			'do-auto-fill	; turn on auto fill 
  comment-auto-fill-only-comments	t	; but only for comments
  inhibit-startup-screen			t	; No Splash Screen
- visible-bell				nil	; No Beep
+ visible-bell				t	; No Beep
  skeleton-pair				t  	; Auto pair matching
  fill-column				80
  x-select-enable-clipboard		t
  redisplay-dont-pause			t
  scroll-preserve-screen-position	1	; Keeps cursor in one spot
- delete-old-versions			t)	; delete backups
+ delete-old-versions			t	; delete backups
+ )
 
 (cua-mode			nil)	; CUA mode
 ;; (desktop-save-mode		t)	; Reload previous files
 (fset 'yes-or-no-p 'y-or-n-p)		; Simplify Questions
+
+;; (add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 ;; Prevent annoying "Active processes exist" query when you quit
 (defadvice save-buffers-kill-emacs (around no-query-kill-emacs activate)
@@ -34,9 +46,20 @@
 
 (setq-default ediff-split-window-function 'split-window-horizontally)
 
+;; Scratch Buffer
 (setq-default
  initial-scratch-message
- ";; ----- Scratch Buffer ----- ")
+ ";; ----- Scratch Buffer -----
+")
+
+;; Common terminal defaults
+(setq-default
+ ansi-color-for-comint-mode             t
+ comint-scroll-to-bottom-on-input	t
+ comint-scroll-to-bottom-on-output	t
+ comint-move-point-for-output           t
+ comint-prompt-read-only                nil)
+
 
 ;; -----------------------------------------------------------------------------
 ;; Directories / Backups
@@ -59,13 +82,6 @@
 (server-start)
 
 
-;; -----------------------------------------------------------------------------
-;; Emacs Aesthetics
-;; -----------------------------------------------------------------------------
-(require 'aesthetics nil t)
-(require 'multi-window nil t)
-(require 'switch-frame nil t)
-
 
 ;; ----------------------------------------------------------------------------
 ;; Tiny Tools
@@ -80,7 +96,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Auto Indent
 ;; ----------------------------------------------------------------------------
-(setq auto-indent-on-visit-file t)
+;; (setq auto-indent-on-visit-file nil)
 (require 'auto-indent-mode nil t)
 ;; (auto-indent-global-mode)
 
@@ -109,22 +125,51 @@
 ;; ----------------------------------------------------------------------------
 ;; Completion
 ;; ----------------------------------------------------------------------------
+;; Auto Complete
 (require 'auto-complete-config nil t)
 (add-to-list 'ac-dictionary-directories
 	     "~/.emacs.d/packages/auto complete/ac-dict")
 (ac-config-default)
-(setq-default ac-ignore-case nil)
-(setq-default ac-auto-show-menu nil)
-(setq ac-auto-show-menu t)
-(define-key ac-completing-map (kbd "<tab>") 'ac-expand)
-(define-key ac-completing-map [(return)] 'ac-complete)
+(global-auto-complete-mode t)
+(setq-default ac-quick-help-delay 0.5
+	      ac-show-menu-immediately-on-auto-complete t
+	      ac-sources (append ac-sources '(ac-source-yasnippet
+					      ac-source-filename))
+	      ;; (setq-default ac-ignore-case nil)
+	      ;; (setq-default ac-auto-show-menu nil)
+	      ;; (setq ac-auto-show-menu t)
+	      ac-auto-start 0)
+(ac-flyspell-workaround)
 
+(define-key ac-completing-map (kbd "<tab>")	'ac-expand)
+(define-key ac-completing-map [(return)]	'ac-complete)
+
+;; Icicles
 (require 'icicles nil t)
 (setq icicle-show-Completions-help-flag		nil
       icicle-candidate-width-factor		100
       icicle-Completions-display-min-input-chars 2
-      completion-ignore-case			t)
+      completion-ignore-case			t
+      icicle-change-region-background-flag	t
+      icicle-region-background			"black")
 (icy-mode t)
+
+
+;; --------------------------------------------------------------------------
+;; Expand Region
+;; --------------------------------------------------------------------------
+(require 'expand-region)
+
+
+;; -----------------------------------------------------------------------------
+;; Emacs Aesthetics
+;; -----------------------------------------------------------------------------
+(require 'aesthetics)		; after Auto-Complete loaded
+(require 'multi-window)
+(require 'switch-frame)
+
+(setq Multi-Window-Default-Window-Height 45)
+(require 'frame-settings)
 
 
 ;; ----------------------------------------------------------------------------
@@ -134,10 +179,9 @@
 ;;	Removes all *--* buffers after 5s of idle and others every 1d
 ;;	Active process / unsaved work / etc is safe
 (require 'midnight)
-(setq clean-buffer-list-kill-regexps
-      '("^\\*.*\\*$"))
-(setq clean-buffer-list-delay-special 0)
-(setq clean-buffer-list-delay-general 1)
+(setq clean-buffer-list-kill-regexps	'("^\\*.*\\*$")
+      clean-buffer-list-delay-special	0
+      clean-buffer-list-delay-general	1)
 (run-with-idle-timer 5 5 'clean-buffer-list)
 
 ;; rewrote function without messages
@@ -178,21 +222,20 @@ JPH: Removed periodic message"
 ;; ----------------------------------------------------------------------------
 (require 'yasnippet)
 (yas/initialize)
-(yas/load-directory "~/.emacs.d/packages/miscellaneous/yasnippet/snippets")
+(yas/load-directory "~/.emacs.d/packages/yasnippet/snippets")
 (setq yas/prompt-functions '(yas/completing-prompt))
 
 (setq yas/trigger-key (kbd "SPC"))
 (add-hook 'yas/minor-mode-on-hook 
-          '(lambda () 
-             (define-key yas/minor-mode-map yas/trigger-key 'yas/expand)))
+          '(lambda () (define-key yas/minor-mode-map yas/trigger-key 'yas/expand)))
 
 
 ;; ----------------------------------------------------------------------------
 ;; Folding
 ;; ----------------------------------------------------------------------------
 (require 'fold-dwim nil t)
-(setq-default hs-hide-comments-when-hiding-all nil)
-(setq-default hs-allow-nesting t)
+(setq-default hs-hide-comments-when-hiding-all	nil
+	      hs-allow-nesting			t)
 
 ;; Toggle Folding on Whole Buffer
 (defvar fold-dwim-toggle-all-state nil
@@ -236,47 +279,43 @@ out it knowing."
 ;; (require 'gist nil t)
 
 
+;; --------------------------------------------------------------------------
+;; Dir-Ed
+;; --------------------------------------------------------------------------
+(require 'dired+)
+(toggle-diredp-find-file-reuse-dir 1)
+
+
+;; --------------------------------------------------------------------------
+;; Web Search
+;; --------------------------------------------------------------------------
+(require 'websearch)
+
+
+;; --------------------------------------------------------------------------
+;; Miscellaneous Functions
+;; --------------------------------------------------------------------------
+(require 'misc)
+
+
 ;; ----------------------------------------------------------------------------
 ;; Key Binding (global)
 ;; ----------------------------------------------------------------------------
 (require 'keybinding nil t)
+(require 'mouse3)
 
 
 ;; ----------------------------------------------------------------------------
 ;; Particular Modes
-;;	Note: the order is important
+;;	Note: the order may be important
 ;; ----------------------------------------------------------------------------
 (require 'lisp-setup nil t)
 (require 'sql-setup nil t)
 (require 'r-setup nil t)
 ;; (require 'latex-setup nil t)
-;; (require 'python-setup nil t)
+(require 'python-setup nil t)
 (require 'shell-setup nil t)
 (require 'powershell-setup nil t)
-
-;; Common terminal defaults
-(setq-default
- ansi-color-for-comint-mode             t
- comint-scroll-to-bottom-on-input	t
- comint-scroll-to-bottom-on-output	t
- comint-move-point-for-output           t
- comint-prompt-read-only                nil)
-
-;; ----------------------------------------------------------------------------
-;; Functions (may put in seperate file)
-;; ----------------------------------------------------------------------------
-(defun comment-dwim-line (&optional arg)
-  "Replacement for the comment-dwim command. If no region is selected and
-current line is not blank and we are not at the end of the line, then comment
-current line. Replaces default behaviour of comment-dwim, when it inserts
-comment at the end of the line."
-  ;; Original idea from
-  ;; http://www.opensubscriber.com/message/emacs-devel@gnu.org/10971693.html
-  (interactive "*P")
-  (comment-normalize-vars)
-  (if (and (not (region-active-p)) (not (looking-at "[ \t]*$")))
-      (comment-or-uncomment-region (line-beginning-position) (line-end-position))
-    (comment-dwim arg)))
 
 ;; ------------------------------ Footer ---------------------------------------
 (message "init.el loaded in %ds"
