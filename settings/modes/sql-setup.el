@@ -252,8 +252,7 @@ nil params))))
   (interactive)
   (save-frame-excursion 
    (sql-send-string
-    (concat
-     "SELECT
+    "SELECT
         table_name,
         sum(bytes)/(1024*1024) AS table_size_mb
       FROM
@@ -272,7 +271,33 @@ nil params))))
        bytes / 1024 / 1024 as used_in_mb,
        max_bytes / 1024 / 1024 as max_in_mb
      FROM
-       USER_TS_QUOTAS;"))))
+       USER_TS_QUOTAS;")))
+
+(defun sql-user-functions ()
+  (interactive)
+  (save-frame-excursion 
+   (sql-send-string
+    "SELECT
+	object_name,
+	object_type,
+	status
+     FROM
+	ALL_OBJECTS
+     WHERE
+	OBJECT_TYPE
+	IN ('FUNCTION','PROCEDURE') and
+	owner = user;")))
+
+(defun sql-last-error ()
+(interactive)
+(save-frame-excursion 
+(sql-send-string
+ "set underline off;
+select *
+from SYS.USER_ERRORS
+WHERE rownum = 1
+ORDER BY rownum DESC;
+set underline on;")))
 
 (defun sql-explain ()
   "Explain plan of code"
