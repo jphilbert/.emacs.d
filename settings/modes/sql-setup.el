@@ -3,6 +3,11 @@
 ;; ----------------------------------------------------------------------------
 (provide 'sql-setup)
 
+(defvar SQL-ORACLE-Init-Path
+"~/Public_Files/Hilbert/Common/SQL/sql defaults.sql"
+"Path to Oracle Init File")
+
+
 ;; (setenv "LD_LIBRARY_PATH"	"/usr/lib/oracle/11.2/client64/lib")
 ;; (setenv "TNS_ADMIN"		"/home/hilbertjp")
 
@@ -171,6 +176,19 @@
   "thisandthat."
   (interactive)
   (display-buffer sql-buffer))
+
+(defun sql-eval-file (f)
+  "Evaluates an SQL file."
+  (interactive "fEnter File: ")
+  (sql-send-string
+   (get-string-from-file f))
+  )
+
+(defun sql-eval-init ()
+  "Evaluates SQL Init File."
+  (interactive)
+  (sql-eval-file SQL-ORACLE-Init-Path))
+  )
 
 
 

@@ -41,3 +41,9 @@ of comment-dwim, when it inserts comment at the end of the line."
   (if (and (not (region-active-p)) (not (looking-at "[ \t]*$")))
       (comment-or-uncomment-region (line-beginning-position) (line-end-position))
     (comment-dwim arg)))
+
+(defun get-string-from-file (filePath)
+  "Return FILEPATH's file content."
+  (with-temp-buffer
+    (insert-file-contents filePath)
+    (buffer-string)))

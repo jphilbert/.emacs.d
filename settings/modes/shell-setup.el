@@ -44,6 +44,7 @@
 (add-hook 'shell-mode-hook 'my-shell-mode-hook)
 (defun my-shell-mode-hook ()
   (auto-fill-mode nil)
+  (text-scale-set -1.1)
 
   (setq ansi-color-for-comint-mode              t
         comint-scroll-to-bottom-on-input        t
