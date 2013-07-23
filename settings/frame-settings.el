@@ -73,8 +73,8 @@
              '(vertical-scroll-bars . nil)
              `(height . ,Multi-Window-Default-Window-Height)
              `(width . ,Multi-Window-Default-Window-Width)
-             `(top . ,(+ 40 Multi-Window-Terminal-Window-Top))
-	     `(left . ,(+ 40 Multi-Window-Terminal-Window-Left)))))
+             `(top . ,(+ 0 Multi-Window-Terminal-Window-Top))
+	     `(left . ,(+ 0 Multi-Window-Terminal-Window-Left)))))
 
 (add-to-list
  'special-display-regexps
@@ -84,8 +84,8 @@
              '(vertical-scroll-bars . nil)
              `(height . ,Multi-Window-Default-Window-Height)
              `(width . ,Multi-Window-Default-Window-Width)
-             '(top . 40)                ; Offsets the Terminals
-             (cons 'left (+ (/ (x-display-pixel-width) 2) 60)))))
+	     `(top . ,(+ 10 Multi-Window-Terminal-Window-Top))
+	     `(left . ,(+ 10 Multi-Window-Terminal-Window-Left)))))
 
 ;; -------------------- R Frame ---------------------
 (add-to-list
@@ -96,8 +96,8 @@
              '(vertical-scroll-bars . nil)
              `(height . ,Multi-Window-Default-Window-Height)
              `(width . ,Multi-Window-Default-Window-Width)
-             '(top . 10)
-             (cons 'left (+ (/ (x-display-pixel-width) 2) 20)))))
+	     `(top . ,(+ 20 Multi-Window-Terminal-Window-Top))
+	     `(left . ,(+ 20 Multi-Window-Terminal-Window-Left)))))
 
 ;; -------------------- Message Frame ---------------------
 (add-to-list
@@ -108,8 +108,8 @@
              '(vertical-scroll-bars . nil)
              `(height . ,Multi-Window-Default-Window-Height)
              `(width . ,Multi-Window-Default-Window-Width)
-             '(top . 30)                ; Offsets the Terminals
-             (cons 'left (+ (/ (x-display-pixel-width) 2) 0)))))
+	     `(top . ,(+ 50 Multi-Window-Terminal-Window-Top))
+	     `(left . ,(+ 50 Multi-Window-Terminal-Window-Left)))))
 
 
 ;; -------------------- Backtrace Frame --------------------
@@ -121,8 +121,8 @@
              '(vertical-scroll-bars . nil)
              '(height . 30)
              `(width . ,Multi-Window-Default-Window-Width)
-             '(top . 50)                ; Offsets the Terminals
-             (cons 'left (+ (/ (x-display-pixel-width) 2) 0)))))
+	     `(top . ,(+ 60 Multi-Window-Terminal-Window-Top))
+	     `(left . ,(+ 60 Multi-Window-Terminal-Window-Left)))))
 
 
 ;; -------------------- Python Frame ---------------------
@@ -134,8 +134,8 @@
              '(vertical-scroll-bars . nil)
              `(height . ,Multi-Window-Default-Window-Height)             
              `(width . ,Multi-Window-Default-Window-Width)
-             '(top . 10)
-             (cons 'left (+ (/ (x-display-pixel-width) 2) 20)))))
+	     `(top . ,(+ 40 Multi-Window-Terminal-Window-Top))
+	     `(left . ,(+ 40 Multi-Window-Terminal-Window-Left)))))
 
 
 ;; -------------------- SQL Frame ---------------------
@@ -147,7 +147,7 @@
              '(vertical-scroll-bars . nil)
              `(height . ,Multi-Window-Default-Window-Height)
              `(width . ,Multi-Window-Default-Window-Width)
-             '(top . 20)                ; Offsets the Terminals
-             (cons 'left (+ (/ (x-display-pixel-width) 2) 40)))))
+	     `(top . ,(+ 30 Multi-Window-Terminal-Window-Top))
+	     `(left . ,(+ 30 Multi-Window-Terminal-Window-Left)))))
 
 
