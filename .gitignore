@@ -15,4 +15,4 @@ server
 session.*
 *.elc
 ac-comphist.dat
-#frame-settings.el
+frame-settings.el
