@@ -38,6 +38,9 @@
   (setq ac-ignore-case nil)
   
   (sql-set-product 'oracle)
+
+  (setq comment-start "/*")
+  (setq comment-end "*/")
   
   ;; ------------------------------------------------------
   ;; Key Binding

@@ -47,3 +47,12 @@ of comment-dwim, when it inserts comment at the end of the line."
   (with-temp-buffer
     (insert-file-contents filePath)
     (buffer-string)))
+
+(defun copy-code-snippet (begin end)
+  ;; http://stackoverflow.com/a/3519790
+  (interactive "r")
+  (let ((buffer (current-buffer)))
+    (with-temp-buffer
+      (insert-buffer-substring-no-properties buffer begin end)
+      (indent-rigidly (point-min) (point-max) 4)
+      (clipboard-kill-ring-save (point-min) (point-max)))))
