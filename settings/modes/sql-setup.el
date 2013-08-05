@@ -272,12 +272,17 @@ nil params))))
    (sql-send-string
     "SELECT
         table_name,
-        sum(bytes)/(1024*1024) AS table_size_mb
+        sum(bytes)/(1024*1024) AS table_size_mb,
+	sum(NUM_ROWS) as number_rows,
+	max(created) as created
       FROM
-        user_extents
-      JOIN
-        all_tables
-      ON segment_name = table_name
+	user_extents
+	JOIN
+	all_tables
+	ON segment_name = table_name
+	join
+	all_objects
+	on table_name = object_name
       WHERE
         segment_type = 'TABLE'
       GROUP BY
