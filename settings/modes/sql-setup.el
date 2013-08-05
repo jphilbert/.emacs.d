@@ -191,9 +191,6 @@
   "Evaluates SQL Init File."
   (interactive)
   (sql-eval-file SQL-ORACLE-Init-Path))
-  )
-
-
 
 ;; MS SQL FIX - REMOVED PASSWORD
 (defun sql-connect-ms ()
