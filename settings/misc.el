@@ -29,6 +29,33 @@ prefix (useful for major programming modes to filter results)"
 	     (format "%s%s" url (websearch-url-encode query encoding)))
     ))
 
+(defun google-query-mode-at-point-lucky ()
+  "Automatically queries Google for object (using expand-region) at
+point. Additionally appends the current buffer's mode to the search.  This is
+the lucky (immediate) version."
+  (interactive)
+  (let (m)
+    (setq m (replace-regexp-in-string
+	     "-.*" ""
+	     (symbol-name (with-current-buffer
+			      (current-buffer)
+			    major-mode))))
+    (message (concat m " "))
+    (google-query-at-point t (concat m " "))))
+
+(defun google-query-mode-at-point ()
+  "Automatically queries Google for object (using expand-region) at
+point. Additionally appends the current buffer's mode to the search."
+  (interactive)
+  (let (m)
+    (setq m (replace-regexp-in-string
+	     "-.*" ""
+	     (symbol-name (with-current-buffer
+			      (current-buffer)
+			    major-mode))))
+    (message (concat m " "))
+    (google-query-at-point nil (concat m " "))))
+
 (defun comment-dwim-line (&optional arg)
   "Replacement for the comment-dwim command. If no region is
 selected and current line is not blank and we are not at the end
@@ -56,3 +83,4 @@ of comment-dwim, when it inserts comment at the end of the line."
       (insert-buffer-substring-no-properties buffer begin end)
       (indent-rigidly (point-min) (point-max) 4)
       (clipboard-kill-ring-save (point-min) (point-max)))))
+

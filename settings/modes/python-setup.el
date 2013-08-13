@@ -2,7 +2,7 @@
 ;; Python Mode Setup
 ;; ----------------------------------------------------------------------------
 (provide 'python-setup)
-(require 'python-mode)
+(require 'python)
 
 ;; Jedi
 (autoload 'jedi:setup "jedi" nil t)
@@ -127,17 +127,6 @@
       (python-process-new)
     (py-shell))
   (goto-char (point-max)))
-
-(defun R-kill-all-processes ()
-  "Kills all R processes and clears the name-list."
-  (interactive)
-  (mapcar '(lambda (arg)
-             (when (get-process (car arg))
-               (kill-process (get-process (car arg)))))
-          ess-process-name-list)
-  
-  (mapcar 'kill-buffer (switch-frame-buffer-list '("\\*R.*") '("^ ")))
-  (setq ess-process-name-list nil))
 
 ;; Expand-Region is still calling PY-GOTO-BEYOND-CLAUSE. This fixes it.
 (defalias 'py-goto-beyond-clause 'py-end-of-clause)
