@@ -2,7 +2,7 @@
 ;; Python Mode Setup
 ;; ----------------------------------------------------------------------------
 (provide 'python-setup)
-(require 'python-mode)
+(require 'python)
 
 ;; Jedi
 (autoload 'jedi:setup "jedi" nil t)
@@ -146,6 +146,7 @@
     (py-shell))
   (goto-char (point-max)))
 
+<<<<<<< HEAD
 (defun switch-frame-current-python ()
   "Switch to current python process buffer."
   (interactive)
@@ -159,6 +160,8 @@
 	  (end-of-buffer-all))
       (message "no python process"))))
 
+=======
+>>>>>>> ffa26442f705b69ac21864909d15ebcad189a308
 ;; Expand-Region is still calling PY-GOTO-BEYOND-CLAUSE. This fixes it.
 (defalias 'py-goto-beyond-clause 'py-end-of-clause)
 
