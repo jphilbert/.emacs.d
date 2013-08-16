@@ -11,7 +11,7 @@
 ;; (setenv "LD_LIBRARY_PATH"	"/usr/lib/oracle/11.2/client64/lib")
 ;; (setenv "TNS_ADMIN"		"/home/hilbertjp")
 
-(eval-after-load "sql" '(load-library "sql-indent"))
+;; (eval-after-load "sql" '(load-library "sql-indent")) 
 
 (add-to-list 'auto-mode-alist '("\\.sql\\'" . sql-mode))
 (add-to-list 'ac-modes 'sql-mode)
@@ -31,7 +31,7 @@
   (hs-minor-mode t)
   ;; (hs-hide-all)
   
-  (auto-indent-mode 1)
+  (auto-indent-mode -1)			; This screws with PL
   (flyspell-prog-mode)
   (ac-flyspell-workaround)
 
