@@ -142,7 +142,8 @@
   ;; Eval
   (if (and transient-mark-mode mark-active)
       (sql-eval-region)
-    (sql-eval-paragraph)))
+    (sql-eval-paragraph))
+  (next-non-blank-line))
 
 (defun sql-eval-region ()
   "Evaluates SQL region and returns back to current frame."

@@ -90,3 +90,10 @@ of comment-dwim, when it inserts comment at the end of the line."
   (next-line)  
   (while (and (not (eobp)) (empty-line-p))
     (next-line)))
+
+(defun empty-line-p ()
+  "Returns t if cursor is at an empty line "
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (looking-at "^[ \t\f\r]*$")))
