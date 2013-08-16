@@ -84,12 +84,9 @@ of comment-dwim, when it inserts comment at the end of the line."
       (indent-rigidly (point-min) (point-max) 4)
       (clipboard-kill-ring-save (point-min) (point-max)))))
 
-<<<<<<< HEAD
 (defun next-non-blank-line ()
-   "Skips to the next non-blank line"
-   (interactive)
-   (next-line)  
-   (while (and (not (eobp)) (empty-line-p))
-     (next-line)))
-=======
->>>>>>> ffa26442f705b69ac21864909d15ebcad189a308
+  "Skips to the next non-blank line"
+  (interactive)
+  (next-line)  
+  (while (and (not (eobp)) (empty-line-p))
+    (next-line)))
