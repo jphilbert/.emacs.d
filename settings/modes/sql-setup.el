@@ -39,8 +39,8 @@
   
   (sql-set-product 'oracle)
 
-  (setq comment-start "/*")
-  (setq comment-end "*/")
+  ;; (setq comment-start "/*") **/
+  ;; (setq comment-end "*\/") **/
   
   ;; ------------------------------------------------------
   ;; Key Binding
