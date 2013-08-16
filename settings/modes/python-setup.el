@@ -7,6 +7,8 @@
 ;; Jedi
 (autoload 'jedi:setup "jedi" nil t)
 
+(setq py-split-windows-on-execute-p nil)
+
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
@@ -21,7 +23,7 @@
   (lambda-mode 1)
   
   (hs-minor-mode t)
-  (auto-indent-minor-mode 1)
+  (auto-indent-minor-mode -1)
   
   (hs-hide-all)
   (flyspell-prog-mode)
@@ -46,7 +48,7 @@
    [S-f12]              'python-process-new
    
    ;; ---------- Auto Pairing ----------
-   ;; (kbd "(")            'skeleton-pair-insert-maybe ; Broke 
+   (kbd "(")            'skeleton-pair-insert-maybe ; Broke 
    (kbd "[")            'skeleton-pair-insert-maybe
    (kbd "{")            'skeleton-pair-insert-maybe
    (kbd "\"")           'skeleton-pair-insert-maybe
@@ -74,9 +76,12 @@
    (kbd "C-h W")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "Python "))
+
+   ;; ---------- Frame Switching ----------
+   [(f12)]              'switch-frame-previous
    
    ;; ---------- Auto Pairing ----------
-   ;; (kbd "(")            'skeleton-pair-insert-maybe ; Broke 
+   (kbd "(")            'skeleton-pair-insert-maybe ; Broke 
    (kbd "[")            'skeleton-pair-insert-maybe
    (kbd "{")            'skeleton-pair-insert-maybe
    (kbd "\"")           'skeleton-pair-insert-maybe
@@ -93,7 +98,9 @@
   ;; Eval
   (if (and transient-mark-mode mark-active)
       (python-eval-region)
-    (python-eval-block-or-def)))
+    (python-eval-block-or-def))
+  (save-frame-excursion
+   (raise-frame (get-frame "*Python*"))))
 
 (defun python-eval-region ()
   "Evaluates python region"
@@ -103,11 +110,22 @@
 (defun python-eval-block-or-def ()
   "Evaluates python def/class or block."
   (interactive)
-  (condition-case nil
-      (py-execute-def-or-class)
-    (error
-     (py-mark-block)
-     (call-interactively 'py-execute-region))))
+  (let ((p nil))
+    (condition-case nil
+	(py-execute-def-or-class)
+      (error
+       (progn
+	 (save-excursion
+	   (py-mark-block)
+	   (setq p (- (region-beginning) (region-end)))
+	   )
+	 (if (eq p 0)
+	     (py-execute-line)
+	   (progn
+	    (py-execute-block)
+	    (py-end-of-block)))
+	   (next-non-blank-line))
+       ))))
 
 (defun python-process-new ()
   "Creates a new python-process."
@@ -128,16 +146,19 @@
     (py-shell))
   (goto-char (point-max)))
 
-(defun R-kill-all-processes ()
-  "Kills all R processes and clears the name-list."
+(defun switch-frame-current-python ()
+  "Switch to current python process buffer."
   (interactive)
-  (mapcar '(lambda (arg)
-             (when (get-process (car arg))
-               (kill-process (get-process (car arg)))))
-          ess-process-name-list)
-  
-  (mapcar 'kill-buffer (switch-frame-buffer-list '("\\*R.*") '("^ ")))
-  (setq ess-process-name-list nil))
+  (let (b)
+    (if (>= (length (switch-frame-buffer-list '("\\*Python.*") '("^ "))) 1)
+	(progn
+	  ;; (setq b (process-buffer (get-process
+	  ;; 			   (py-process-name))))
+	  (raise-frame (get-frame "*Python*"))
+	  ;; (set-buffer b)
+	  (end-of-buffer-all))
+      (message "no python process"))))
 
 ;; Expand-Region is still calling PY-GOTO-BEYOND-CLAUSE. This fixes it.
 (defalias 'py-goto-beyond-clause 'py-end-of-clause)
+
