@@ -10,10 +10,6 @@
 (add-to-list 'load-path "~/.emacs.d/settings/")
 (add-to-list 'load-path "~/.emacs.d/settings/modes/")
 
-
-;; (load "~/.emacs.d/packages/tiny-tools/lisp/tiny/tinypath")
-
-
 (require 'user-info)
 
 
@@ -313,6 +309,7 @@ out it knowing."
 (require 'sql-setup nil t)
 (require 'r-setup nil t)
 ;; (require 'latex-setup nil t)
+(require 'web-setup nil t)
 (require 'python-setup nil t)
 (require 'shell-setup nil t)
 (require 'powershell-setup nil t)
