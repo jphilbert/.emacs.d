@@ -97,3 +97,23 @@ of comment-dwim, when it inserts comment at the end of the line."
   (save-excursion
     (beginning-of-line)
     (looking-at "^[ \t\f\r]*$")))
+
+(defun cua-remove-blanks-in-rectangle ()
+  "Removes blanks in each line of CUA rectangle."
+  (interactive)
+  (if buffer-read-only
+      (message "Cannot replace in read-only buffer")
+    (cua--rectangle-operation 'keep nil t 1 nil
+			      '(lambda (s e l r)
+				 (if (re-search-forward "\\s-+" e t)
+				     (replace-match "" nil nil))))))
+
+(defun cua-replace-blanks-in-rectangle (newtext)
+  "Replace blanks with NEWTEXT in each line of CUA rectangle."
+  (interactive "sNew text: ")
+  (if buffer-read-only
+      (message "Cannot replace in read-only buffer")
+    (cua--rectangle-operation 'keep nil t 1 nil
+			      '(lambda (s e l r)
+				 (if (re-search-forward "\\s-+" e t)
+				     (replace-match newtext nil nil))))))
