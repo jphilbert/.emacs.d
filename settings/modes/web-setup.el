@@ -3,6 +3,12 @@
 ;; ----------------------------------------------------------------------------
 (provide 'web-setup)
 
+
+(add-to-list
+ 'browse-url-filename-alist
+ '("C:/Users/JPHil_000/Documents/WWW/" . "http://localhost/"))
+
+
 (require 'multi-web-mode)
 (setq mweb-default-major-mode 'html-mode)
 (setq mweb-tags '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
@@ -52,11 +58,12 @@
    (kbd "C-<")		'tag-word-or-region
    ))
 
-(add-hook 'javascript-mode-hook		'my-javascript-mode-hook)
+(add-hook 'js-mode-hook		'my-javascript-mode-hook)
 (defun my-javascript-mode-hook ()
   (interactive)
   (flyspell-prog-mode)
   (auto-indent-minor-mode 1)
+  (hs-minor-mode t)
 
   ;; ------------------------------------------------------
   ;; Key Binding
