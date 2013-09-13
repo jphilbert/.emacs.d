@@ -66,7 +66,7 @@
   5
   "Default terminal window top position")
 (defvar Multi-Window-Terminal-Window-Left
-  (+ (x-display-pixel-width) 1)
+  (/ (x-display-pixel-width) 2)
   "Default terminal window left position")
 
 ;; All of the above can customize by:
