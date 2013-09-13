@@ -11,7 +11,7 @@
 ;; (setenv "LD_LIBRARY_PATH"	"/usr/lib/oracle/11.2/client64/lib")
 ;; (setenv "TNS_ADMIN"		"/home/hilbertjp")
 
-;; (eval-after-load "sql" '(load-library "sql-indent")) 
+(eval-after-load "sql" '(load-library "sql-indent")) 
 
 (add-to-list 'auto-mode-alist '("\\.sql\\'" . sql-mode))
 (add-to-list 'ac-modes 'sql-mode)
@@ -273,9 +273,10 @@ nil params))))
    (sql-send-string
     "SELECT
         table_name,
-        sum(bytes)/(1024*1024) AS table_size_mb,
+        round(sum(bytes)/(1024*1024),1) AS size_mb,
 	sum(NUM_ROWS) as number_rows,
-	max(created) as created
+	max(created) as created,
+	cast(COMMENTS as varchar2(20)) as comments
       FROM
 	user_extents
 	JOIN
@@ -284,18 +285,25 @@ nil params))))
 	join
 	all_objects
 	on table_name = object_name
+	left join
+	user_tab_comments using(table_name)
       WHERE
         segment_type = 'TABLE'
       GROUP BY
-        table_name
+        table_name,
+	COMMENTS
       order by
-        -table_size_mb;
+        -size_mb;
      SELECT
        tablespace_name,
        bytes / 1024 / 1024 as used_in_mb,
-       max_bytes / 1024 / 1024 as max_in_mb
+       -- max_bytes / 1024 / 1024 as max_in_mb,
+	cast(trunc(100 * bytes / max_bytes) as varchar2(3)) ||
+	' %' as used
      FROM
-       USER_TS_QUOTAS;")))
+       USER_TS_QUOTAS
+     WHERE
+	max_bytes > 0;")))
 
 (defun sql-user-functions ()
   (interactive)
