@@ -81,7 +81,7 @@ of comment-dwim, when it inserts comment at the end of the line."
   (let ((buffer (current-buffer)))
     (with-temp-buffer
       (insert-buffer-substring-no-properties buffer begin end)
-      (indent-rigidly (point-min) (point-max) 4)
+      ;; (indent-rigidly (point-min) (point-max) 4)
       (clipboard-kill-ring-save (point-min) (point-max)))))
 
 (defun next-non-blank-line ()

@@ -1,5 +1,5 @@
 ;; ----------------------------------------------------------------------------
-;; Init.el (Global Options)
+;; init.el (Global Options)
 ;; ----------------------------------------------------------------------------
 (require 'cl)
 (defvar *emacs-load-start* (current-time))
@@ -232,6 +232,8 @@ JPH: Removed periodic message"
 (require 'fold-dwim nil t)
 (setq-default hs-hide-comments-when-hiding-all	nil
 	      hs-allow-nesting			t)
+
+;; (add-to-list 'hs-special-modes-alist '(css-mode "{" "}" "/[*/]" nil nil))
 
 ;; Toggle Folding on Whole Buffer
 (defvar fold-dwim-toggle-all-state nil

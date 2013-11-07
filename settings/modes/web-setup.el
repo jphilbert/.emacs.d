@@ -2,21 +2,17 @@
 ;; Web Mode Setup
 ;; ----------------------------------------------------------------------------
 (provide 'web-setup)
+(require 'web-mode)
 
+(setq-default web-mode-enable-current-element-highlight t)
 
 (add-to-list
  'browse-url-filename-alist
  '("C:/Users/JPHil_000/Documents/WWW/" . "http://localhost/"))
 
-
-(require 'multi-web-mode)
-(setq mweb-default-major-mode 'html-mode)
-(setq mweb-tags '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
-                  (js-mode "<script[^>]*>" "</script>")
-                  (css-mode "<style[^>]*>" "</style>")))
-(setq mweb-filename-extensions
-      '("php" "htm" "html" "ctp" "phtml" "php4" "php5"))
-(multi-web-global-mode t)
+(add-to-list
+ 'browse-url-filename-alist
+ '("C:/Users/hilbertjp/Local_Files/WWW" . "http://localhost/"))
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
@@ -25,16 +21,15 @@
 (defun my-html-mode-hook ()
   (interactive)
   (flyspell-prog-mode)
-
-  ;; (sgml-mode)
-
+  (web-mode)
+  
   (auto-indent-minor-mode -1)
 
   ;; ------------------------------------------------------
   ;; Key Binding
   ;; ------------------------------------------------------
   (local-set-many-keys
-   [(return)]		'newline
+   [(return)]		'newline-and-indent
 
    ;; ---------- Evaluation ----------
    [(shift return)]	'(lambda ()
@@ -42,26 +37,32 @@
 			   (save-buffer)
 			   (browse-url-of-buffer))
 
-   ;; ---------- Completion ----------
+   ;; ---------- Movement ----------
+   (kbd   "<M-left>") 		'web-mode-element-previous
+   (kbd   "<M-right>")		'web-mode-element-next
+
+   (kbd   "<M-down>")		'(lambda ()
+				   (interactive)
+				   (web-mode-element-end)
+				   (web-mode-element-next))
+   (kbd   "<M-up>")		'(lambda ()
+				   (interactive)
+				   (web-mode-tag-previous)
+				   (web-mode-tag-match))
 
 
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'(google-query-mode-at-point-lucky)
-   (kbd "C-h W")   	'(google-query-mode-at-point)
+   (kbd "C-h w")   	'google-query-mode-at-point-lucky
+   (kbd "C-h W")   	'google-query-mode-at-point
+   (kbd "C-h e")   	'web-mode-errors-show
 
-   (kbd ">")		'(lambda ()
-			   (interactive)
-			   (insert ">")
-			   (save-excursion
-			     (sgml-close-tag))
-			   )
-   (kbd "C-<")		'tag-word-or-region
+   [(f3)]               'web-mode-fold-or-unfold
    ))
 
 (add-hook 'js-mode-hook		'my-javascript-mode-hook)
 (defun my-javascript-mode-hook ()
   (interactive)
-  (flyspell-prog-mode)
+  ;; (flyspell-prog-mode)
   (auto-indent-minor-mode 1)
   (hs-minor-mode t)
 
@@ -81,13 +82,14 @@
 
 
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'(google-query-mode-at-point-lucky)
-   (kbd "C-h W")   	'(google-query-mode-at-point)))
+   (kbd "C-h w")   	'google-query-mode-at-point-lucky
+   (kbd "C-h W")   	'google-query-mode-at-point))
 
 (add-hook 'css-mode-hook		'my-css-mode-hook)
 (defun my-css-mode-hook ()
   (interactive)
   (flyspell-prog-mode)
+  (hs-minor-mode)
   (auto-indent-minor-mode 1)
 
   ;; ------------------------------------------------------
@@ -106,8 +108,8 @@
 
 
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'(google-query-mode-at-point-lucky)
-   (kbd "C-h W")   	'(google-query-mode-at-point)))
+   (kbd "C-h w")   	'google-query-mode-at-point-lucky
+   (kbd "C-h W")   	'google-query-mode-at-point))
 
 ;; --------------------------------------------------------------------------
 ;; Additional Functions
@@ -139,3 +141,13 @@
 		 (goto-char (+ (cdr bds)
 			       (string-width start-tag)
 			       (string-width end-tag)))))))
+
+
+(set-face-attribute 'web-mode-html-tag-face nil
+                    :foreground "gray60")
+
+(set-face-attribute 'web-mode-html-attr-name-face nil
+                    :foreground "LightSteelBlue")
+
+(set-face-attribute 'web-mode-current-element-highlight-face nil
+                    :background "SteelBlue4")
