@@ -25,6 +25,8 @@
   
   (auto-indent-minor-mode -1)
 
+  (add-to-list 'ac-sources 'ac-source-css-property)
+  (auto-complete-mode)
   ;; ------------------------------------------------------
   ;; Key Binding
   ;; ------------------------------------------------------
