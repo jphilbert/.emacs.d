@@ -17,7 +17,6 @@
 ;; General Settings
 ;; ----------------------------------------------------------------------------
 (setq-default
- ;; auto-fill-function			'do-auto-fill	; turn on auto fill 
  comment-auto-fill-only-comments	t	; but only for comments
  inhibit-startup-screen			t	; No Splash Screen
  visible-bell				t	; No Beep
@@ -33,7 +32,7 @@
 ;; (desktop-save-mode		t)	; Reload previous files
 (fset 'yes-or-no-p 'y-or-n-p)		; Simplify Questions
 
-;; (add-hook 'text-mode-hook 'turn-on-auto-fill)
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 ;; Prevent annoying "Active processes exist" query when you quit
 (defadvice save-buffers-kill-emacs (around no-query-kill-emacs activate)
@@ -123,18 +122,20 @@
 ;; ----------------------------------------------------------------------------
 ;; Auto Complete
 (require 'auto-complete-config nil t)
+(require 'pos-tip)			; For better tooltips
+
 (add-to-list 'ac-dictionary-directories
 	     "~/.emacs.d/packages/auto complete/ac-dict")
 (ac-config-default)
 (global-auto-complete-mode t)
-(setq-default ac-quick-help-delay 0.5
-	      ac-show-menu-immediately-on-auto-complete t
+(setq-default ac-quick-help-delay	0.8
+	      ac-show-menu-immediately-on-auto-complete nil
 	      ac-sources (append ac-sources '(ac-source-yasnippet
 					      ac-source-filename))
 	      ;; (setq-default ac-ignore-case nil)
 	      ;; (setq-default ac-auto-show-menu nil)
-	      ;; (setq ac-auto-show-menu t)
-	      ac-auto-start 0)
+	      ac-auto-show-menu		nil
+	      ac-auto-start		2)
 (ac-flyspell-workaround)
 
 (define-key ac-completing-map (kbd "<tab>")	'ac-expand)
@@ -155,6 +156,7 @@
 ;; Expand Region
 ;; --------------------------------------------------------------------------
 (require 'expand-region)
+(global-set-key (kbd "S-SPC") 'er/expand-region) 
 
 
 ;; -----------------------------------------------------------------------------

@@ -117,3 +117,52 @@ of comment-dwim, when it inserts comment at the end of the line."
 			      '(lambda (s e l r)
 				 (if (re-search-forward "\\s-+" e t)
 				     (replace-match newtext nil nil))))))
+
+(defun explorer (dir)
+  "Launch the windows explorer in the current directory and selects current file"
+  ;;; Windows explorer to open current file - Arun Ravindran
+  ;; Altered slightly to be interactive - JPH
+  (interactive "fDirectory / File to Open: ")
+  (w32-shell-execute
+   "open"
+   "explorer"
+   (concat "/select,"
+   	   (convert-standard-filename (expand-file-name dir))))
+   ;; (concat "/select,"
+   ;; 	   (convert-standard-filename buffer-file-name)))
+  )
+
+(defun apply-function-to-region-lines (fn)
+  "Apply function FN to each line in a region"
+  (if (and transient-mark-mode mark-active)
+      (save-excursion
+	(goto-char (region-end))
+	(let ((end-marker (copy-marker (point-marker)))
+	      next-line-marker)
+	  (goto-char (region-beginning))
+	  (if (not (bolp))
+	      (forward-line 1))
+	  (setq next-line-marker (point-marker))
+	  (while (< next-line-marker end-marker)
+	    (let ((start nil)
+		  (end nil))
+	      (goto-char next-line-marker)
+	      (save-excursion
+		(setq start (point))
+		(forward-line 1)
+		(set-marker next-line-marker (point))
+		(setq end (point)))
+	      (save-excursion
+		(let ((mark-active nil))
+		  (narrow-to-region start end)
+		  (funcall fn)
+		  (widen)))))
+	  (set-marker end-marker nil)
+	  (set-marker next-line-marker nil)))
+    (funcall fn)))
+  
+
+(defun tab-to-tab-stop-magic ()
+  "Insert tabs to line or region"
+  (interactive)
+  (apply-function-to-region-lines 'tab-to-tab-stop))

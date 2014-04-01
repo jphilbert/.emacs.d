@@ -254,3 +254,16 @@ buffer. Valid options are 'box' 'hollow' 'bar' 'hbar'"
 (provide 'aesthetics)
 
 ;;; AESTHETICS.EL ends here
+
+
+;; (font-lock-add-keywords
+;;      'python-mode
+;;      '(("\\(?<![A-Za-z]\\)[0-9]+"                        ; Put near end
+;;         .
+;;         'font-lock-number-face)
+;;        ("\\(?: \\(?:\\(?:[!<=>]=\\|[<>]\\) \\)\\)"
+;;         .
+;;         'font-lock-relation-operator-face)))
+
+
+;; (font-lock-remove-keywords 'python-mode '('font-lock-number-face))

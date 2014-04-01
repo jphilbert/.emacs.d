@@ -31,8 +31,9 @@
    ;; ---------- Evaluation ----------
    [(shift return)]     'elisp-eval
    
-   ;; ---------- Completion ----------
-   (kbd "<tab>")        'completion-at-point
+   ;; ---------- Indent / Tabs ----------
+   (kbd "C-<tab>")	'tab-to-tab-stop-magic
+   (kbd "<tab>")        'indent-for-tab-command   
 
    ;; ---------- Help ----------
    "\C-hf"      	'describe-variable-or-function

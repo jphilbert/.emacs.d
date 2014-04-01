@@ -217,7 +217,7 @@
 ;; -------------------- Python Frame ---------------------
 (add-to-list
  'special-display-regexps
- (list ".*\\*python.*\\*.*" 'display-default-frame
+ (list ".*\\*Python.*\\*.*" 'display-default-frame
        (list '(unsplittable . nil)
              '(horizontal-scroll-bars . nil)
              '(vertical-scroll-bars . nil)

@@ -24,7 +24,8 @@
 ;; Hooks
 ;; --------------------------------------------------------------------------
 (add-hook 'sql-mode-hook 'my-sql-mode-hook)
-(defun my-sql-mode-hook ()  
+(defun my-sql-mode-hook ()
+  (interactive)
   (require 'ac-sql)
   (add-to-list 'ac-sources 'ac-source-sql)
   
@@ -48,9 +49,10 @@
   (local-set-many-keys
    ;; ---------- Evaluation ----------
    [(shift return)]     'sql-eval
-   
-   ;; ---------- Completion ----------
-   (kbd "<tab>")        'completion-at-point
+
+   ;; ---------- Indent / Tabs ----------
+   (kbd "<C-tab>")	'tab-to-tab-stop-magic
+   (kbd "<tab>")        'sql-fix-indent
 
    ;; ---------- Frame Switching ----------
    [(f12)]              'switch-frame-current-sql
@@ -60,10 +62,12 @@
    ;; ---------- Help ----------
    (kbd "C-h w")   	'(lambda ()
 			   (interactive)
-			   (google-query-at-point t "SQL "))
+			   (google-query-at-point t (format "SQL %s "
+							    sql-product)))
    (kbd "C-h W")   	'(lambda ()
 			   (interactive)
-			   (google-query-at-point nil "SQL "))
+			   (google-query-at-point nil (format "SQL %s "
+							      sql-product)))
    "\C-hf"              'sql-tables
    "\C-he"              'sql-explain
    "\C-hv"              'sql-describe
@@ -193,6 +197,14 @@
   (interactive)
   (sql-eval-file SQL-ORACLE-Init-Path))
 
+(defun sql-fix-indent ()
+   "Fixes indents for a whole paragraph. Pretty much all one should need."
+   (interactive)
+   (save-excursion
+     (progn
+       (mark-paragraph)
+       (call-interactively 'indent-region))))
+
 ;; MS SQL FIX - REMOVED PASSWORD
 (defun sql-connect-ms ()
 "Create comint buffer and connect to Microsoft using the login
@@ -240,6 +252,7 @@ nil params))))
 
 (defun sql-tables (name-pattern owner-pattern)
   (interactive "sName: \nsOwner: ")
+  (sql-eval-init)
   (save-frame-excursion
    (sql-send-string
     (concat
@@ -256,6 +269,7 @@ nil params))))
 
 (defun sql-find-column (pattern)
   (interactive "sPattern: ")
+  (sql-eval-init)
   (save-frame-excursion 
    (sql-send-string
     (concat
@@ -267,10 +281,11 @@ nil params))))
     where
     column_name like '%" (upcase pattern) "%';"))))
 
-(defun sql-user-tables ()
-  (interactive)
+(defun sql-user-tables (pattern)
+  (interactive "sPattern: ")
+  (sql-eval-init)
   (save-frame-excursion 
-   (sql-send-string
+   (sql-send-string (concat 
     "SELECT
         table_name,
         round(sum(bytes)/(1024*1024),1) AS size_mb,
@@ -289,11 +304,13 @@ nil params))))
 	user_tab_comments using(table_name)
       WHERE
         segment_type = 'TABLE'
+	and
+	table_name like '%" (upcase pattern) "%'
       GROUP BY
         table_name,
 	COMMENTS
       order by
-        -size_mb;
+        table_name;
      SELECT
        tablespace_name,
        bytes / 1024 / 1024 as used_in_mb,
@@ -303,7 +320,7 @@ nil params))))
      FROM
        USER_TS_QUOTAS
      WHERE
-	max_bytes > 0;")))
+	max_bytes > 0;"))))
 
 (defun sql-user-functions ()
   (interactive)

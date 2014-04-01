@@ -36,6 +36,7 @@
 ;; --------------------------------------------------------------------------
 (add-hook 'ess-mode-hook		'my-r-mode-hook)
 (defun my-r-mode-hook ()
+  (interactive)
   (hs-minor-mode t)
   (add-to-list 'hs-special-modes-alist
 	       '(ess-mode "{" "}" "/[*/]" nil
@@ -55,8 +56,11 @@
    ;; ---------- Evaluation ----------
    [(shift return)]     'R-eval
    
-   ;; ---------- Completion ----------
-   (kbd "<tab>")	'ess-complete-object-name
+
+   ;; ---------- Indent / Tabs ----------
+   (kbd "<C-tab>")	'tab-to-tab-stop-magic
+   (kbd "<tab>")        'indent-for-tab-command
+   
    
    ;; ---------- Help ----------
    (kbd "C-h w")   	'(lambda ()
@@ -99,9 +103,6 @@
    [up]                 'comint-previous-input
    [down]               'comint-next-input
 
-   ;; ---------- Completion ----------
-   (kbd "<tab>")	'ess-complete-object-name
-
    ;; ---------- Help ----------
    (kbd "C-h w")   	'(lambda ()
 			   (interactive)
@@ -116,7 +117,7 @@
    "\C-hn"      	'R-object-names
    
    ;; ---------- Frame Switching ----------
-   [(f12)]              'switch-frame-next-R
+   [(f12)]              'switch-frame-previous
    [S-f12]		'R-process-new
 
    ;; ---------- Auto Pairing ----------
