@@ -36,7 +36,7 @@
   (flyspell-prog-mode)
   (ac-flyspell-workaround)
 
-  (setq ac-ignore-case nil)
+  ;; (setq ac-ignore-case t)
   
   (sql-set-product 'oracle)
 
@@ -198,38 +198,38 @@
   (sql-eval-file SQL-ORACLE-Init-Path))
 
 (defun sql-fix-indent ()
-   "Fixes indents for a whole paragraph. Pretty much all one should need."
-   (interactive)
-   (save-excursion
-     (progn
-       (mark-paragraph)
-       (call-interactively 'indent-region))))
+  "Fixes indents for a whole paragraph. Pretty much all one should need."
+  (interactive)
+  (save-excursion
+    (progn
+      (mark-paragraph)
+      (call-interactively 'indent-region))))
 
 ;; MS SQL FIX - REMOVED PASSWORD
-(defun sql-connect-ms ()
-"Create comint buffer and connect to Microsoft using the login
-parameters and command options."
-;; Put all parameters to the program (if defined) in a list and call
-;; make-comint.
-(let ((params sql-ms-options))
-(if (not (string= "" sql-server))
-(setq params (append (list "-S" sql-server) params)))
-(if (not (string= "" sql-database))
-(setq params (append (list "-d" sql-database) params)))
-(if (not (string= "" sql-user))
-(setq params (append (list "-U" sql-user) params)))
-;; (if (not (string= "" sql-password))
-;; 	(setq params (append (list "-P" sql-password) params))
-;;   (if (string= "" sql-user)
-;; 	  ;; if neither user nor password is provided, use system
-;; 	  ;; credentials.
-;; 	  (setq params (append (list "-E") params))
-;; 	;; If -P is passed to ISQL as the last argument without a
-;; 	;; password, it's considered null.
-;; 	(setq params (append params (list "-P")))))
-(print params)
-(set-buffer (apply 'make-comint "SQL" sql-ms-program
-nil params))))
+;; (defun sql-connect-ms ()
+;; "Create comint buffer and connect to Microsoft using the login
+;; parameters and command options."
+;; ;; Put all parameters to the program (if defined) in a list and call
+;; ;; make-comint.
+;; (let ((params sql-ms-options))
+;;   (if (not (string= "" sql-server))
+;;       (setq params (append (list "-S" sql-server) params)))
+;;   (if (not (string= "" sql-database))
+;;       (setq params (append (list "-d" sql-database) params)))
+;;   (if (not (string= "" sql-user))
+;;       (setq params (append (list "-U" sql-user) params)))
+;;   ;; (if (not (string= "" sql-password))
+;;   ;; 	(setq params (append (list "-P" sql-password) params))
+;;   ;;   (if (string= "" sql-user)
+;;   ;; 	  ;; if neither user nor password is provided, use system
+;;   ;; 	  ;; credentials.
+;;   ;; 	  (setq params (append (list "-E") params))
+;;   ;; 	;; If -P is passed to ISQL as the last argument without a
+;;   ;; 	;; password, it's considered null.
+;;   ;; 	(setq params (append params (list "-P")))))
+;;   (print params)
+;;   (set-buffer (apply 'make-comint "SQL" sql-ms-program
+;; 		     nil params))))
 
 
 ;; -----------------------------------------------------------------------------
@@ -338,9 +338,9 @@ nil params))))
 	owner = user;")))
 
 (defun sql-last-error ()
-(interactive)
-(save-frame-excursion 
-(sql-send-string
+  (interactive)
+  (save-frame-excursion 
+   (sql-send-region
  "set underline off;
 select *
 from SYS.USER_ERRORS
@@ -376,7 +376,7 @@ table(dbms_xplan.display('plan_table',null,'typical -cost -bytes -rows -partitio
  `(
    ;; Additional Functions
    (,(regexp-opt
-      "appendchildxml" "cardinality" "cluster_id" "cluster_probability"
+      '("appendchildxml" "cardinality" "cluster_id" "cluster_probability"
       "cluster_set" "collect" "corr_k" "corr_s" "cv" "deletexml" "empty_blob"
       "extractxml" "feature_id" "feature_set" "feature_value" "grouping"
       "insertchildxml" "insertxmlbefore" "instr2" "instr4" "instrb" "instrc"
@@ -390,7 +390,7 @@ table(dbms_xplan.display('plan_table',null,'typical -cost -bytes -rows -partitio
       "stats_t_test_one" "stats_t_test_paired" "stats_wsr_test" "substr2"
       "substr4" "substrb" "substrc" "timestamp_to_scn" "to_binary_double"
       "to_binary_float" "value" "xmlparse" "xmlpi" "xmlquery" "xmlroot"
-      "xmlserialize" "xmltable")
+      "xmlserialize" "xmltable"))
     .
     'font-lock-builtin-face)
    ;; Package Functions

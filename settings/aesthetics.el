@@ -36,16 +36,12 @@
 ;; Thanks to Juri Linkov <juri@jurta.org> + Drew Adams for the cursor changing
 ;;  code. 
 
-;; -----------------------------------------------------------------------------
-;; Require
-;; -----------------------------------------------------------------------------
-(require 'color-theme)
-(require 'lambda-mode)			; for various languages that support
-					; lambda functions
 
 ;; -----------------------------------------------------------------------------
-;; Code:
+;; General Settings
 ;; -----------------------------------------------------------------------------
+(pretty-lambda-for-modes)		; Lambda mode for all
+
 ;; Set the Font and Color
 (set-face-attribute             'default
                                 nil
@@ -65,9 +61,6 @@
 (menu-bar-mode                  0)      ; No Menu Bar
 (toggle-scroll-bar              nil)    ; no scroll bars
 
-
-;; Fix lambda-symbol
-(setq lambda-symbol (string (make-char 'greek-iso8859-7 107)))
 
 
 ;; --------------------------------------------------------------------------

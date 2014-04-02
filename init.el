@@ -5,7 +5,7 @@
 (defvar *emacs-load-start* (current-time))
 
 ;; maps path of emacs files
-(let ((default-directory "~/.emacs.d/packages/"))
+(let ((default-directory "~/.emacs.d/elpa/user/"))
       (normal-top-level-add-subdirs-to-load-path))
 (add-to-list 'load-path "~/.emacs.d/settings/")
 (add-to-list 'load-path "~/.emacs.d/settings/modes/")
@@ -94,7 +94,7 @@
 (add-hook 'tinyef-load-hook 'tinyef-minibuffer-define-key-extras)
 (setq tinyeat--load-hook '(tinyeat-install))
 
-(require 'ac-R)
+
 ;; ----------------------------------------------------------------------------
 ;; Auto Indent
 ;; ----------------------------------------------------------------------------
@@ -266,11 +266,6 @@ out it knowing."
 ;; just don't know how to use this yet...
 ;; (require 'egg nil t)
 ;; (require 'gist nil t)
-
-
-
-(require 'dired+)			; DIRED+ (used?)
-(toggle-diredp-find-file-reuse-dir 1)
 
 (require 'expand-region)		; Expand regions
 

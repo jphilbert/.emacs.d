@@ -13,13 +13,10 @@
   (hs-minor-mode t)
   (hs-hide-all)
   (flyspell-prog-mode)
-
-  (lambda-mode 1)
   
   (add-to-list 'ac-sources 'ac-source-functions)
   (add-to-list 'ac-sources 'ac-source-variables)
   ;; (add-to-list 'ac-sources 'ac-source-symbols)
-
   
   ;; -------------------- Key bindings --------------------
   (local-set-many-keys

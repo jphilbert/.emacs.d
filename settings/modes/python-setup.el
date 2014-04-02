@@ -18,8 +18,6 @@
   (jedi:setup)
   (auto-complete)
   
-  (lambda-mode 1)
-  
   (hs-minor-mode t)
   (auto-indent-minor-mode -1)
   
@@ -46,6 +44,7 @@
    (kbd "C-h W")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "Python "))
+   (kbd "C-h f")   	'jedi:show-doc
    
    ;; ---------- Frame Switching ----------
    [(f12)]              'switch-frame-current-python
@@ -67,9 +66,7 @@
   (jedi:setup)
 
   (text-scale-set -1.1)
-
-  (lambda-mode 1)
-
+  
   ;; --------------------------------------------------------------------------
   ;; Key-binding
   ;; --------------------------------------------------------------------------

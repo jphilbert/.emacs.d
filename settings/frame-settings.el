@@ -141,6 +141,16 @@
 	     '(top . 10)
 	     (cons 'left (/ (x-display-pixel-width) 2)))))
 
+;; -------------------- Help Frame ---------------------
+(add-to-list
+ 'special-display-regexps
+ (list ".*\\*.*jedi.*\\*.*" 'display-default-frame
+       (list '(horizontal-scroll-bars . nil)
+	     '(vertical-scroll-bars . nil)
+	     '(height . 10)
+	     '(top . 10)
+	     (cons 'left (/ (x-display-pixel-width) 2)))))
+
 ;; -------------------- Occur Frame --------------------
 (add-to-list
  'special-display-regexps
