@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1998-2010 Jari Aalto
+;; Copyright (C)    1998-2013 Jari Aalto
 ;; Keywords:        extensions
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -69,6 +69,8 @@
 
 ;;; .......................................................... provide ...
 
+(eval-when-compile (require 'cl))
+
 (require 'tinyliba)
 (provide 'tinylibb)
 
@@ -77,7 +79,7 @@
 (eval-and-compile
   (autoload 'ti::replace-match "tinylibm"))
 
-(defconst tinylibb-version-time "2010.1208.0755"
+(defconst tinylibb-version-time "2013.0613.1819"
   "Latest version number as last modified time.")
 
 ;;; ....................................................... &emulation ...
@@ -140,13 +142,13 @@ PAD says to padd hex string with leading zeroes."
   "Convert STR according to BASE."
   (let ((case-fold-search t)
         (n 0))
-    (mapc '(lambda (c &optional i)
-	     (setq i (string-match
-		      (make-string 1 c)
-		      "0123456789abcdefghijklmnopqrstuvwxyz"))
-	     (if (>= (or i 65536) base)
-		 (error "%c illegal in base %d" c base))
-	     (setq n (+ (* n base) i)))
+    (mapc (lambda (c &optional i)
+	    (setq i (string-match
+		     (make-string 1 c)
+		     "0123456789abcdefghijklmnopqrstuvwxyz"))
+	    (if (>= (or i 65536) base)
+		(error "%c illegal in base %d" c base))
+	    (setq n (+ (* n base) i)))
 	  (append str nil))
     n))
 
@@ -268,7 +270,7 @@ count-lines function , but (count-char-in-region ?\\n)"
       (goto-char (min beg end))
       (while (search-forward char end  t)
         (incf  i)))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (message "%d hits in region." i))
     i))
 
@@ -315,6 +317,10 @@ Default is to convert all tabs in STRING with spaces."
   (defvar shell-command-output-buffer "*Shell Command Output*"))
 
 ;;; ........................................................... &other ...
+
+(unless (fboundp 'called-interactively-p) ;23.2
+  (defmacro called-interactively-p (&rest args)
+    `(called-interactively-p 'interactive)))
 
 (unless (fboundp 'with-buffer-modified)
   ;;  Appeared in Emacs 21.2

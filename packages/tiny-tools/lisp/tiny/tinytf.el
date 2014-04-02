@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1997-2010 Jari Aalto
+;; Copyright (C)    1997-2013 Jari Aalto
 ;; Keywords:        wp
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -86,7 +86,7 @@
 ;;
 ;; For example this lisp file's documentation can be converted into HTML
 ;; with following command sequence. t2html is available at
-;; <http://freshmeat.net/projects/perl-text2html>.
+;; <http://freecode.com/projects/perl-text2html>.
 ;;
 ;;      % ripdoc.pl tinytf.el | t2html.pl > tinytf.html
 ;;
@@ -115,7 +115,7 @@
 ;;      suitable and more known than any of those exotic formats. The
 ;;      project started by creating the tool that converted text into
 ;;      HTML (Perl *t2html.pl*
-;;      <http://freshmeat.net/projects/perl-text2html>) and then
+;;      <http://freecode.com/projects/perl-text2html>) and then
 ;;      writing a Emacs package to help writing the text files. It has
 ;;      been proven to be really nice combination where flexibility
 ;;      meets cross-platform demands.
@@ -168,14 +168,14 @@
 ;;
 ;;	You can convert text file into HTML very easily with the perl
 ;;      script which is availale separately at
-;;      <http://freshmeat.net/projects/perl-text2html>. You do not
+;;      <http://freecode.com/projects/perl-text2html>. You do not
 ;;      need to know a thing about the HTML language itself. It is
 ;;      much easier to update text files, than deal with HTML itself.
 ;;      When you have text ready, you just feed it to the `t2html.pl'
 ;;      perl script and it gives you nicely formatted HTML page.
 ;;      Writing HTML home pages is different story, because you
 ;;      usually want to include some graphics, JavaScript, PHP or JSP
-;;      in the page. But aputting some text document available in HTML
+;;      in the page. But putting some text document available in HTML
 ;;      format is easily made possible with this package.
 ;;
 ;;      On the other hand, while you may not be interested in HTML, you
@@ -1734,7 +1734,7 @@ This is low level check. Use `tinytf-text-format-ok-p' instead."
             (or (tinytf-text-format-ok-p-test-toc)
                 (tinytf-text-format-ok-p-test-headings)
                 (tinytf-text-format-ok-p-test-heading-and-text))))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (if (null ret)
             (message "Tinytf: No TF formattting found in this buffer.")
           (message "Tinytf: Found TF format location [%s]" ret)))
@@ -3055,7 +3055,7 @@ Return
   (let ((word-skip "^ ,.;\n\r\t\f")
 	beg
 	end)
-    (flet ((marker   (beg skip)
+    (cl-flet ((marker   (beg skip)
                      (save-excursion
                        (skip-chars-forward skip)
                        (list

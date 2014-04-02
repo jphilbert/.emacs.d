@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C) 1997-2010 Jari Aalto
+;; Copyright (C) 1997-2013 Jari Aalto
 ;; Keywords:     emulations
 ;; Author:       Jari Aalto
 ;; Maintainer:   Jari Aalto
@@ -234,7 +234,7 @@ Mode description:
 ;;;
 (defadvice switch-to-buffer  (after tipad act)
   "Turn on `tinypad-mode' if if global Pad mode is non-nil."
-  (when (and (interactive-p)
+  (when (and (called-interactively-p 'interactive)
              (get 'tinypad-mode 'global)
              (null tinypad-mode))
     (setq tinypad-mode 1)))

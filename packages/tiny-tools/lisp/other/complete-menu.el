@@ -5,7 +5,7 @@
 ;; This file is not part of Emacs
 
 ;; Copyright (C) 1993 Alon Albert
-;; Copyright (C) 1997-2010 Jari Aalto
+;; Copyright (C) 1997-2013 Jari Aalto
 ;; Author:       Alon Albert <alon@milcse.rtsg.mot.com>
 ;; Maintainer:   Jari Aalto
 ;; Created:      1993-12-07
@@ -391,7 +391,7 @@ Note: installation is only possible in X envinronment."
          (nfun  'cm-minibuffer-completion-help))
 
     (or verb
-        (setq verb (interactive-p)))
+        (setq verb (called-interactively-p 'interactive)))
 
     (if (null window-system)
         (if verb

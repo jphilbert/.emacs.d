@@ -2,7 +2,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1995-2010 Jari Aalto
+;; Copyright (C)    1995-2013 Jari Aalto
 ;; Keywords:        extensions
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -84,7 +84,7 @@
 
 (require 'tinylibb)                     ;Backward compatible functions
 
-(defconst tinylibm-version-time "2010.1208.0756"
+(defconst tinylibm-version-time "2013.0613.1825"
   "Latest version number.")
 
 ;;{{{ function tests
@@ -314,7 +314,7 @@ This FORM preserves restriction and excursion with one command."
 ;;; first time with if.
 ;;;
 (defmacro ti::nconc (list x)
-  "Add to LIST element X. Like nconc, but can also add to empty list.
+  "Add to LIST element X. Like nconc, but can also add to an empty list.
 Using `nconc' is faster than `append'"
   `(setq ,list
 	 (nconc ,list (list ,x))))
@@ -425,9 +425,9 @@ Purpose:
 
   The 'verb' is meant to be used in function when it decides if
   should print verbose messages. This is different that using
-  simple (interactive-p) test, because (interactive-p) is only set
+  simple (called-interactively-p 'interactive) test, because (called-interactively-p 'interactive) is only set
   if the function is really called interactively. For complete
-  description why (interactive-p) est alone is not always the solution
+  description why (called-interactively-p 'interactive) est alone is not always the solution
   refer to ftp://cs.uta.fi/pub/ssjaaa/ema-code.html under heading
   that discusses about 'funtion and displaying messages'
 
@@ -447,7 +447,7 @@ Example:
     ..code
     (if verb
         (message 2)))"
-  `(setq verb (or verb (interactive-p))))
+  `(setq verb (or verb (called-interactively-p 'interactive))))
 
 ;;; ----------------------------------------------------------------------
 ;;;
@@ -2676,7 +2676,7 @@ Following variables are set during BODY:
 
 `dir'      Directrory name
 `dir-list' All directories under `dir'."
-  `(flet ((recurse
+  `(cl-flet ((recurse
            (dir)
            (let ((dir-list (ti::directory-list dir)))
              ,@body

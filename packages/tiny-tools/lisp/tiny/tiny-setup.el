@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    2001-2010 Jari Aalto
+;; Copyright (C)    2001-2013 Jari Aalto
 ;; Keywords:        extensions
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -582,7 +582,7 @@ options with command \\[tiny-setup-display]
                                                 |        Option 1.
                                                 Package."
   (interactive)
-  (when (and (interactive-p)
+  (when (and (called-interactively-p 'interactive)
              (eq type nil)
              (eq option-list nil))
     (setq type 'all))

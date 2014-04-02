@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C) 1996-2010 Jari Aalto
+;; Copyright (C) 1996-2013 Jari Aalto
 ;; Keywords:     extensions
 ;; Author:       Jari Aalto
 ;; Maintainer:   Jari Aalto
@@ -416,7 +416,7 @@ removes line numbers."
   "Return current settings."
   (interactive)
   (let ((stat (nth 1 lpr-switches)))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (message stat))
     stat))
 

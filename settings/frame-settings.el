@@ -240,6 +240,20 @@
 	     `(left . ,(+ 30 Multi-Window-Terminal-Window-Left)))))
 
 
+;; -------------------- Package Frame ---------------------
+;; (add-to-list
+;;  'special-display-regexps
+;;  (list ".*\\*Packages.*\\*.*" 'display-default-frame
+;;        (list '(unsplittable . nil)
+;;              '(horizontal-scroll-bars . nil)
+;;              '(vertical-scroll-bars . nil)
+;;              `(height . ,Multi-Window-Default-Window-Height)
+;;              `(width . ,(+ 100 Multi-Window-Default-Window-Width))
+;; 	     `(top . ,Multi-Window-Terminal-Window-Top)
+;; 	     `(left . ,(- 100 Multi-Window-Terminal-Window-Left)))))
+     
+
+
 
 
 (provide 'frame-settings)

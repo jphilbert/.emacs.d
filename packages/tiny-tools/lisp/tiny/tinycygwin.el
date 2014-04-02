@@ -2,7 +2,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    2004-2010 Jari Aalto
+;; Copyright (C)    2004-2013 Jari Aalto
 ;; Keywords:        extensions
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -2686,7 +2686,7 @@ Notice that the values may be missing if no such fields were found."
          version
          release
          ret)
-    (flet ((push-ret (tag value function)
+    (cl-flet ((push-ret (tag value function)
                      (when (and value
                                 (setq value (funcall function value)))
                        (push (list tag value) ret))))
@@ -3579,7 +3579,7 @@ INFO is alist of package's attributes. FILE-LIST are files to attach."
           (tinycygwin-bug-report-ask-type))))))
   (tinycygwin-debug
    (message "TinyCygwin: mail-mail info %s" (prin1-to-string info)))
-  (let ((error (unless (interactive-p)
+  (let ((error (unless (called-interactively-p 'interactive)
                  (tinycygwin-smtp-setup-error))))
     (unless error
       (tinycygwin-debug

@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1997-2010 Jari Aalto
+;; Copyright (C)    1997-2013 Jari Aalto
 ;; Keywords:        extensions
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -1016,7 +1016,7 @@ If `tinyurl--mode-global-turned-off' is set, do nothing."
   "Turn URL mode on for this buffer only."
   (interactive)
   (unless tinyurl-mode
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (setq tinyurl--mode-manually-turned-off nil))
     (tinyurl-mode-1 1)))
 
@@ -1026,7 +1026,7 @@ If `tinyurl--mode-global-turned-off' is set, do nothing."
   "Turn URL mode off for this buffer only."
   (interactive)
   (when tinyurl-mode
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (setq tinyurl--mode-manually-turned-off t))
     (tinyurl-mode-1 0)))
 
@@ -1066,7 +1066,7 @@ If you want to turn on or off globally, use function `tinyurl-mode'."
   (unless tinyurl-mode                  ;Cleanup overlays on exit
     (tinyurl-overlay-kill-in-buffer)
     (tinyurl-overlay-kill))
-  (when (interactive-p)
+  (when (called-interactively-p 'interactive)
     (setq tinyurl--mode-manually-turned-off (not tinyurl-mode)))
   tinyurl-mode)
 
@@ -1776,7 +1776,7 @@ References:
            (not (eq t (setq ret (run-hook-with-args-until-success
                                  'tinyurl--validate-hook url)))))
       (if (not (stringp ret))
-          (message "TinyUrl: url ignored. See tinyurl:-url-validate-hook")
+          (message "TinyUrl: url ignored. See tinyurl--validate-hook")
         (message ret)))
      (t ;; it's ok
       (when current-prefix-arg

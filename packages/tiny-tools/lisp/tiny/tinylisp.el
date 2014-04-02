@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1997-2010 Jari Aalto
+;; Copyright (C)    1997-2013 Jari Aalto
 ;; Keywords:        tools
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -320,7 +320,7 @@
 ;;
 ;;  Elp: Summary mode's sort capabilities
 ;;
-;;      When you call `$' ´E' `s' to show the elp result(s), the results
+;;      When you call `$' `E' `s' to show the elp result(s), the results
 ;;      buffer is put into `tinylisp-elp-summary-mode' where you can sort
 ;;      the columns with simple keystrokes. The sort keys correspond to the
 ;;      column names.
@@ -399,6 +399,7 @@
 (ti::package-require-view) ;; TinyLisp must be first in the minor-mode-list
 
 (eval-when-compile
+  (require 'elp)    ;; For elp-results-buffer
   (require 'advice) ;; For apropos.el
   ;; XEmacs 21.2 NT had a problem loading the edug.el. After
   ;; debug.el was loaded first, the edebug.el load succeeded.
@@ -413,11 +414,19 @@
   ;;  we're doing below. Emulation in handled in tinylibb.el
   (put 'frame-parameters 'byte-compile nil))
 
+
 (eval-and-compile
   (autoload 'tinypath-cache-match-fullpath  "tinypath")
-  (autoload 'remprop                        "cl-extra")
   (autoload 'edebug-eval-defun              "edebug" "" t)
+  (autoload 'eval-defun                     "edebug """ t) ;; alias
   (autoload 'generate-file-autoloads        "autoload")
+  (autoload 'ad-has-any-advice              "advice")
+  (autoload 'ad-is-active                   "advice")
+  (autoload 'elp-restore-all		    "elp")
+  (autoload 'elp-reset-all		    "elp")
+  (autoload 'elp-restore-function	    "elp")
+  (autoload 'elp-restore-list	            "elp")
+  (autoload 'elp-set-master	            "elp")
   ;; Silence bytecompiler
   (defvar edebug-all-defs)
   (defvar folding-mode)
@@ -844,7 +853,7 @@ the minor mode in every Emac slisp buffer."
   :group 'TinyLisp)
 
 (defcustom tinylisp--with-current-buffer-hook '(turn-on-tinylisp-mode)
-  "*Hook run after ´tinylisp-with-current-buffer'."
+  "*Hook run after `tinylisp-with-current-buffer'."
   :type  'hook
   :group 'TinyLisp)
 
@@ -867,7 +876,8 @@ The default command is `macroexpand'."
 
 (defcustom tinylisp--table-reverse-eval-alist
   '((add-hook       . remove-hook)
-    (remove-hook    . add-hook))
+    (remove-hook    . add-hook)
+    (global-set-key . global-unset-key))
   "*Table of reverse commands. Format '((ORIG-FSYM . REVERSE-FSYM) ..)."
   :type  'sexp
   :group 'TinyLisp)
@@ -965,7 +975,7 @@ element from the list is removed.")
 
 (defconst tinylisp--regexp-function
   (concat
-   "^(\\("
+   "^[ \t]*(\\("
    ;;  cl DEFINES defun* macro
    (regexp-opt
     '("defun"
@@ -1499,10 +1509,10 @@ r   Reset timing list.")
      (?a  . ( (call-interactively 'tinylisp-ad-match)))
      (?e  . ( (call-interactively 'tinylisp-library-info-emacs)))
      (?f  . ( (call-interactively 'tinylisp-library-symbol-information)))
-     (?o  . ( (call-interactively 'tinylisp-find-match-from-hooks)))
      (?l  . ( (call-interactively 'tinylisp-find-buffer-local-variables)))
-     (?v  . ( (call-interactively 'tinylisp-find-match-from-variables)))
+     (?o  . ( (call-interactively 'tinylisp-find-match-from-hooks)))
      (?s  . ( (call-interactively 'ti::system-describe-symbols)))
+     (?v  . ( (call-interactively 'tinylisp-find-match-from-variables)))
      (?/  . tinylisp--menu-main)))
   "Display information about lisp symbols in Emacs
 
@@ -1512,16 +1522,15 @@ q   Quit menu
 a   List all adviced functions that match advice NAME. E.g. to find all
     `my' advices.
 
-e   Show all libraries and symbols loaded into Emacs known by `load-history'.
+A   List autoload functions.
+
+e   List all libraries and symbols loaded into Emacs known by `load-history'.
 
 f   Describe file symbols. Gather all documentation from symbols in FILE.
     You have to load the file into Emacs first (eval it with \\[load-file]),
     because this function reads the documentation properties from memory.
 
-l   Decribe library symbols. This is like `f', but you do not need to give
-    the full path name, but the file will be located along `load-path'.
-
-L   Show buffer local variables.
+l   List buffer local variables.
 
 o   Search a match from contents of all -hook -function -functions symbols
     E.g. you can locate all hooks that have function matching 'my'.
@@ -1715,12 +1724,7 @@ l       List all known instrumented functions.")
         ((eq spell  'interactive)   "sI")
         ((eq spell  t)              "S")
         ((null spell)               "")
-        (t                          "s?"))
-       (let ((sym 'checkdoc-triple-semi-comment-check-flag))
-         (if (and (boundp sym)
-                  (symbol-value sym))
-             "T"
-           ""))))
+        (t                          "s?"))))
     ((?\    . ( (checkdoc-eval-defun)))
      (?\177 . ( (tinylisp-checkdoc)))
      (?\b   . ( (tinylisp-checkdoc)))
@@ -1744,14 +1748,7 @@ l       List all known instrumented functions.")
      (?d    . (t (progn (setq  checkdoc-spellcheck-documentation-flag
                                'defun))))
      (?r    . (t (progn (setq  checkdoc-spellcheck-documentation-flag
-                               'buffer))))
-     (?T    . (t (progn
-                   (when (boundp 'checkdoc-triple-semi-comment-check-flag)
-                     (setq  checkdoc-triple-semi-comment-check-flag t)))))
-     (?t    . (t (progn
-                   (when (boundp 'checkdoc-triple-semi-comment-check-flag)
-                     (setq checkdoc-triple-semi-comment-check-flag
-                           nil)))))))
+                               'buffer))))))
   "According to checkdoc manual:
 ...The Emacs Lisp manual has a nice chapter on how to write
 documentation strings.  Many stylistic suggestions are fairly
@@ -1761,9 +1758,9 @@ checks needed to make sure these styles are remembered.
 
 The echo area menu shows following status information
 
-  [-|O|E|V|S|T] checkdoc:
-   | | | | | |
-   | | | | | `checkdoc-triple-semi-comment-check-flag'
+  [-|O|E|V|S] checkdoc:
+   | | | | |
+   | | | | |
    | | | | `checkdoc-spellcheck-documentation-flag'
    | | | `checkdoc-verb-check-experimental-flag'
    | | `checkdoc-arguments-in-order-flag'
@@ -1787,7 +1784,6 @@ Aa~-    Change `checkdoc-autofix-flag'       A)uto a)semi ~)query -)never
 Bb      Change `checkdoc-bouncy-flag'                     B)on b)off
 Oo      Change `checkdoc-arguments-in-order-flag'         O)n  o)ff
 Ee      Change `checkdoc-verb-check-experimental-flag'    E)on e)off
-Tt      Change `checkdoc-triple-semi-comment-check-flag'  T)on t)off
 Ssdr    Change checkdoc-spellcheck-documentation-flag'
         s)off S)interactive d)efun r)buffer
 
@@ -1846,20 +1842,6 @@ Ssdr    Change checkdoc-spellcheck-documentation-flag'
     'interactive - Spell-check only during `checkdoc-interactive'
     t            - Always spell-check
 
-`checkdoc-triple-semi-comment-check-flag'
-
-    Non-nil means to check for multiple adjacent occurrences of ;;; comments.
-    According to the style of Emacs code in the lisp libraries, a block
-    comment can look like this:
-
-    ;;; Title
-    ;;  text
-    ;;  text
-
-    But when inside a function, code can be commented out using the ;;;
-    construct for all lines.  When this variable is nil, the ;;; construct
-    is ignored regardless of it's location in the code.
-
 Auto-fixing:
 
     There are four classifications of style errors in terms of how
@@ -1915,14 +1897,14 @@ Following variables are set during BODY:
 
 `dir'      Directrory name
 `dir-list' All directories under `dir'."
-  `(flet ((recurse
-           (dir)
-           (let ((dir-list (tinylisp-directory-list dir)))
-             ,@body
-             (when dir-list
-               (dolist (elt dir-list)
-                 (unless (string-match tinylisp--ignore-dir-regexp elt)
-                   (recurse elt)))))))
+  `(cl-flet ((recurse
+	      (dir)
+	      (let ((dir-list (tinylisp-directory-list dir)))
+		,@body
+		(when dir-list
+		  (dolist (elt dir-list)
+		    (unless (string-match tinylisp--ignore-dir-regexp elt)
+		      (recurse elt)))))))
      (recurse ,directory)))
 
 ;;; ----------------------------------------------------------------------
@@ -2047,11 +2029,9 @@ If function does not exist or is string cannot be read, then return nil
                       (match-string 2 string)))))
      ;;  Read first word then
      ((setq sym (ti::string-match "[^()'\",.; \t\n\]+" 0 string))
-
       ;;  Delete trailing garbage "this-function:" --> "this-function"
       (if (string-match "\\(.*\\)[^a-zA-Z0-9*]$" sym)
           (setq sym (match-string 1 sym)))
-
       (setq sym (intern-soft sym))))
     sym))
 
@@ -2076,6 +2056,7 @@ Optionally POP. VERB prints message."
 ;;; ----------------------------------------------------------------------
 ;;;
 (put 'tinylisp-symbol-do-macro 'lisp-indent-function 2)
+(put 'tinylisp-symbol-do-macro 'edebug-form-spec '(body))
 (defmacro tinylisp-symbol-do-macro (string noerr &rest body)
   "Execute body if STRING is interned.
 Input:
@@ -2496,9 +2477,9 @@ That usually means that symbol is not yet defined to obarray."
 (defun tinylisp-read-symbol-at-point ()
   "Read function name around point.
 
-o  Check if cursor is at the beginning of line whitespace
-   and sees ' +(', then valuate next statement
-o  Go backward to opening parenthesis and evaluate command.
+-  Check if cursor is at the beginning of line matching
+   ' +('. Use it.
+-  Go backward to opening parenthesis.
 
 Return:
  (point function-name-string statement)"
@@ -2507,12 +2488,15 @@ Return:
 	point
 	func
 	statement)
+    (when (and word
+	       (string-match "^[ \t]*$\\|\\\\" word)) ; "\\C-m"
+      (setq word nil))
     (save-excursion
       (cond
        ((and (stringp word)
 	     (intern-soft word))
         (skip-chars-backward "^( \t\r\n"))
-       ((line-end-position) ;;move to opening paren in this line
+       ((goto-char (line-end-position)) ;;move to opening paren in this line
         (re-search-backward "(" (line-beginning-position) t))
        (t
         ;;   if there is whitespace  '^      (autoload 'tinylisp-mode...'
@@ -2527,13 +2511,13 @@ Return:
             (goto-char opoint))))
       (when (and (tinylisp-backward-opening-paren)
                  (setq point (point))
+		 ;; Move over first character
                  (re-search-forward "[^ \t\n(]" nil t))
-
         (setq func (or word (tinylisp-read-word)))
         (goto-char point)
         (ignore-errors                  ;In comment; this breaks.
           (forward-sexp 1)
-          (setq statement (buffer-substring point (point))))
+          (setq statement (buffer-substring-no-properties point (point))))
         (if statement
             (list point func statement))))))
 
@@ -3001,7 +2985,7 @@ Input:
   (interactive)
   (let ((func (ti::buffer-defun-function-name)))
     (if (not func)
-        (message "TinyLisp: ELP,  Can't find function name.")
+        (message "TinyLisp: ELP, Can't find function name.")
       (tinylisp-symbol-do-macro func nil
 	(elp-restore-function func))
       (message (format "TinyLisp: ELP, restored [%s]" func)))))
@@ -3358,7 +3342,7 @@ References:
                      (tinylisp-read-word)))
 
   (let ((f-re
-	 (concat "^(\\(defun\\*?\\|defmacro\\*?\\|defsubst\\|deffoo"
+	 (concat "^[ \]*(\\(defun\\*?\\|defmacro\\*?\\|defsubst\\|deffoo"
 		 "\\|defun-maybe\\|defsubst-maybe"
 		 "\\|define-derived-mode\\|define-minor-mode"
 		 "\\|defalias\\|fset"
@@ -3490,7 +3474,9 @@ References:
               (setq point nil)          ;Clear flag
               (message "TinyLisp: Strange... cant't find definition: %s"
                        word)
-	      ;;  Try approximation: "(WORD"  or "(setq WORD ...)"
+	      ;;  Try approximation:
+	      ;;    First function call: (WORD ...)
+	      ;;    First variable setting: (setq WORD ...)
 	      (let ((re (format "(%s\\>\\|\\<%s\\>" word word)))
 		(if (re-search-forward re nil t)
 		    (goto-char (match-beginning 0))))
@@ -3556,7 +3542,7 @@ See `tinylisp-jump-to-definition'. VERB."
 (defun tinylisp-backward-user-option ()
   "See `tinylisp-forward-user-option'."
   (interactive)
-  (tinylisp-forward-user-option 'back (interactive-p)))
+  (tinylisp-forward-user-option 'back (called-interactively-p 'interactive)))
 
 ;;; ----------------------------------------------------------------------
 ;;;
@@ -3595,7 +3581,7 @@ See `tinylisp-jump-to-definition'. VERB."
              (or
               (and (not (string-match "defun" type))
                    (boundp sym)         ;Then check is easy
-                   (user-variable-p sym))
+                   (custom-variable-p sym))
               (and (string-match "defun" type)
                    (fboundp sym)
                    (commandp sym))))
@@ -3976,7 +3962,7 @@ If current buffer has no file, call `tinylisp-eval-current-buffer'."
 ;;; ----------------------------------------------------------------------
 ;;;
 (defun tinylisp-eval-reverse ()
-  "Search backward for opening parenthesis and Reverse the statement.
+  "Search backward for opening parenthesis and reverse the statement.
 See variable `tinylisp--table-reverse-eval-alist'"
   (interactive)
   (let ((stat  (tinylisp-read-symbol-at-point))
@@ -3997,10 +3983,12 @@ See variable `tinylisp--table-reverse-eval-alist'"
 		statement (nth 2 stat))
 	  ;; Do some special handling, e.g. add hook may have
 	  ;; additional argument 'add , remove it.
-	  (when (string-match "add-hook +[^ ]+ +[^ ]+\\( +[^ )]+\\))"
-			      statement)
+	  (cond
+	   ((string-match "add-hook +[^ ]+ +[^ ]+\\( +[^ )]+\\))"
+			  statement)
 	    (setq statement (ti::replace-match 1 "" statement)))
-
+	   ((string-match "(global-set-key[^[\"]+.[^[\"]+." statement)
+	    (setq statement (concat (match-string 0 statement) ")"))))
 	  (tinylisp-eval str1 str2 'string statement)
 	  (message "TinyLisp: evaled as %s" str2))))))
 
@@ -4038,7 +4026,7 @@ Output line format:
 
   [!] If you see exclamation mark then it means that you have mixed
   defsubst and interactive function, which is very dangerous situation,
-  because when function is in-lined the (interactive-p) tests from functions
+  because when function is in-lined the (called-interactively-p 'interactive) tests from functions
   are in-lined too. Check that you really want to do in-lining for
   interactive functions.
 
@@ -4055,8 +4043,8 @@ return:
 
  '((type-string . name) ...)"
   (interactive)
-  (let ((re     tinylisp-:regexp-function)
-	(buffer tinylisp-:buffer-data)
+  (let ((re     tinylisp--regexp-function)
+	(buffer tinylisp--buffer-data)
 	(loop   t)
 	list
 	type
@@ -4100,9 +4088,12 @@ return:
 
 			    (cdr var)
 			    (or str ""))))
+	  (ti::pmin)
+	  (while (re-search-forward "[ \t]+$" nil t)
+	    (replace-match ""))		;  Clean EOL witespace
 	  (pop-to-buffer (current-buffer))
 	  (ti::pmin)
-	  (run-hooks 'tinylisp-:find-func-list-hook)))
+	  (run-hooks 'tinylisp--find-func-list-hook)))
     list))
 
 ;;; ----------------------------------------------------------------------
@@ -4123,7 +4114,7 @@ to your M - x xxx-submit-bug-report function's variable list.
 the appearing list will wave defvar's first, then defconst.
 
 input:
-  SHOW-TYPE     if non-nil, then show `user-variable-p' and
+  SHOW-TYPE     if non-nil, then show `custom-variable-p' and
                 `defcustom' information too."
   (interactive "p")
   (let ((re     tinylisp--regexp-variable)
@@ -4157,7 +4148,7 @@ input:
                   str  ";; #symbol not found")
             (tinylisp-symbol-do-macro sym 'noerr
 	      (setq str "")
-	      (if (user-variable-p sym)
+	      (if (custom-variable-p sym)
 		  (setq str "user variable"))
 	      (if (string= type "defcustom")
 		  (setq str (concat str " defcustom")))
@@ -4214,7 +4205,7 @@ and function definitions."
     (unless feature-name
       (load file))
     (with-current-buffer (ti::system-get-file-documentation file verb)
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
 	  (display-buffer (current-buffer)))
       (turn-on-tinylisp-mode))))
 
@@ -4286,7 +4277,7 @@ Return:
 	    (format "%s ..." (ti::string-left (prin1-to-string pkg) 80)))))
 	(if verb
 	    (message "TinyLisp: lib info %d/%d %s" i max name))
-	(incf  i)x
+	(incf  i)
 	(setq dep-list  nil
 	      pkg       nil)))
     (tinylisp-with-current-buffer buffer
@@ -4302,7 +4293,7 @@ Return:
 ;;; ----------------------------------------------------------------------
 ;;;
 (defun tinylisp-read-something ()
-  "Position point to over some words near point."
+  "Position point to over some word near point."
   (save-excursion
     (if (looking-at "[ \t\n]")          ;only spaces ahead?
         (ti::read-current-line)
@@ -4310,7 +4301,7 @@ Return:
       (unless (char-equal (following-char) ?\( )
         (re-search-backward "[( \t\n]" nil t)
         (skip-chars-forward " \t\n")))
-    (buffer-substring (point) (line-end-position))))
+    (buffer-substring-no-properties (point) (line-end-position))))
 
 ;;; ----------------------------------------------------------------------
 ;;;
@@ -4439,7 +4430,7 @@ Return:
 	file
 	buffer)
     (when list
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
         (setq file (car list))
         (if (> (length list) 1)
             (setq file
@@ -5013,7 +5004,7 @@ If VERB is non-nil, display verbose messages."
     (when (setq list (tinylisp-directory-file-list dir exclude))
       (tinylisp-autoload-generate-loaddefs-file-list
        list
-       (or verb (interactive-p))))))
+       (or verb (called-interactively-p 'interactive))))))
 
 ;;; ----------------------------------------------------------------------
 ;;;
@@ -5584,7 +5575,7 @@ VERB                    verbose flag"
 (defun tinylisp-find-buffer-local-variables (&optional buffer)
   "Print buffer local variables to BUFFER."
   (interactive)
-  (flet ((my-sort2
+  (cl-flet ((my-sort2
           (list)
           (sort list
                 (function
@@ -5751,7 +5742,7 @@ Flags when viewing, editing echo-area:
        (save
         (put elt prop (symbol-value elt)))
        (kill
-        (remprop elt prop))
+        (cl-remprop elt prop))
        (restore
         (set elt (get elt prop)))
        (reset
@@ -6184,7 +6175,7 @@ function `lm-verify', which you should run in your package. It helps
 ensuring that you have all the proper keywords in place. Here is rough
 valid layout format:
 
-    ;; XXX.el -- proper first line
+    ;;; XXX.el -- proper first line
 
     ;; Author
     ;; Maintainer
@@ -6195,17 +6186,10 @@ valid layout format:
     ;;; Change Log:
     ;;; Code:
 
-    ;;; XXX.el ends here
-
-See unix what(1) and GNU RCS indent(1) why you should adopt a style where
-you use @(#) and $Keywords$."
+    ;;; XXX.el ends here"
   (interactive)
   (require 'lisp-mnt)
-  (if (not (string= (symbol-value 'lm-history-header)
-                    "Change Log\\|History"))
-      (message "\
-TinyLisp: your lisp-mnt.el is too old to have improved checking. Get newer.")
-    (call-interactively 'lm-verify)))
+  (call-interactively 'lm-verify))
 
 ;;}}}
 ;;{{{ lisp-mnt.el

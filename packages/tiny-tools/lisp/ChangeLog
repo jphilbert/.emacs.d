@@ -1,3 +1,462 @@
+2013-11-27 Wed  Jari Aalto  <jari.aalto@tamk.fi>
+
+	* tiny/tinysearch.el: Remove folding. Remove function headers.
+	(tinysearch-function-ours-p): New.
+	(tinysearch-install-default-keybindings): check binding name before
+	displaying messages.
+
+2013-09-07 Sat  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinymacro.el:
+	- Remove. Move to epackage at Github.
+	- Clean up comments.
+	(tinymacro-keymap-function-bind-info): New. Remove
+	tinylib dependency.
+	(tinymacro--version-time): New.
+
+2013-08-29 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el
+	(tinydebian--mail-mode-debian-address-package-history): New.
+	(tinydebian-mail-mode-debian-address-package-toggle): Correct
+	enable/disable functionality.
+
+2013-08-14 Wed  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bug-nbr-string): Check keyword
+	"forwarded".
+
+2013-07-09 Tue  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinybookmark.el (tinybookmark-calc-max-col): Adjust comment
+	above.
+
+	* tiny/tinytab.el (tinytab-tab-brace-control): Adjust comment above.
+
+	* tiny/tinysearch.el (tinysearch-search-word-main): Adjust comment
+	above.
+
+	* tiny/tinylibmenu.el (ti::menu--menu-sample): Adjust comment.
+
+	* tiny/tinylib.el (ti::compat-mouse-call-original): change
+	variable from `ti::-xe-mouse-call-original' to
+	`ti::xemacs--mouse-call-original'.
+
+	* tiny/tinyigrep.el (ti::macrof-debug-standard): Correct variable
+	prefix start to '--'.
+
+	* tiny/tinydiff.el (tinydiff-mode-define-keys-minibuffer-default):
+	Adjust text in comments.
+
+	* tiny/tinygnus.el (tinygnus-gnus-group-get-news-symbolic): Adjust
+	comment above.
+
+	* tiny/tinyscroll.el: Adjust commentary at the beginning.
+	(tinyscroll--list-add): Correct variable name in docstring to
+	'tinyscroll--list'.
+
+	* tiny/tinypath.el: Update comments. Shuffle statement order in
+	`eval-and-compile'. Move (require 'advice) to the beginning.
+	(tinypath--startup-no-messages): Update docstring.
+	(tinypath-time-record):Correct push to `tinypath--time-data'.
+	(tinypath-load-path-remove-old): Rewrite without `remove-if'.
+	Remove function; not used.
+	(tinypath-load-path-remove): Add `nreverse' to preserve order.
+	(tinypath-cache-p-1-new-cache): Change `cl-flet' to `cl-flet*'.
+	Fixes byte compiler "path-name is not known to be defined".
+	(cl-flet): Adjust indent in all of the code.
+
+2013-06-14 Fri  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-mail-setup): New. Handle
+	Emacs compatibility.
+
+2013-06-13 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinylisp.el (top level): require elp for Byte compiler.
+	(tinylisp-find-variable-list): Use `custom-variable-p'.
+	(tinylisp-forward-user-option): Use `custom-variable-p'.
+	(tinylisp-snoop-variables): Change to `cl-remprop'.
+
+	* tiny/tinyigrep.el (top level): Adjust union autoload.
+	(tinyigrep-main-read-args): Don't quote lambda.
+
+	* tiny/load-path.el (require): require cl only compile time.
+
+	* ALL: Replace all files to use `call-interactively-p',
+	`cl-flet' 24.3.
+
+	* tiny/tinylibb.el (called-interactively-p): pre 23.2 emulation.
+
+	* tiny/tinymy.el (tinymy--compile-table): Remove `aput'.
+
+	* tiny/tinytf.el: devel (top level): Fix typo in comment.
+
+	* tiny/tinyprocmail.el: (top level::coment): Remove `aput'.
+
+	* tiny/tinypath.el
+	(top level): Remove assoc.el, assq is now built-in.
+	(tinypath-time-record): Replace `aput.
+
+	* tiny/tinygnus.el (tinygnus-gnus-debug-update-nnml-group-alist):
+	Replace `aput'.
+
+	* tiny/tinyscroll.el: Replace `adelete' call.
+
+	* tiny/tinyliby.el (top level): Remove assoc.el require.
+	(ti::system-feature-kill): Delete `adelete'.
+
+	* tiny/tinyliba.el: Delete assoc.el autoloads.
+
+	* tiny/tinymail.el: Update comment and remove `aput' which has
+	been removed in Emacs 24.2; no more assoc.el.
+	(tinymail-install-table-header-complete-gnus): Remove `aput'.
+
+2013-05-28 Tue  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinysearch.el (tinysearch-install-default-keybindings): Check
+	Mouse bindings before insall.
+
+2013-05-22 Wed  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bts-bug-number-pure-p): New.
+	(tinydebian-debian-bug-info-macro): Use
+	`tinydebian-bts-bug-number-pure-p'.
+	(tinydebian-debian-parse-bts-bug-info-raw): Adjust to 80 col.
+	(tinydebian-debian-parse-bts-bug-message): New.
+	(tinydebian-debian-parse-bts-bug-info-raw): Add MESSAGE
+	by using `tinydebian-debian-parse-bts-bug-message'.
+	(tinydebian-debian-bug-info-message-content-insert): New.
+
+2013-05-04 Sat  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el: Adjust comment for RoQA.
+
+2012-10-18 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinylib.el (ti::advice-control): Correct docstring.
+
+2012-07-11 Wed  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bug-nbr-at-current-point-number): Replace
+	`current-word' with direct read; the numbers matched.
+
+2012-06-29 Fri  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinytab.el (tinyyab-mode): Do not bind C-c C-m.
+	message-mode uses key prefix for PGP commands.
+
+2012-05-14 Mon  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-mail-mode-debian-address-bug-toggle):
+	With prefix-arg, set initial input to bug number for editing.
+
+2012-05-14 Tue  Jari Aalto  <jari.aalto@cante.net>
+
+	* other/folding.el (folding-shift-in): Correct
+	`folding-narrow-by-default' at the end to enabel shift-in
+	effect. Thanks to PD Priyadarshan <peedsmail@gmail.com>
+	for bug reported and debugging. Fix implemented as in
+	<https://gist.github.com/1571162> by doitian (Ian Yang)
+	<me@iany.me>.
+
+2012-04-22 Sun  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bts-mail-type-its): New.
+
+2012-04-20 Fri  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bug-nbr-string): Impove.
+
+2012-04-19 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el Add more calls to
+	`tinydebian-trim-blanks' while reading package name.
+
+2012-04-18 Wed  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-install-in-buffers): Check
+	`doit' variable.
+	(tinydebian-bug-browse-url-by-package-name): Add
+	`tinydebian-trim-blanks'.
+	(tinydebian--bug-report-generic-bts-mail-history-last): New.
+	(tinydebian-bug-report-generic-bts-mail): Add
+	`tinydebian--bug-report-generic-bts-mail-history-last'.
+	(tinydebian-bug-report-debian-bts-mail): Check error better.
+
+2012-04-10 Tue  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian--removal-keyword-list):
+	Correct typo.
+
+2012-03-06 Tue  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bts-generic-email-control): Add
+	Bug number check.
+	(tinydebian-bug-gnu-bts-re-search-email): Add URL check.
+
+2012-03-02 Fri  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinysearch.el: (tinysearch--word-boundary-set):
+	Update documentation.
+	(tinysearch--word-boundary-function): New variable.
+	(tinysearch-search-word-forward): Use
+	`tinysearch--word-boundary-function'.
+	(tinysearch-search-word-backward): Use
+	`tinysearch--word-boundary-function'.
+	(tinysearch-charset-control): Adjust default modes better.
+	Add Python, Ruby check.
+
+2012-03-01 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (ti::macrof-minor-mode-wizard): Move items
+	to submenu "BTS Control".
+
+2012-02-26 Sun  Jari Aalto  <jari.aalto@cante.net>
+
+	* other/folding.el (folding-advice-instantiate): Correct
+	`folding-shift-in-on-goto' check which prevented `goto-line'
+	to work. Patch thanks to akshaal at Github.
+
+	* tiny/tinydiff.el (tinydiff-install): Remove. Emacs
+	already has diff and patch modes.
+	(tinydiff--auto-mode-alist): Remove.
+
+	* tiny/tinydebian.el (tinydebian-bts-mail-type-ita): Add missing
+	variable BTS.
+
+2012-02-16 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinylibt.el: (Install): Add backward and forward examples.
+
+	* tiny/tinylisp.el (tinylisp--table-reverse-eval-alist):1
+	Add `global-unset-key'.
+	(tinylisp-read-symbol-at-point): Make reading smarter.
+	(tinylisp-symbol-do-macro): Add edebug form.
+	(tinylisp-eval-reverse): Add support for `global-set-key'.
+
+	* tiny/tinydebian.el (tinydebian-package-info): Check
+	that PACKAGE is not empty string. Add history support.
+	(tinydebian-package-info-history): New.
+	(tinydebian-bug-report-generic-bts-mail): Add history support.
+	Add PACKAGE name to the subject by default. Add history
+	support. Add "tags: patch" if subject contains word patch.
+	(tinydebian--bug-report-generic-bts-mail-history): New.
+	(tinydebian--bug-report-debian-bts-mail-subject-history): New.
+
+2012-02-08 Wed  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-mail-header-not-matches):
+	Preserve order
+	(tinydebian-mail-mode-debian-address-bug-toggle): Add
+	current-prefix-arg to ask bug number. Support multiple
+	bug addresses.
+	(tinydebian-bug-nbr-string): Correct URL matching regexp.
+	(tinydebian-bts-mail-ctrl-retitle): Correct interactive.
+
+2012-01-26 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bug-system-info-apt-policy):
+	Check against null relassoc.
+	(tinydebian-bug-system-info-depends): Try also fields
+	Description-en1, Description-en.
+
+	* tiny/tinylisp.el (tinylisp--menu-info): Correct docstring.
+	Order entries alphabetically.
+
+2012-01-06 Fri  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinylisp.el (tinylisp-get-symbol): Delete newlines.
+	(tinylisp--regexp-function): Allow whitespace at the beginning.
+	(tinylisp-jump-to-definition): Allow whitespace at the beginning
+	of variable `f-re'.
+
+2012-01-05 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydesk.el: REMOVED FROM THIS PROJECT. Now
+	a separate project. See http://www.emacswiki.org/emacs/TinyTools
+
+	* tiny/tinybuffer.el
+	(top level): Fix header area to be more compliant.
+	No more depend in tinylib. Drop XEmacs support.
+	(tinybuffer-start-list): Remove `union'.
+	(tinybuffer-nconc): New.
+	(tinybuffer-read-char): New.
+	(tinybuffer-char-in-list-case): New.
+
+	* tiny/tinylibb.el (radix): Remove quote from `lambda'.
+	(require): Add `cl' during compile.
+
+2012-01-04 Wed  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bts-mail-ctrl-command-tags):
+	Check exixting tags and add to them.
+
+2012-01-02 Mon  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydesk.el (tinydesk-unload): use `with-temp-buffer'.
+	(tinydesk--save-title): Remove unknown variable `time'.
+	(tinydesk-read-word): Correct `thing-at-point'.
+
+	* tiny/tinydebian.el (tinydebian-bts-mail-compose-macro):
+	Fix `mail-setup' for Emacs 24.x.
+	(tinydebian-bts-mode-gnus-summary-maybe-turn-on): Remove.
+
+2012-01-01 Sun  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydesk.el (tinydesk--save-exclude-regexp): Exclude
+	gnus archive files.
+	(tinydesk-save-state): Do not show saved buffer. Caused
+	splitting fram into windows.
+
+2011-12-31 Sat  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinypath.el (tinypath--boot-ignore-directory-regexp):
+	Add .git, .bzr, .hg, .mtn.
+	(tinypath--load-path-accept-criteria): Adjust docstring.
+	(tinypath--load-path-ignore-regexp): Add
+	 .git, .bzr, .hg, .mtn.
+
+	* tiny/tinylibm.el (ti::nconc): Correct docstring.
+
+	* tiny/tinydesk.el: (tinydesk-pmin): New.
+	(defgroup): Replaced. Was ti::package-defgroup-tiny.
+	(tinydesk--directory-location): Check ~/temp and ~/Temp and
+	last $HOME before giving up.
+	(tinydesk--save-title): Remove ti::* functions.
+	(tinydesk-default-mode-bindings): Remove ti::* functions.
+	(tinydesk-tmp-buffer): Rewrite.
+	(tinydesk-kill-line): New.
+	(tinydesk-only-files-region): Remove ti::* functions.
+	(tinydesk-file-mode-make-writable): New.
+	(tinydesk-expunge-unloaded): Remove ti::* functions.
+	(tinydesk-verbose): New.
+	(tinydesk-string-match-case): New.
+	(tinydesk-file-name-remote-p): New.
+	(tinydesk--temp-buffer): Rename. Was `tinydesk--tmp-buffer'.
+	(tinydesk--trash-temp-buffer): Rename. Was `tinydesk--trash-tmp-buffer'.
+	(tinydesk-nconc): New.
+	(tinydesk-read-word): Rewrite.
+
+2011-12-29 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinylisp.el (tinylisp-lisp-mnt-verify): Delete obsolete
+	what(1) and RCS from docstring.
+	(tinylisp--menu-checkdoc): Remove obsolete
+	`checkdoc-triple-semi-comment-check-flag'.
+	(tinylisp--menu-checkdoc): Remove  obsolete
+	`checkdoc-triple-semi-comment-check-flag'.
+
+	* tiny/tinydesk.el (tinydesk-file-p): Return t on success. Use
+	shorter string (from 4o to 20 characters) to test if file matches.
+
+2011-12-12 Mon  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-browse-url-http-get): Fix typo.
+
+2011-12-11 Sun  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bug-system-info-os-insert): New.
+	(tinydebian-bug-report-mail-insert-details): Use
+	`tinydebian-bug-system-info-os-insert'.
+
+	* tiny/tinymail.el (tinymail-iso8601-date-value): Delete
+	empty newlines
+
+2011-12-09 Fri  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinylisp.el: Change all variable names from *-:*
+	to *--*.
+	(tinylisp-find-function-list): Clean EOL whitespaces.
+
+	* tiny/tinydesk.el (tinydesk-mark-region): Skip
+	over comment lines. Corrects infinite loop.
+	(tinydesk-unload-current-file): Do not mark buffer modified.
+	(tinydesk-load-file): Simplyfy with `when'.
+	(tinydesk-clear-line-properties): Improve `set-buffer-modified-p'.
+	(tinydesk-handle-text-property): Do not mark buffer modified.
+
+2011-12-04 Sun  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydesk.el (tinydesk--save-exclude-regexp): Add Backup
+	files that match regexp "[~#]$".
+
+2011-12-01 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydesk.el (tinydesk--save-title): Remove extra line.
+	(tinydesk-install-default-keybindings): Adjust comments.
+	(tinydesk--recover-mark-problem-lines): New user variable.
+	(tinydesk-recover-state): Use `tinydesk--recover-mark-problem-lines'.
+
+2011-11-22 Tue  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinytab.el (wizard): Define backtab in non-window system.
+	E.g. for Putty terminal.
+
+2011-11-18 Fri  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinyreplace.el (tinyreplace-define-keys-local-map): Rename
+	from `tinyreplace-define-keys-compile-map'.
+
+2011-11-16 Wed  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinymailbox.el (tinymailbox--header-begin-regexp):
+	Rename from `tinymailbox:-header-begin-regexp'.
+
+	* tiny/tinypath.el (tinypath-cache-display): Correct docstring
+	variable name `tinypath--cache'.
+
+	* tiny/tinyurl.el (tinyurl-dispatcher-1): correct message to
+	announce `tinyurl--validate-hook"'.
+
+2011-09-20 Tue  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bug-nbr-string):
+	Add Debian bug URL detection. Tighten plain number regexp not
+	to match YYYY-MM-DD
+
+2011-06-23 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydesk.el (tinydesk-mark-region): Add missing paren.
+
+2011-04-30 Sat  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-mail-mode-debian-address-bug-p):
+	Add missing paren.
+	(tinydebian-bts-generic-bug-subject): New. Support Emacs BTS.
+	(tinydebian-bts-mail-type-reply): Use `tinydebian-bts-generic-bug-subject'.
+	(tinydebian-debian-url-bug-initialize-p): Add BTS parameter.
+	(tinydebian-debian-url-bug-info): Add BTS parameter.
+	(tinydebian-debian-url-bug-initialize): Add BTS parameter. Add Emacs BTS
+	support.
+	(tinydebian-debian-bug-info-message-all-macro): Add BTS parameter.
+	(tinydebian-debian-bug-info-macro): Add BTS parameter.
+	(tinydebian-debian-bug-info-all-insert): Add BTS parameter.
+	(tinydebian-bts-mail-ctrl-retitle): Add BTS parameter.
+	(tinydebian-bts-mail-type-reply): Add BTS parameter.
+	(tinydebian-bts-mail-type-it-nmu): Add BTS parameter.
+	(tinydebian-bts-mail-type-ita): Add BTS parameter.
+	(tinydebian-debian-bug-info-subject-message): Add BTS parameter.
+	(tinydebian-debian-bug-info-subject-insert): Add BTS parameter.
+	(tinydebian-bts-mail-type-reply): Always consult URL for the subject.
+
+2011-04-21 Thu  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-mail-mode-debian-address-bug-p):
+	New.
+	(tinydebian-mail-mode-debian-address-bug-toggle): Improve interactive
+	use. Use bug number found from current line.
+
+2011-03-18 Fri  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian--removal-keyword-list):
+	Add 'non-free', 'unredistributable'.
+
+2011-03-05 Sat  Jari Aalto  <jari.aalto@cante.net>
+
+	* tiny/tinydebian.el (tinydebian-bts-mail-type-rfp): Fix
+	indentation. Clarify docstring.
+
 2011-02-10 Thu  Jari Aalto  <jari.aalto@cante.net>
 
 	* tiny/tinycygwin.el (tinycygwin-executable-find): Add
@@ -238,7 +697,7 @@
 	Fix format.
 	(ti::compat-activate-region): Byte compile hide for
 	`zmacs-regions'.
-	(ti::string-mangle): devel Remove `char-to-int'.
+	(ti::string-mangle): Remove `char-to-int'.
 
 2010-12-12  Jari Aalto  <jari.aalto@cante.net>
 
@@ -318,7 +777,7 @@
 
         * tiny/tinyepkg.el: Remove. Moved to separate project
         under name epackage.el. See
-        http://freshmeat.net/projects/emacs-epackage
+        http://freecode.com/projects/emacs-epackage
 
         * tiny/tinylibw.el (w32-cygwin-convert): Use plain `let'.
 
@@ -1376,7 +1835,7 @@
 
 2010-03-01 Mon  Jari Aalto  <jari.aalto@cante.net>
 
-        * tiny/tinydebian.el (tinydebian-freshmeat-bug-type-p): remove
+        * tiny/tinydebian.el (tinydebian-freecode-bug-type-p): remove
         extra unused regexp. This fixes CPAN bug URL detection.
 
 2009-12-31  Jari Aalto  <jari.aalto@cante.net>
@@ -1417,12 +1876,12 @@
 2009-10-27  Jari Aalto  <jari.aalto@cante.net>
 
         * tiny/tinydebian.el (tinydebian-bug-bts-type-determine):
-        Add freshmeat.net suport.
-        (tinydebian-freshmeat-bug-type-p): New.
-        (tinydebian-bug-url-forward): Add freshmeat.net suport.
+        Add freecode.com suport.
+        (tinydebian-freecode-bug-type-p): New.
+        (tinydebian-bug-url-forward): Add freecode.com suport.
         (tinydebian-bug-nbr-debian-url-forward): Correct variable bug to
         str.
-        (tinydebian-bug-ask-bts-and-number): Add freshmeat.net suport.
+        (tinydebian-bug-ask-bts-and-number): Add freecode.com suport.
 
 2009-10-25  Jari Aalto  <jari.aalto@cante.net>
 
@@ -1750,7 +2209,7 @@
 2009-08-31  Jari Aalto  <jari.aalto@cante.net>
 
         * tiny/tinytf.el: (top level::Documentation): Remove CPAN
-        references and point to freshmeat t2html project.
+        references and point to freecode t2html project.
 
 2009-08-29  Jari Aalto  <jari.aalto@cante.net>
 
@@ -2851,7 +3310,6 @@
 
         * tiny/tinymail.el (tinymail-buffer-email-address-scramble-area):
         Typo 'nilt' => 'nil t' in `search-forward' call.
->>>>>>> 9116e73e01508c0d97196218872b922a05ccdde8:lisp/ChangeLog
 
 2007-10-09  Jari Aalto  <jari.aalto@cante.net>
 

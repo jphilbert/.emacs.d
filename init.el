@@ -56,6 +56,13 @@
  comint-prompt-read-only                nil)
 
 
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(when (< emacs-major-version 24)
+  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
+(package-initialize)
+
 ;; -----------------------------------------------------------------------------
 ;; Directories / Backups
 ;; -----------------------------------------------------------------------------
@@ -87,7 +94,7 @@
 (add-hook 'tinyef-load-hook 'tinyef-minibuffer-define-key-extras)
 (setq tinyeat--load-hook '(tinyeat-install))
 
-
+(require 'ac-R)
 ;; ----------------------------------------------------------------------------
 ;; Auto Indent
 ;; ----------------------------------------------------------------------------
@@ -120,7 +127,7 @@
 ;; Completion
 ;; ----------------------------------------------------------------------------
 ;; Auto Complete
-(require 'auto-complete-config nil t)
+(require 'auto-complete-config)
 (require 'my-pos-tip)			; For better tooltips
 
 (add-to-list 'ac-dictionary-directories
@@ -201,7 +208,7 @@ JPH: Removed periodic message"
 ;; Snippets
 ;; ----------------------------------------------------------------------------
 (require 'yasnippet)
-(yas/initialize)
+;; (yas/initialize)
 (yas/load-directory "~/.emacs.d/packages/yasnippet/snippets")
 (setq yas/prompt-functions '(yas/completing-prompt))
 
@@ -213,7 +220,7 @@ JPH: Removed periodic message"
 ;; ----------------------------------------------------------------------------
 ;; Folding
 ;; ----------------------------------------------------------------------------
-(require 'fold-dwim nil t)
+(require 'fold-dwim)
 (setq-default hs-hide-comments-when-hiding-all	nil
 	      hs-allow-nesting			t)
 
@@ -281,7 +288,7 @@ out it knowing."
 (require 'lisp-setup nil t)
 (require 'sql-setup nil t)
 (require 'r-setup nil t)
-;; (require 'latex-setup nil t)
+;; ;; (require 'latex-setup nil t)
 (require 'web-setup nil t)
 (require 'python-setup nil t)
 (require 'shell-setup nil t)
@@ -298,9 +305,9 @@ out it knowing."
 (require 'frame-settings)
 
 ;; ------------------------------ Footer ---------------------------------------
-(message "init.el loaded in %ds"
-	 (destructuring-bind (hi lo ms) (current-time)
-	   (- (+ hi lo)
-	      (+ (first *emacs-load-start*)
-		 (second *emacs-load-start*)))))
+;; (message "init.el loaded in %ds"
+;; 	 (destructuring-bind (hi lo ms) (current-time)
+;; 	   (- (+ hi lo)
+;; 	      (+ (first *emacs-load-start*)
+;; 		 (second *emacs-load-start*)))))
 

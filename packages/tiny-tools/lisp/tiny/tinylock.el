@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1995-2010 Jari Aalto
+;; Copyright (C)    1995-2013 Jari Aalto
 ;; Keywords:        extensions
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -316,7 +316,7 @@ Input:
        "1 sec"
        (* tinylock--auto-lock-interval 60)
        'tinylock-process))))
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Autolock process %s"
                (if uninstall
                    "deleted"

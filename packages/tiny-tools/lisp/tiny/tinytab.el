@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1995-2010 Jari Aalto
+;; Copyright (C)    1995-2013 Jari Aalto
 ;; Keywords:        tools
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -264,10 +264,14 @@ Mode description:
      (define-key   root-map "\t"         'tinytab-tab-key)
      (define-key   root-map "\e\t"       'tinytab-tab-del-key)
      (define-key   root-map "\C-c\t"     'tinytab-indent-region-dynamically)
-     (define-key   root-map "\C-c\C-m"   'tinytab-return-key-mode)
+     ;; message-mode uses This key prefix for PGP commands
+     ;; (define-key   root-map "\C-c\C-m"   'tinytab-return-key-mode)
      ;; ........................................................ X-keys ...
      ;;  Standard key
      (define-key root-map (kbd "<S-tab>")        'tinytab-tab-del-key)
+     ;; Non-windowed environment
+     (unless window-system
+       (define-key root-map [(backtab)]          'tinytab-tab-del-key))
      ;;  Other keyboards
      (define-key root-map [(shift backtab)]      'tinytab-tab-del-key)
      (define-key root-map [(shift hpBackTab)]    'tinytab-tab-del-key) ;; XEmacs
@@ -519,9 +523,6 @@ This way you can partly mix e.g. C++ mode and this minor mode."
 ;;; - For a little more smarter TAB key to line up { } braces
 ;;;   in variaous programming modes I made this. It's simple,
 ;;;   but suffices for most common needs.
-;;; - I don't know how the C-mode or cc-mode does this, but, hey,
-;;;   this is one way :-)
-;;;
 ;;;
 (defun tinytab-tab-brace-control ()
   "When hitting TAB, line up {} braces, otherwise do nothing special.
@@ -670,7 +671,7 @@ If optional ARG is given, behave exactly like 'newline' function."
 (defun tinytab-change-tab-width ()
   "Toggle tab width according to `tinytab--width-table'."
   (interactive)
-  (let ((verb  (interactive-p))
+  (let ((verb  (called-interactively-p 'interactive))
 	(val   (tinytab-width))
 	(table tinytab--width-table)
 	elt)
@@ -901,14 +902,14 @@ If region is active, indent all lines backward."
 ;;;###autoload
 (defun turn-on-tinytab-return-key-mode ()
   "Turn on auto indent after RET key."
-  (tinytab-return-key-mode 1 (interactive-p)))
+  (tinytab-return-key-mode 1 (called-interactively-p 'interactive)))
 
 ;;; ----------------------------------------------------------------------
 ;;;
 ;;;###autoload
 (defun turn-off-tinytab-return-key-mode ()
   "Turn on auto indent after RET key."
-  (tinytab-return-key-mode 1 (interactive-p)))
+  (tinytab-return-key-mode 1 (called-interactively-p 'interactive)))
 
 ;;; ----------------------------------------------------------------------
 ;;;
@@ -930,7 +931,7 @@ If region is active, indent all lines backward."
     ;;  C-m is exit-minibuffer.
     (if (string-match "minibuf" (buffer-name))
         (error "TinyTab: tinytab-return-key-mode not allowed in minibuffer."))
-    (setq verb (interactive-p))
+    (setq verb (called-interactively-p 'interactive))
     (cond
      ((or (null mode)
           (not (integerp mode)))

@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    2003-2010 Jari Aalto
+;; Copyright (C)    2003-2013 Jari Aalto
 ;; Keywords:        tools
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -35,7 +35,7 @@
 ;;
 ;; Requirements:
 ;;
-;; o    Only supports <freshmeat.net/projects/pastebot> services.
+;; o    Only supports <freecode.com/projects/pastebot> services.
 ;; o    Perl must have been installed
 ;; o    External program pbotutil.pl must have been installed
 ;;      See `tinyirc--pastebot-program-url'.
@@ -367,7 +367,7 @@
 ;;
 ;;      o   Perl client: http://bboett.free.fr/webPaste.html
 ;;      o   The server software is available at
-;;          <http://freshmeat.net/projects/pastebot/>
+;;          <http://freecode.com/projects/pastebot/>
 
 ;;}}}
 
@@ -1235,7 +1235,7 @@ Mode description:
   (tinyirc-mode-map-activate)           ;turn on the map
   (setq  mode-name   tinyirc--mode-name)
   (setq  major-mode 'tinyirc-pastebot-mode) ;; for C-h m
-  (when (interactive-p)
+  (when (called-interactively-p 'interactive)
     (message
      (substitute-command-keys
       (concat

@@ -4,12 +4,10 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1994-2010 Jari Aalto
+;; Copyright (C)    1994-2013 Jari Aalto
 ;; Keywords:        tools
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
-;;
-;; Look at the code with folding.el.
 
 ;; COPYRIGHT NOTICE
 ;;
@@ -28,11 +26,8 @@
 ;;
 ;; Visit <http://www.gnu.org/copyleft/gpl.html> for more information
 
-;;}}}
-;;{{{ Install
-
 ;;; Intallation:
-;; ....................................................... &t-install ...
+
 ;; Put this file on your Emacs-Lisp `load-path', add following into
 ;; ~/.emacs startup file.
 ;;
@@ -50,7 +45,6 @@
 ;;}}}
 ;;{{{ Documentation
 
-;; ..................................................... &t-commentary ...
 ;;; Commentary:
 
 ;;  Preface, 1994
@@ -106,7 +100,7 @@
 ;;      find word a boundary:
 ;;
 ;;          nonWordWORDnonWord
-;;         =======    =======
+;;          =======    =======
 ;;
 ;;      And as you can see, the if ':' belongs to word, it can't
 ;;      simultaneously belong to NonWord ! Summa summarum: Revert to
@@ -149,45 +143,35 @@
 ;;      Needless to say, that you can use put your own checking
 ;;      function in that variable to control the accurrances better.
 
-;;}}}
-
 ;;; Change Log:
 
 ;;; Code:
-
-;;{{{ setup: require
 
 (require 'tinylibm)
 
 (ti::package-defgroup-tiny TinySearch tinysearch-- extensions
   "search word under cursor: backward, forward.")
 
-;;}}}
-;;{{{ hooks
-
 ;;; ......................................................... &v-hooks ...
 
 (defcustom tinysearch--before-hook nil
-  "*Hook that is run at the BEG of search function.
+  "Hook that is run at the BEG of search function.
 You can set this to point to function that alters the value of
 `tinysearch--word-boundary-set' e.g. by looking at the file type."
   :type  'hook
   :group 'TinySearch)
 
 (defcustom tinysearch--final-hook nil
-  "*Hook that is _always_ run at the END of search function.
+  "Hook that is _always_ run at the END of search function.
 It doesn't care about word grabbings or search failures."
   :type  'hook
   :group 'TinySearch)
 
 (defcustom tinysearch--load-hook nil
-  "*Run when package has been loaded.
+  "Run when package has been loaded.
 A good candidate could be `tinysearch-install-default-keybindings'."
   :type  'hook
   :group 'TinySearch)
-
-;;}}}
-;;{{{ variables
 
 ;;; ....................................................... &v-private ...
 
@@ -205,18 +189,26 @@ Created and killed during program execution.")
 ;;; User configurable
 
 (defcustom tinysearch--word-boundary-set "-A-Za-z0-9_"
-  "*Character set to conform a single word.
-You might want to set this to something else before doing search."
+  "Character set to conform a single word."
   :type  'hook
   :group 'TinySearch)
 
+(defcustom tinysearch--word-boundary-function 'tinysearch-charset-control
+  "Funnction to return `tinysearch--word-boundary-set'.
+Different modes have different needs and it may be desireable to
+chnage definition of word according to mode. This function is used
+in `tinysearch-search-word-forward' and `tinysearch-search-word-backward'
+to supply character set to `tinysearch-search-word-main'."
+  :type  'function
+  :group 'TinySearch)
+
 (defcustom tinysearch--wrap-flag  nil
-  "*Non-nil means wrap buffer if there is no more match."
+  "Non-nil means wrap buffer if there is no more match."
   :type  'boolean
   :group 'TinySearch)
 
 (defcustom tinysearch--accept-word-function  'tinysearch-accept-word
-  "*Function run after the search for word has been successful.
+  "Function run after the search for word has been successful.
 If this variable contains non-existing function (like nil), the
 content of the variable is ignored.
 
@@ -235,14 +227,8 @@ Return values of function:
   :type  'function
   :group 'TinySearch)
 
-;;}}}
+;;; ####################################################### &Functions ###
 
-;;; ########################################################### &Funcs ###
-
-;;{{{ 19.xx isearch add
-
-;;; ----------------------------------------------------------------------
-;;;
 (defun tinysearch-add-to-isearch-search-ring (isearch-string)
   "Add search pattern to ISEARCH-STRING in Emacs.
 This code is directly taken from function `isearch-done' By Daniel LaLiberte."
@@ -264,16 +250,11 @@ This code is directly taken from function `isearch-done' By Daniel LaLiberte."
               (if (> (length search-ring) search-ring-max)
                   (setcdr (nthcdr (1- search-ring-max) search-ring) nil)))))))
 
-;;}}}
-;;{{{ main
-
-;;; ----------------------------------------------------------------------
-;;;
 (defun tinysearch-accept-word  (word)
   "Determine if we accept searched WORD."
   (let ((type (symbol-name major-mode))
-	(ret  t)                  ;default, accept search
-	space-word)
+        (ret  t)                  ;default, accept search
+        space-word)
     (cond
      ((string-match "^c-\\|^cc-\\|c[+]+" type)
       ;; Check C/C++ dependent variables, where rg. 'a' is
@@ -291,25 +272,23 @@ This code is directly taken from function `isearch-done' By Daniel LaLiberte."
           (setq ret nil))))
     ret))
 
-;;; ----------------------------------------------------------------------
-;;;
 (defun tinysearch-grab-word (&optional charset beg end )
   "Gets word under cursor limited by CHARSET string.
 Optional BEG and END gives maximum search limits.
 Default boundary is line limit."
   (let (re-word-boundary
-	re-word
-	;;  Accept ':' and '-' , beasuse they are used in c++ and lisp
-	(charset (or charset "--A-Za-z0-9_"))
-	pb
-	pe
-	p
-	re
-	ret)
+        re-word
+        ;;  Accept ':' and '-' , beasuse they are used in c++ and lisp
+        (charset (or charset "--A-Za-z0-9_"))
+        pb
+        pe
+        p
+        re
+        ret)
     (or beg
-	(setq beg (line-beginning-position)))
+        (setq beg (line-beginning-position)))
     (or end
-	(setq end (line-end-position)))
+        (setq end (line-end-position)))
     (setq re-word-boundary  (concat  "[^" charset "]"))
     (setq re-word (concat  "[" charset "]")) ;considered single word
     ;; Note:  the first search goes backwards to find the start of the
@@ -340,10 +319,10 @@ Default boundary is line limit."
     ;;  easier to debug this way
     ret))
 
-;;; ----------------------------------------------------------------------
 ;;; - There is lot of re-search-backward/fwd commands and it is intentional,
-;;;   so that the code is totally emacs version independent. Newer emacs
-;;;   has nice functions that shrink this code to 10 lines :->
+;;;   so that the code is completely Emacs version independent.
+;;; - FIXME: Newer emacs has nice functions that could shrink this code
+;;    to 10 lines.
 ;;; - Never grab word function is already coded in tinylib.el
 ;;;
 (defun tinysearch-search-word-main (&optional backward set)
@@ -453,7 +432,7 @@ NOTE:
           (setq loop nil)))
         ;; .................................................... do hilit ...
         (if (and tinysearch--overlay found (null loop))
-            (ti::compat-overlay-move tinysearch--overlay  mb me nil 'highlight))
+            (ti::compat-overlay-move tinysearch--overlay mb me nil 'highlight))
         (when tinysearch--overlay       ;Hide overlay
           (sit-for 1)
           (ti::compat-overlay-move tinysearch--overlay 1 1))
@@ -463,67 +442,81 @@ NOTE:
     (if tinysearch--final-hook
         (run-hooks 'tinysearch--final-hook))))
 
-;;; ----------------------------------------------------------------------
-;;;
 (defun tinysearch-charset-control ()
-  "Dynamic character set change according to mode. This is example function."
+  "Dynamic character set change according to mode."
   (let ((type (symbol-name major-mode))
-	set)
+        set)
     (cond
-     ((string-match  "^c-\\|^cc-\\|c[+]+" type)
+     ((string-match  "^c-\\|^cc-\\|c[+]+|perl|python|ruby" type)
       (setq set "A-Za-z0-9_"))
      ((string-match "lisp" type)
-      ;;  Add ':' , which I use in variable names.
-      (setq set "--A-Za-z0-9_"))
-     ((string-match "text\\|shell\\|perl" type)
-      (setq set "A-Za-z0-9_")))
+      ;;  Add ':'
+      (setq set "--A-Za-z0-9_")))
     set))
 
-;;; ----------------------------------------------------------------------
-;;;
 ;;;###autoload
 (defun tinysearch-search-word-forward ()
   "Search word at point forward."
   (interactive)
-  (tinysearch-search-word-main nil (tinysearch-charset-control)))
+  (tinysearch-search-word-main
+   nil
+   (if (functionp tinysearch--word-boundary-function)
+       (funcall tinysearch--word-boundary-function))))
 
-;;; ----------------------------------------------------------------------
-;;;
 ;;;###autoload
 (defun tinysearch-search-word-backward ()
   "Search word at point backward."
   (interactive)
-  (tinysearch-search-word-main 'back (tinysearch-charset-control)))
+  (tinysearch-search-word-main
+   'back
+   (if (functionp tinysearch--word-boundary-function)
+       (funcall tinysearch--word-boundary-function))))
 
-;;; ----------------------------------------------------------------------
-;;;
+(defun tinysearch-function-ours-p (function)
+  "Check if FUNCTION if defined in the package."
+  (when (symbolp function)
+    (string-match "^tinysearch" (symbol-name function))))
+
 ;;;###autoload
-(defun tinysearch-install-default-keybindings (&optional uninstall)
-  "Install default keybindings
+(defun tinysearch-install-default-keybindings ()
+  "Install default keybindings.
 M-Mouse-1   M-s  search forward
 C-M-Mouse-1 M-r  reverse."
   (interactive)
-  (if (lookup-key global-map "\M-s")
-      (message "** Tinysearch: Can't bind. Key M-s already occupied.")
-    (global-set-key "\M-s" 'tinysearch-search-word-forward))
-  (if (lookup-key global-map "\M-s")
-      (message "** Tinysearch: Can't bind. Key M-r already occupied.")
-    (global-set-key "\M-r" 'tinysearch-search-word-backward))
-  ;;  For mouse (under windowed system)
-  (global-set-key [(meta control mouse-1)]
-                  'tinysearch-search-word-forward)
-  (global-set-key [(meta control shift mouse-1)]
-                  'tinysearch-search-word-backward))
+  (let (key)
+    ;; In Emacs 23+ these are no longer available
+    (if (and (setq key (lookup-key global-map "\M-s"))
+             (not (tinysearch-function-ours-p key)))
+        (message "** Tinysearch: Can't bind. Key M-s already occupied: %s"
+                 key)
+      (global-set-key "\M-s" 'tinysearch-search-word-forward))
+    (if (and (setq key (lookup-key global-map "\M-s"))
+             (not (tinysearch-function-ours-p key)))
+        (message "** Tinysearch: Can't bind. Key M-r already occupied: %s"
+                 key)
+      (global-set-key "\M-r" 'tinysearch-search-word-backward))
+    ;;  For mouse (under windowed system)
+    (if (and (setq key (lookup-key global-map
+                                   [(meta control mouse-1)]))
+             (not (tinysearch-function-ours-p key)))
+        (message "** Tinysearch: Can't bind. M-C-mouse-1 already occupied: %s"
+                 key)
+      (global-set-key [(meta control mouse-1)]
+                      'tinysearch-search-word-forward))
+    (if (and (setq key (lookup-key global-map
+                                   [(meta control shift mouse-1)]))
+             (not (tinysearch-function-ours-p key)))
+        (message
+         "** Tinysearch: Can't bind. M-C-S-mouse-1 already occupied: %s"
+         key)
+      (global-set-key [(meta control shift mouse-1)]
+                      'tinysearch-search-word-backward))))
 
-;;; ----------------------------------------------------------------------
-;;;
 ;;;###autoload
 (defun tinysearch-install (&optional arg)
   "Call `tinysearch-install-default-keybindings' with ARG."
   (interactive)
   (tinysearch-install-default-keybindings arg))
-
-;;}}}
 
 (provide   'tinysearch)
 (run-hooks 'tinysearch--load-hook)

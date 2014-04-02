@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1996-2010 Jari Aalto
+;; Copyright (C)    1996-2013 Jari Aalto
 ;; Keywords:        tools
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -339,12 +339,9 @@
 
 (require 'tinylibm)
 
-(eval-and-compile
-  ;; FIXME: Function `union' from cl package called at runtime
-  (autoload 'union "cl-seq"))
-
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  (autoload 'union "cl-union"))
 
 ;;  When tinyigrep.el is compiled, this strange error occurs:
 ;;  ** the function `igrep-read-args' is not known to be defined
@@ -1545,9 +1542,8 @@ GREP is program to used for grepping. Default is `egrep'."
              (ti::compat-Info-directory-list)))))
     (message "TinyIgrep: Wait, initialising default databases...done")))
 
-
 ;;;### (autoload 'tinyigrep-debug-toggle "tinyigrep" t t)
-(eval-and-compile (ti::macrof-debug-standard "tinyigrep" ":-"))
+(eval-and-compile (ti::macrof-debug-standard "tinyigrep" "--"))
 
 ;;}}}
 ;;{{{ Install
@@ -1952,11 +1948,11 @@ References:
       (or (setq files
                 (let ((ans (read-from-minibuffer
                             "TinyIgrep file pattern(s): ")))
-                  (mapcar '(lambda (x)
-                             (format "%s%s"
-                                     (file-name-as-directory
-                                      default-directory)
-                                     x))
+                  (mapcar (lambda (x)
+			    (format "%s%s"
+				    (file-name-as-directory
+				     default-directory)
+				    x))
                           (split-string ans))))
           (error "TinyIgrep: No files for `%s'" ans))
       (setq pattern

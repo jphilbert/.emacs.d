@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    2001-2010 Jari Aalto
+;; Copyright (C)    2001-2013 Jari Aalto
 ;; Keywords:        extensions
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -136,7 +136,7 @@ Following variables are set during BODY:
 `dir'      Directrory name
 `dir-list' All directories under `dir'."
   (`
-   (flet ((recurse
+   (cl-flet ((recurse
            (dir)
            (let* ((dir-list (tiny-setup-directory-list dir)))
              (,@ body)

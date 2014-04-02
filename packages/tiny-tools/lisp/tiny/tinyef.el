@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1995-2010 Jari Aalto
+;; Copyright (C)    1995-2013 Jari Aalto
 ;; Keywords:        extensions
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -577,7 +577,7 @@ Current keymap:
 	 bolp
 	 hits)
     (if (or (null act)                  ;no action recognized
-            (and (interactive-p)
+            (and (called-interactively-p 'interactive)
                  (not (eq (selected-window) (minibuffer-window)))
                  (prog1 t
                    (setq tinyef-mode nil))))

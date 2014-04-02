@@ -5,7 +5,7 @@
 ;;
 ;;  File id
 ;;
-;;      Copyright (C) 1997-2010 Jari Aalto
+;;      Copyright (C) 1997-2013 Jari Aalto
 ;;
 ;;      This program is free software; you can redistribute it and/or
 ;;      modify it under the terms of the GNU General Public License as
@@ -34,7 +34,9 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl))
+
 (setq debug-on-error nil) ;; Must be like this in batch byte compile
 
 (autoload 'ti::package-autoload-create-on-file            "tinylib")

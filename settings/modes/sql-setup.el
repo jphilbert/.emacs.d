@@ -375,7 +375,7 @@ table(dbms_xplan.display('plan_table',null,'typical -cost -bytes -rows -partitio
  'oracle
  `(
    ;; Additional Functions
-   (,(sql-keywords-re
+   (,(regexp-opt
       "appendchildxml" "cardinality" "cluster_id" "cluster_probability"
       "cluster_set" "collect" "corr_k" "corr_s" "cv" "deletexml" "empty_blob"
       "extractxml" "feature_id" "feature_set" "feature_value" "grouping"

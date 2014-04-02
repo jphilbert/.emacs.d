@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C)    1997-2010 Jari Aalto
+;; Copyright (C)    1997-2013 Jari Aalto
 ;; Keywords:        tools
 ;; Author:          Jari Aalto
 ;; Maintainer:      Jari Aalto
@@ -196,7 +196,7 @@ The point is at the beginning of message."
 (defvar tinymailbox--last-file nil
   "Last file used by `tinymailbox-message-to-folder'.")
 
-(defvar tinymailbox:-header-begin-regexp
+(defvar tinymailbox--header-begin-regexp
   "\n\n[A-Z][a-z]: +\\|^From "
   "Regexp of beginning of message headers")
 
@@ -480,7 +480,7 @@ Ignore big mailboxes."
                  'turn-on-tinymailbox-mode-maybe
                  uninstall)
   (when (or verb
-            (interactive-p))
+            (called-interactively-p 'interactive))
     (message "TinyMailbox %s"
              (if uninstall
                  "uninstalled"
@@ -491,7 +491,7 @@ Ignore big mailboxes."
 ;;;###autoload
 (defun tinymailbox-uninstall ()
   "Uninstall mode."
-  (tinymailbox-install 'uninstall (interactive-p)))
+  (tinymailbox-install 'uninstall (called-interactively-p 'interactive)))
 
 ;;; ----------------------------------------------------------------------
 ;;;
@@ -533,7 +533,7 @@ Ignore big mailboxes."
 ;;;
 (defsubst tinymailbox-message-move-beginning ()
   "Move to message beginning."
-  (re-search-backward tinymailbox:-header-begin-regexp  nil t))
+  (re-search-backward tinymailbox--header-begin-regexp  nil t))
 
 ;;; ----------------------------------------------------------------------
 ;;;
@@ -734,9 +734,9 @@ Ignore big mailboxes."
              (goto-char Opoint)))
            (tinymailbox-header-show-or-hide)
            ,@body
-           (if (interactive-p)
+           (if (called-interactively-p 'interactive)
                (recenter 3))
-           (when (and (null stat) (interactive-p))
+           (when (and (null stat) (called-interactively-p 'interactive))
              (message ,msg))
            stat))))
   ) ;; eval-and-compile
@@ -791,7 +791,7 @@ Created function arguments: (&optional arg)"
         (message "TinyMailbox: body backward stop.")
       (setq stat (re-search-forward "^[ \t]*$" nil t)))
     (if (and stat
-             (interactive-p))
+             (called-interactively-p 'interactive))
         (recenter 3))
     ;;  If none found, return to original position
     (when (and (null stat)
@@ -820,7 +820,7 @@ Created function arguments: (&optional arg)"
 (defun tinymailbox-begin (&optional backward)
   "Move to next message begin. Optionally BACKWARD."
   (interactive "P")
-  (let ((re tinymailbox:-header-begin-regexp)
+  (let ((re tinymailbox--header-begin-regexp)
 	case-fold-search)
     (cond
      (backward
@@ -855,7 +855,7 @@ Created function arguments: (&optional arg)"
    (tinymailbox-overlay 'show beg end)
    (sit-for 0.5)
    (tinymailbox-overlay 'hide beg end)
-   (if (interactive-p)
+   (if (called-interactively-p 'interactive)
        (message "TinyMailbox: Message copied as kill."))))
 
 ;;; ----------------------------------------------------------------------
@@ -873,7 +873,7 @@ Created function arguments: (&optional arg)"
    (setq beg (point))
    (copy-region-as-kill beg end)
    (tinymailbox-overlay 'show beg end))
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "TinyMailbox: Message body copied.")))
 
 ;;; ----------------------------------------------------------------------
@@ -923,7 +923,7 @@ Try Subject: or From:"
   (interactive "sTinyMailbox: run occur by regexp: ")
   (cond
    ((ti::nil-p regexp)
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "TinyMailbox: Occur cancelled. No REGEXP given.")))
    (t
     (save-excursion

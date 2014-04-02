@@ -1,10 +1,11 @@
-;;; fold-dwim.el -- Unified user interface for Emacs folding modes
+;;; fold-dwim.el --- Unified user interface for Emacs folding modes
 ;;
 ;; Copyright (C) 2004 P J Heslin
 ;;
 ;; Author: Peter Heslin <p.j.heslin@dur.ac.uk>
-;; URL: http://www.dur.ac.uk/p.j.heslin/emacs/download/fold-dwim.el
-;; Version: 1.2
+;; URL: http://www.dur.ac.uk/p.j.heslin/Software/Emacs
+;; Version: 20140208.837
+;; X-Original-Version: 1.2
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -375,3 +376,5 @@ at the cursor."
       (eq fold-dwim-outline-style-default 'nested))))
 
 (provide 'fold-dwim)
+
+;;; fold-dwim.el ends here

@@ -4,7 +4,7 @@
 
 ;;{{{ Id
 
-;; Copyright (C) 1995-2010 Jari Aalto
+;; Copyright (C) 1995-2013 Jari Aalto
 ;; Keywords:     extensions
 ;; Author:       Jari Aalto
 ;; Maintainer:   Jari Aalto
@@ -718,7 +718,7 @@ Input:
  nil 'us 'usa    Use US pairing.
  other value     Use European pairing style."
   (interactive "P")
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "TinyPair: Selected %s pairing style "
                (if arg "European" "US" )))
   (cond

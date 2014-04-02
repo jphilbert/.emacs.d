@@ -2,9 +2,7 @@
 
 ;; This file is not part of Emacs
 
-;;{{{ Id
-
-;; Copyright (C)   1995-2010 Jari Aalto
+;; Copyright (C)   1995-2013 Jari Aalto
 ;; Keywords:       extensions
 ;; Author:         Jari Aalto
 ;; Maintainer:     Jari Aalto
@@ -29,9 +27,6 @@
 ;;
 ;; Visit <http://www.gnu.org/copyleft/gpl.html> for more information
 
-;;}}}
-;;{{{ Install
-
 ;; ....................................................... &t-install ...
 ;; Put this file on your Emacs-Lisp `load-path', add following into
 ;; ~/.emacs startup file.
@@ -43,18 +38,13 @@
 ;; suggested keybings for interactive use.
 ;;
 ;;  (global-unset-key "\C-z")
+;;  (global-set-key "\C-ztb" 'ti::text-re-search-backward)
+;;  (global-set-key "\C-ztf" 'ti::text-re-search-forward)
 ;;  (global-set-key "\C-ztm" 'ti::text-mark-region)   ;; e.g. permanent 'mark'
 ;;  (global-set-key "\C-ztu" 'ti::text-unmark-region) ;; remove 'mark'
 ;;  (global-set-key "\C-ztc" 'ti::text-clear-buffer-properties)
 ;;  (global-set-key "\C-ztb" 'ti::text-buffer)
 ;;  (global-set-key "\C-ztU" 'ti::text-undo)
-;;
-;; If you have any questions or feedback, use this function
-;;
-;;      M-x ti::text-submit-bug-report
-
-;;}}}
-;;{{{ Documentation
 
 ;; ..................................................... &t-commentary ...
 
@@ -125,7 +115,7 @@
 ;;          (global-set-key "\C-ct" 'my-tabs-highligh-in-buffer)
 ;;
 ;;          (defun my-tabs-highligh-in-buffer (&optional arg)
-;;            "Toggless hilit/dehiliting tabs in buffer.
+;;            "Toggless highlighting tabs in buffer.
 ;;          If ARG is integer, force highlighting. If ARG is C-u, then
 ;;          force dehighlighting."
 ;;            (interactive "P")
@@ -176,15 +166,10 @@
 ;;               (beginning-of-line)
 ;;               (ti::text-looking-at ".*"))
 ;;                (end-of-line))))
-;;
-
-;;}}}
 
 ;;; Change Log:
 
 ;;; Code:
-
-;;{{{ setup: require
 
 ;;; ......................................................... &require ...
 
@@ -205,9 +190,6 @@
             fingerprints against trusted list like http://www.uit.no/
         o   UNDO: adjustable stack size. Stack is cleared if
             stack limit reached (stack 'wraps')")
-
-;;}}}
-;;{{{ setup: variables
 
 ;;; ......................................................... &v-hooks ...
 
@@ -266,9 +248,6 @@ Format:
                    (symbol :tag "Face name"))))
   :group 'TinylibText)
 
-;;}}}
-;;{{{ version
-
 (eval-and-compile
   (ti::macrof-version-bug-report
    "tinylibt.el"
@@ -283,9 +262,6 @@ Format:
      ti::text-:stack
      ti::text-:face-search-default
      ti::text-:face-table)))
-
-;;}}}
-;;{{{ code: misc funcs
 
 ;;; ----------------------------------------------------------------------
 ;;;
@@ -436,7 +412,7 @@ Input:
   See function `ti::text-clear-region-properties'"
   (interactive)
   (ti::text-clear-region-properties (point-min) (point-max) propl)
-  (when (interactive-p)
+  (when (called-interactively-p 'interactive)
     (redraw-display)
     (message "Properties cleared")))
 
@@ -580,10 +556,10 @@ Return:
 
  nil            No match
  nbr            start of match at LEVEL."
-  (let* ((func          (if direction
-                            're-search-backward
-                          're-search-forward))
-         (start-point   (point))
+  (let* ((func (if direction
+		   're-search-backward
+		 're-search-forward))
+         (start-point (point))
          buffer-read-only
          max-level
          count
@@ -700,9 +676,6 @@ Input:
       (if ok
           (set-text-properties (point) (1+ (point)) set-plist)))))
 
-;;}}}
-;;{{{ code: interactive
-
 ;;; ----------------------------------------------------------------------
 ;;; Mon, 12 Feb 1996,  Tom Fontaine <fontaine@esd.ray.com>
 ;;; Sent this piece of code.  Thanks Tom!
@@ -749,7 +722,7 @@ Preserve point.
 See `ti::text-re-search' for descriptions of FACE MODE and SAVE-UNDO."
   (interactive (list (ti::text-read-regexp)  current-prefix-arg))
   (save-excursion
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (setq save-undo t))
     (goto-char (point-min))
     (ti::text-re-search re nil level nil face mode save-undo)))
@@ -765,7 +738,7 @@ function should highlight. point is preserved during call.
 See `ti::text-re-search' for descriptions of FACE MODE SAVE-UNDO."
   (interactive (list (ti::text-read-regexp)  current-prefix-arg))
   (save-excursion
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (setq save-undo t))
     (ti::text-re-search re nil level nil face mode save-undo)))
 
@@ -780,7 +753,7 @@ function should highlight. point is preserved during call.
 See `ti::text-re-search' for descriptions of FACE MODE SAVE-UNDO."
   (interactive (list (ti::text-read-regexp)  current-prefix-arg))
   (save-excursion
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (setq save-undo t))
     (ti::text-re-search re 'back level nil face mode save-undo)))
 
@@ -822,9 +795,7 @@ See `ti::text-re-search' for descriptions of FACE MODE SAVE-UNDO."
     (with-buffer-modified
       (put-text-property beg end 'face face))))
 
-;;}}}
-
-(provide     'tinylibt)
-(run-hooks   'ti::text-:load-hook)
+(provide 'tinylibt)
+(run-hooks 'ti::text-:load-hook)
 
 ;;; tinylibt.el ends here
