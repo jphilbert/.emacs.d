@@ -187,6 +187,7 @@
 (set-face-attribute 'popup-tip-face
 		    nil
 		    :font "envy code r-10"
+		    :height 90
 		    :background "#00222c"
 		    :foreground "light gray")
 
@@ -201,11 +202,13 @@
 (set-face-foreground 'font-lock-relation-operator-face "salmon1")
 (set-face-attribute 'font-lock-relation-operator-face nil :weight 'bold)
 
+(set-face-attribute font-lock-function-name-face nil :weight 'bold)
+
+;; -------------------- R Faces --------------------
 (make-face 'font-lock-ess-functions-face)
 (set-face-foreground 'font-lock-ess-functions-face "DodgerBlue1")
 ;; (set-face-attribute 'font-lock-ess-functions-face nil :weight 'bold)
 
-;; -------------------- R Faces --------------------
 (make-face 'font-lock-ess-dataframe-face)
 (set-face-foreground 'font-lock-ess-dataframe-face "khaki1")
 (set-face-attribute 'font-lock-ess-dataframe-face nil :weight 'normal)
@@ -216,7 +219,91 @@
 (make-face 'font-lock-ess-help-heading-1-face)
 (set-face-attribute 'font-lock-ess-help-heading-1-face nil :height 2.0)
 
-(set-face-attribute font-lock-function-name-face nil :weight 'bold)
+
+;; -------------------- Web Faces --------------------
+(set-face-attribute 'web-mode-html-tag-face nil
+                    :foreground "gray60")
+
+(set-face-attribute 'web-mode-html-attr-name-face nil
+                    :foreground "LightSteelBlue")
+
+(set-face-attribute 'web-mode-current-element-highlight-face nil
+                    :background "SteelBlue4")
+
+
+;; -----------------------------------------------------------------------------
+;; Special Mode Keywords
+;; -----------------------------------------------------------------------------
+;; -------------------- SQL --------------------
+(font-lock-add-keywords
+ 'sql-mode
+ '(("\\<[0-9]*\\.?[0-9]+"
+    .
+    'font-lock-number-face)
+   ("[!\\^<>]=\\|[<>]\\|\\(\\b\\(all\\|and\\|any\\|between\\|
+exists\\|in\\|like\\|not\\|or\\|some\\)\\b\\)"
+     .
+     'font-lock-relation-operator-face)))
+
+(font-lock-add-keywords
+ 'sql-interactive-mode
+ '(("\\<[0-9]*\\.?[0-9]+"
+    .
+    'font-lock-number-face)))
+
+
+;; -------------------- R --------------------
+(font-lock-add-keywords
+ 'ess-mode
+ '(("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*("
+    1                               ; Signifies which group
+    'font-lock-ess-functions-face)
+   ("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*\\["
+    1                               ; Signifies which group
+    'font-lock-ess-dataframe-face)
+   ("\\<[0-9]*\\.?[0-9]+"
+    .
+    'font-lock-number-face)
+   ("\\([<=>]=\\|[!<>&|]\\)[^-]"
+    1
+    'font-lock-relation-operator-face)))
+
+(font-lock-add-keywords
+ 'inferior-ess-mode
+ '(("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*("
+    1                               ; Signifies which group
+    'font-lock-ess-functions-face)
+   ("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*\\["
+    1                               ; Signifies which group
+    'font-lock-ess-dataframe-face)
+   ("\\<[0-9]*\\.?[0-9]+"
+    .
+    'font-lock-number-face)))
+
+(font-lock-add-keywords
+ 'ess-help-mode
+ '(("\\(?:Description\\|Usage\\|Arguments\\|Details\\|Value\\|S4 methods\\|References\\|See Also\\|Examples\\):"
+    .
+    'font-lock-ess-help-heading-2-face)))
+
+
+;; -------------------- Python --------------------
+(font-lock-add-keywords
+ 'python-mode        
+ '(("\\<[0-9]*\\.?[0-9]+"
+    .
+    'font-lock-number-face)
+   ("[!<=>]=\\|[<>]\\|\\(\\b\\(and\\|or\\|not\\|in\\|is\\)\\b\\)"
+     .
+     'font-lock-relation-operator-face)))
+
+(font-lock-add-keywords
+ 'inferior-python-mode
+ '(("\\<[0-9]*\\.?[0-9]+"
+    .
+    'font-lock-number-face)))
+
+
 
 ;; -----------------------------------------------------------------------------
 ;; Cursor Changes
@@ -255,15 +342,3 @@ buffer. Valid options are 'box' 'hollow' 'bar' 'hbar'"
 
 ;;; AESTHETICS.EL ends here
 
-
-;; (font-lock-add-keywords
-;;      'python-mode
-;;      '(("\\(?<![A-Za-z]\\)[0-9]+"                        ; Put near end
-;;         .
-;;         'font-lock-number-face)
-;;        ("\\(?: \\(?:\\(?:[!<=>]=\\|[<>]\\) \\)\\)"
-;;         .
-;;         'font-lock-relation-operator-face)))
-
-
-;; (font-lock-remove-keywords 'python-mode '('font-lock-number-face))

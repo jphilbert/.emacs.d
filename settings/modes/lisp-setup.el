@@ -17,14 +17,9 @@
   (lambda-mode 1)
   
   (add-to-list 'ac-sources 'ac-source-functions)
-  (add-to-list 'ac-sources ac-source-variables)
-  (add-to-list 'ac-sources ac-source-symbols)
-  ;; -------------------- Aesthetics ----------------------
-  (font-lock-add-keywords
-   nil
-   '(("[0-9]+"                        ; Put near end
-      .
-      'font-lock-number-face)))
+  (add-to-list 'ac-sources 'ac-source-variables)
+  ;; (add-to-list 'ac-sources 'ac-source-symbols)
+
   
   ;; -------------------- Key bindings --------------------
   (local-set-many-keys
@@ -94,3 +89,15 @@
       (describe-variable v))
     (when b-exist
       (display-*Help*-frame "*Help*"))))
+
+;; --------------------------------------------------------------------------
+;; Aesthetics
+;; --------------------------------------------------------------------------
+(font-lock-add-keywords
+ 'emacs-lisp-mode        
+ '(("\\(\\<\\|[\\+-\\*/]\\)\\([0-9]+\\)"
+    2
+    'font-lock-number-face)
+   ("[!<=>]=\\|[<>]"
+     .
+     'font-lock-relation-operator-face)))

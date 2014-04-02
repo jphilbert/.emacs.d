@@ -166,3 +166,18 @@ of comment-dwim, when it inserts comment at the end of the line."
   "Insert tabs to line or region"
   (interactive)
   (apply-function-to-region-lines 'tab-to-tab-stop))
+
+(defun ac-show-quick-help ()
+  "show docs for symbol at point or at beginning of list if not on a symbol"
+  (interactive)
+  (let ((s (save-excursion
+	     (or (symbol-at-point)
+		 (progn (backward-up-list)
+			(forward-char)
+			(symbol-at-point))))))
+    (pos-tip-show (ac-symbol-documentation s)
+		  'popup-tip-face
+		  ;; 'alt-tooltip
+		  (point)
+		  nil
+		  -1)))

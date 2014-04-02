@@ -18,7 +18,6 @@
  ;;inferior-R-program-name "C:\\Program Files\\R\\R-2.5.0\\bin\\Rterm.exe"
  ess-history-file		nil)
 
-
 (ess-toggle-S-assign-key	t)	     ; enable above key definition
 (ess-toggle-underscore		nil)	     ; leave my underscore alone
 
@@ -129,33 +128,9 @@
    (kbd "\`")           'skeleton-pair-insert-maybe
    (kbd "%")            'skeleton-pair-insert-maybe))
 
-;; Aesthetics
-(add-hook
- 'ess-mode-hook
- '(lambda ()
-    (font-lock-add-keywords
-     nil
-     '(("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*("
-        1                               ; Signifies which group
-        'font-lock-ess-functions-face)
-       ("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*[[\\|$]"
-        1                               ; Signifies which group
-        'font-lock-ess-dataframe-face)
-       ("[0-9]+"                        ; Put near end
-        .
-        'font-lock-number-face)
-       ("\\(?: \\(?:\\(?:[!<=>]=\\|[<>]\\) \\)\\)"
-        .
-        'font-lock-relation-operator-face)))))
 (add-hook
  'ess-help-mode-hook
- '(lambda ()
-    (font-lock-mode t)
-    ;; (setq font-lock-keywords t)
-    (font-lock-add-keywords
-     nil '(("\\(?:Description\\|Usage\\|Arguments\\|Details\\|Value\\|S4 methods\\|References\\|See Also\\|Examples\\):"
-            .
-            'font-lock-ess-help-heading-2-face)))))
+ '(lambda () (font-lock-mode t)))
 
 ;; --------------------------------------------------------------------------
 ;; Functions
@@ -310,5 +285,8 @@ initially found it automatically shows the help without prompting."
 			       nil nil nil nil (car hlpobjs))))
     ;; (string-match "\\(XLS\\)\\|\\(STA\\)\\|\\(SAS\\)" ess-language)
     (read-string (format "%s: " p-string))))
+
+
+
 
 

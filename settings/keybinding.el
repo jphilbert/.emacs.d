@@ -5,7 +5,7 @@
 ;; Description:		General Key Binding
 ;; Author:		John P. Hilbert <jphilbert@gmail.com>
 ;; Created:		2012-02-13 20:19:37
-;; Last-Updated:	2013-05-23
+;; Last-Updated:	2014-04-02
 ;;           By:	John P. Hilbert
 ;; Compatibility:	GNU Emacs 23.2.1
 ;;
@@ -67,20 +67,26 @@ If function is nil the key is unset."
  "\C-r"                         'query-replace
  
  ;; ---------- Miscellaneous ----------
+ [(f1)]                 'ac-show-quick-help
+ [(f2)]                 'occur
+ [(f3)]			'fold-dwim-toggle
+ [(shift f3)]           'fold-dwim-toggle-all
  [(f5)]                 'linum-mode
- [(f6)]                 'occur
+ [(f6)]                 'explorer
 
+
+ 
  ;; ---------- Buffers ----------
 					; Cycle File Buffers
- [(f1)]                 'switch-frame-previous
- [(f2)]                 'switch-frame-next
+ [(f11)]                 'switch-frame-previous
+ [(f10)]                 'switch-frame-next
 					; Cycles all buffers
- [(shift f1)]		'(lambda () (interactive)
+ [(shift f11)]		'(lambda () (interactive)
 			   (switch-frame-previous-buffer
 				     '(".*")
 				     '("\\*\\*\\*\\*")
 				     t))
- [(shift f2)]		'(lambda () (interactive)
+ [(shift f10)]		'(lambda () (interactive)
 			   (switch-frame-next-buffer
 				     '(".*")
 				     '("\\*\\*\\*\\*")
@@ -117,16 +123,11 @@ If function is nil the key is unset."
  (kbd   "M-;")                  'comment-dwim-line
  (kbd   "M-C-;")                'comment-dwim
  
- ;; ---------- Folding ----------
- (kbd   "<f3>")                 'fold-dwim-toggle
- [(shift f3)]                   'fold-dwim-toggle-all
 
  ;; ---------- Expand Regions ----------
- (kbd "C-+")			'er/expand-region	; C +
- (kbd "<C-S-kp-add>")		'er/expand-region
- 
- (kbd "C-_")			'er/contract-region	; C -
- (kbd "<C-S-kp-subtract>")	'er/contract-region
+ (kbd "C-=")			'er/expand-region	; C +
+ (kbd "C--")			'er/contract-region	; C -
+ (kbd "S-SPC")			'er/expand-region
 
  ;; ---------- Help ----------
  (kbd "C-h g")			'websearch-google

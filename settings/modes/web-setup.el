@@ -144,12 +144,3 @@
 			       (string-width start-tag)
 			       (string-width end-tag)))))))
 
-
-(set-face-attribute 'web-mode-html-tag-face nil
-                    :foreground "gray60")
-
-(set-face-attribute 'web-mode-html-attr-name-face nil
-                    :foreground "LightSteelBlue")
-
-(set-face-attribute 'web-mode-current-element-highlight-face nil
-                    :background "SteelBlue4")

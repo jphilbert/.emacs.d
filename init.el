@@ -91,9 +91,8 @@
 ;; ----------------------------------------------------------------------------
 ;; Auto Indent
 ;; ----------------------------------------------------------------------------
-;; (setq auto-indent-on-visit-file nil)
 (require 'auto-indent-mode nil t)
-;; (auto-indent-global-mode)
+;; (auto-indent-global-mode)		; Not good for all modes
 
 (autoload 'auto-indent-yank "auto-indent-mode" "" t)
 (autoload 'auto-indent-yank-pop "auto-indent-mode" "" t)
@@ -122,7 +121,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Auto Complete
 (require 'auto-complete-config nil t)
-(require 'pos-tip)			; For better tooltips
+(require 'my-pos-tip)			; For better tooltips
 
 (add-to-list 'ac-dictionary-directories
 	     "~/.emacs.d/packages/auto complete/ac-dict")
@@ -151,23 +150,6 @@
       icicle-region-background			"black")
 (icy-mode t)
 
-
-;; --------------------------------------------------------------------------
-;; Expand Region
-;; --------------------------------------------------------------------------
-(require 'expand-region)
-(global-set-key (kbd "S-SPC") 'er/expand-region) 
-
-
-;; -----------------------------------------------------------------------------
-;; Emacs Aesthetics
-;; -----------------------------------------------------------------------------
-(require 'aesthetics)		; after Auto-Complete loaded
-(require 'multi-window)
-(require 'switch-frame)
-
-(setq Multi-Window-Default-Window-Height 45)
-(require 'frame-settings)
 
 
 ;; ----------------------------------------------------------------------------
@@ -279,30 +261,17 @@ out it knowing."
 ;; (require 'gist nil t)
 
 
-;; --------------------------------------------------------------------------
-;; Dir-Ed
-;; --------------------------------------------------------------------------
-(require 'dired+)
+
+(require 'dired+)			; DIRED+ (used?)
 (toggle-diredp-find-file-reuse-dir 1)
 
+(require 'expand-region)		; Expand regions
 
-;; --------------------------------------------------------------------------
-;; Web Search
-;; --------------------------------------------------------------------------
-(require 'websearch)
+(require 'websearch)			; Search web functionality
+(require 'misc)				; Miscellaneous User created functions
 
-
-;; --------------------------------------------------------------------------
-;; Miscellaneous Functions
-;; --------------------------------------------------------------------------
-(require 'misc)
-
-
-;; ----------------------------------------------------------------------------
-;; Key Binding (global)
-;; ----------------------------------------------------------------------------
-(require 'keybinding nil t)
-(require 'mouse3)
+(require 'keybinding nil t)		; General Key-binding Setup
+(require 'mouse3)			; Additional Mouse Button functions
 
 
 ;; ----------------------------------------------------------------------------
@@ -318,9 +287,20 @@ out it knowing."
 (require 'shell-setup nil t)
 (require 'powershell-setup nil t)
 
+;; -----------------------------------------------------------------------------
+;; Emacs Aesthetics
+;; -----------------------------------------------------------------------------
+(require 'aesthetics)		; after Auto-Complete loaded
+(require 'multi-window)
+(require 'switch-frame)
+
+(setq Multi-Window-Default-Window-Height 45)
+(require 'frame-settings)
+
 ;; ------------------------------ Footer ---------------------------------------
 (message "init.el loaded in %ds"
 	 (destructuring-bind (hi lo ms) (current-time)
 	   (- (+ hi lo)
 	      (+ (first *emacs-load-start*)
 		 (second *emacs-load-start*)))))
+

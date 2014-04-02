@@ -139,13 +139,9 @@
   (python-shell-switch-to-shell)
   (switch-frame-previous))
 
-(defun switch-frame-next-python ()
-  "Cycle through the python buffers."
-  (interactive)
-  (switch-frame-next-buffer '("\\*python.*") '("^ ")))
-
 (defun switch-frame-current-python ()
   "Switch to current python process buffer."
   (interactive)
   (python-shell-switch-to-shell)
   (end-of-buffer-all))
+
