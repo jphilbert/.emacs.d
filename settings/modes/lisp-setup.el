@@ -16,7 +16,6 @@
   
   (add-to-list 'ac-sources 'ac-source-functions)
   (add-to-list 'ac-sources 'ac-source-variables)
-  ;; (add-to-list 'ac-sources 'ac-source-symbols)
   
   ;; -------------------- Key bindings --------------------
   (local-set-many-keys
@@ -29,21 +28,18 @@
 
    ;; ---------- Help ----------
    "\C-hf"      	'describe-variable-or-function
-   (kbd "C-h w")   	'(lambda ()
+   [(S-f1)]		'(lambda ()
 			   (interactive)
 			   (google-query-at-point t "emacs "))
-   (kbd "C-h W")   	'(lambda ()
+   (kbd "C-h w")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "emacs "))
 
    ;; ---------- Frame Switching ----------
    [(f12)]              'switch-frame-current-message
 
-   ;; ---------- Auto Pairing ----------
-   (kbd "(")            'skeleton-pair-insert-maybe
-   (kbd "[")            'skeleton-pair-insert-maybe
-   (kbd "{")            'skeleton-pair-insert-maybe
-   (kbd "\"")           'skeleton-pair-insert-maybe))
+   )
+  )
 
 ;; --------------------------------------------------------------------------
 ;; Functions
@@ -87,14 +83,3 @@
     (when b-exist
       (display-*Help*-frame "*Help*"))))
 
-;; --------------------------------------------------------------------------
-;; Aesthetics
-;; --------------------------------------------------------------------------
-(font-lock-add-keywords
- 'emacs-lisp-mode        
- '(("\\(\\<\\|[\\+-\\*/]\\)\\([0-9]+\\)"
-    2
-    'font-lock-number-face)
-   ("[!<=>]=\\|[<>]"
-     .
-     'font-lock-relation-operator-face)))

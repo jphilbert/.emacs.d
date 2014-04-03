@@ -249,6 +249,18 @@
 	     `(top . ,(+ 30 Multi-Window-Terminal-Window-Top))
 	     `(left . ,(+ 30 Multi-Window-Terminal-Window-Left)))))
 
+;; -------------------- YAS (New Snippet) ---------------------
+;; (add-to-list
+;;  'special-display-regexps
+;;  (list ".*\\*new snippet.*\\*.*" 'display-*Help*-frame
+;;        (list '(unsplittable . nil)
+;;              '(horizontal-scroll-bars . nil)
+;;              '(vertical-scroll-bars . nil)
+;;              `(height . ,Multi-Window-Default-Window-Height)
+;;              `(width . ,Multi-Window-Default-Window-Width)
+;; 	     `(top . ,(+ 30 Multi-Window-Terminal-Window-Top))
+;; 	     `(left . ,(- 30 Multi-Window-Terminal-Window-Left)))))
+
 
 ;; -------------------- Package Frame ---------------------
 ;; (add-to-list

@@ -3,14 +3,15 @@
 ;; ----------------------------------------------------------------------------
 (provide 'web-setup)
 (require 'web-mode)
+(require 'js-setup)
 
 (setq-default web-mode-enable-current-element-highlight t)
 
-(add-to-list
+(add-to-list				; Home
  'browse-url-filename-alist
  '("C:/Users/JPHil_000/Documents/WWW/" . "http://localhost/"))
 
-(add-to-list
+(add-to-list				; Work
  'browse-url-filename-alist
  '("C:/Users/hilbertjp/Local_Files/WWW" . "http://localhost/"))
 
@@ -22,8 +23,6 @@
   (interactive)
   (flyspell-prog-mode)
   (web-mode)
-  
-  (auto-indent-minor-mode -1)
 
   (add-to-list 'ac-sources 'ac-source-css-property)
   (auto-complete-mode)
@@ -31,8 +30,8 @@
   ;; Key Binding
   ;; ------------------------------------------------------
   (local-set-many-keys
-   [(return)]		'newline-and-indent
-
+   [(f3)]               'web-mode-fold-or-unfold
+   
    ;; ---------- Evaluation ----------
    [(shift return)]	'(lambda ()
 			   (interactive)
@@ -54,52 +53,27 @@
 
 
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'google-query-mode-at-point-lucky
-   (kbd "C-h W")   	'google-query-mode-at-point
+   [(S-f1)]	   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t "html "))
+   (kbd "C-h w")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point nil "html "))
    (kbd "C-h e")   	'web-mode-errors-show
-
-   [(f3)]               'web-mode-fold-or-unfold
    ))
 
-(add-hook 'js-mode-hook		'my-javascript-mode-hook)
-(defun my-javascript-mode-hook ()
-  (interactive)
-  ;; (flyspell-prog-mode)
-  (auto-indent-minor-mode 1)
-  (hs-minor-mode t)
-
-  ;; ------------------------------------------------------
-  ;; Key Binding
-  ;; ------------------------------------------------------
-  (local-set-many-keys
-   [(return)]		'newline
-
-   ;; ---------- Evaluation ----------
-   [(shift return)]	'(lambda ()
-			   (interactive)
-			   (save-buffer)
-			   (browse-url-of-buffer))
-
-   ;; ---------- Completion ----------
-
-
-   ;; ---------- Help ----------
-   (kbd "C-h w")   	'google-query-mode-at-point-lucky
-   (kbd "C-h W")   	'google-query-mode-at-point))
 
 (add-hook 'css-mode-hook		'my-css-mode-hook)
 (defun my-css-mode-hook ()
   (interactive)
   (flyspell-prog-mode)
   (hs-minor-mode)
-  (auto-indent-minor-mode 1)
+  ;; (auto-indent-minor-mode 1)
 
   ;; ------------------------------------------------------
   ;; Key Binding
   ;; ------------------------------------------------------
   (local-set-many-keys
-   [(return)]		'newline
-
    ;; ---------- Evaluation ----------
    [(shift return)]	'(lambda ()
 			   (interactive)
@@ -110,8 +84,13 @@
 
 
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'google-query-mode-at-point-lucky
-   (kbd "C-h W")   	'google-query-mode-at-point))
+   [(S-f1)]	   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t "CCS "))
+   (kbd "C-h w")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point nil "CSS "))
+   ))
 
 ;; --------------------------------------------------------------------------
 ;; Additional Functions

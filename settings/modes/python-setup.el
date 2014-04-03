@@ -2,7 +2,7 @@
 ;; Python Mode Setup
 ;; ----------------------------------------------------------------------------
 (provide 'python-setup)
-(require 'python)
+;; (require 'python)
 
 ;; Jedi
 (autoload 'jedi:setup "jedi" nil t)
@@ -19,7 +19,7 @@
   (auto-complete)
   
   (hs-minor-mode t)
-  (auto-indent-minor-mode -1)
+  ;; (auto-indent-minor-mode -1)
   
   ;; (hs-hide-all)				; Breaks if bad code
   (flyspell-prog-mode)
@@ -38,10 +38,10 @@
    (kbd "<tab>")        'indent-for-tab-command  
 
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'(lambda ()
+   [(S-f1)]	   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point t "Python "))
-   (kbd "C-h W")   	'(lambda ()
+   (kbd "C-h w")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "Python "))
    (kbd "C-h f")   	'jedi:show-doc
@@ -50,14 +50,8 @@
    [(f12)]              'switch-frame-current-python
    ;; [S-f12]              'python-process-new
    ;; [C-f12]              'python-process-set 
-   
-   ;; ---------- Auto Pairing ----------
-   (kbd "(")            'skeleton-pair-insert-maybe  
-   (kbd "[")            'skeleton-pair-insert-maybe
-   (kbd "{")            'skeleton-pair-insert-maybe
-   (kbd "\"")           'skeleton-pair-insert-maybe
-   (kbd "\'")           'skeleton-pair-insert-maybe
-   (kbd "\`")           'skeleton-pair-insert-maybe))
+   )
+  )
 
 (add-hook 'inferior-python-mode-hook	'my-inferior-python-mode-hook)
 (defun my-inferior-python-mode-hook ()
@@ -72,23 +66,16 @@
   ;; --------------------------------------------------------------------------
   (local-set-many-keys
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'(lambda ()
+   [(S-f1)]	   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point t "Python "))
-   (kbd "C-h W")   	'(lambda ()
+   (kbd "C-h w")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "Python "))
 
    ;; ---------- Frame Switching ----------
    [(f12)]              'switch-frame-previous
-   
-   ;; ---------- Auto Pairing ----------
-   (kbd "(")            'skeleton-pair-insert-maybe  
-   (kbd "[")            'skeleton-pair-insert-maybe
-   (kbd "{")            'skeleton-pair-insert-maybe
-   (kbd "\"")           'skeleton-pair-insert-maybe
-   (kbd "\'")           'skeleton-pair-insert-maybe
-   (kbd "\`")           'skeleton-pair-insert-maybe))
+   ))
 
 
 ;; --------------------------------------------------------------------------

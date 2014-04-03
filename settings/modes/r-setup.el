@@ -30,12 +30,14 @@
   "Auto-completion source for R function arguments"
   )
 
+
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
 (add-hook 'ess-mode-hook		'my-r-mode-hook)
 (defun my-r-mode-hook ()
   (interactive)
+ 
   (hs-minor-mode t)
   (add-to-list 'hs-special-modes-alist
 	       '(ess-mode "{" "}" "/[*/]" nil
@@ -43,14 +45,12 @@
   (hs-hide-all)
   
   (flyspell-prog-mode)
-
-  (auto-indent-minor-mode 1)
   
   ;; ------------------------------------------------------
   ;; Key Binding
   ;; ------------------------------------------------------
   (local-set-many-keys
-   [(return)]		'newline
+   ;; [(return)]		'newline-and-indent
 
    ;; ---------- Evaluation ----------
    [(shift return)]     'R-eval
@@ -62,10 +62,10 @@
    
    
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'(lambda ()
+   [(S-f1)]	   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point t "R "))
-   (kbd "C-h W")   	'(lambda ()
+   (kbd "C-h w")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "R "))
 
@@ -78,15 +78,8 @@
    [(f12)]              'switch-frame-current-R
    [S-f12]              'R-process-new
    [C-f12]              'ess-switch-process
-
-   ;; ---------- Auto Pairing ----------
-   ;; (kbd "(")            'skeleton-pair-insert-maybe ; Broke 
-   (kbd "[")    	'skeleton-pair-insert-maybe
-   (kbd "{")    	'skeleton-pair-insert-maybe
-   (kbd "\"")   	'skeleton-pair-insert-maybe
-   (kbd "\'")   	'skeleton-pair-insert-maybe
-   (kbd "\`")   	'skeleton-pair-insert-maybe
-   (kbd "%")    	'skeleton-pair-insert-maybe))
+   )
+  )
 
 (add-hook 'inferior-ess-mode-hook	'my-inferior-r-mode-hook)
 (defun my-inferior-r-mode-hook ()
@@ -103,10 +96,10 @@
    [down]               'comint-next-input
 
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'(lambda ()
+   [(S-f1)]	   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point t "R "))
-   (kbd "C-h W")   	'(lambda ()
+   (kbd "C-h w")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "R "))
 
@@ -121,12 +114,14 @@
 
    ;; ---------- Auto Pairing ----------
    ;; (kbd "(")            'skeleton-pair-insert-maybe ; Broke 
-   (kbd "[")            'skeleton-pair-insert-maybe
-   (kbd "{")            'skeleton-pair-insert-maybe
-   (kbd "\"")           'skeleton-pair-insert-maybe
-   (kbd "\'")           'skeleton-pair-insert-maybe
-   (kbd "\`")           'skeleton-pair-insert-maybe
-   (kbd "%")            'skeleton-pair-insert-maybe))
+   ;; (kbd "[")            'skeleton-pair-insert-maybe
+   ;; (kbd "{")            'skeleton-pair-insert-maybe
+   ;; (kbd "\"")           'skeleton-pair-insert-maybe
+   ;; (kbd "\'")           'skeleton-pair-insert-maybe
+   ;; (kbd "\`")           'skeleton-pair-insert-maybe
+   ;; (kbd "%")            'skeleton-pair-insert-maybe
+   )
+  )
 
 (add-hook
  'ess-help-mode-hook

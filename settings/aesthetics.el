@@ -149,7 +149,9 @@
 (set-face-attribute 'mode-line-80col-face nil
                     :inherit 'mode-line-position-face
                     :foreground "firebrick1"
-                    :background "grey20") 
+                    :background "grey20")
+
+
 
 ;; --------------------------------------------------------------------------
 ;; Auto-Complete
@@ -183,6 +185,13 @@
 		    :height 90
 		    :background "#00222c"
 		    :foreground "light gray")
+
+(copy-face 'ac-candidate-face 'ac-yasnippet-candidate-face)
+(set-face-attribute 'ac-yasnippet-candidate-face
+		    nil
+		    :foreground "sandybrown")
+
+
 
 
 ;; -----------------------------------------------------------------------------
@@ -222,6 +231,11 @@
 
 (set-face-attribute 'web-mode-current-element-highlight-face nil
                     :background "SteelBlue4")
+
+
+;; -------------------- Java Script Faces -------------------- 
+(set-face-foreground 'js2-function-param "green2")
+(set-face-foreground 'js2-external-variable "SandyBrown")
 
 
 ;; -----------------------------------------------------------------------------
@@ -296,6 +310,35 @@ exists\\|in\\|like\\|not\\|or\\|some\\)\\b\\)"
     .
     'font-lock-number-face)))
 
+
+;; -------------------- LISP --------------------
+(font-lock-add-keywords
+ 'emacs-lisp-mode        
+ '(("\\<[0-9]*\\.?[0-9]+"
+    .
+    'font-lock-number-face)
+   ("[!<>]=\\|[<>]\\|\\(\\b\\(and\\|or\\|not\\)\\b\\)"
+     .
+     'font-lock-relation-operator-face)))
+
+;; -------------------- Java Script --------------------
+(font-lock-add-keywords
+ 'js2-mode
+ '(("\\<[0-9]*\\.?[0-9]+"
+    .
+    'font-lock-number-face)
+   ("\\([<=>]=+\\|[!<>&|]\\)"
+    .
+    'font-lock-relation-operator-face)))
+
+(font-lock-add-keywords
+ 'js-mode
+ '(("\\<[0-9]*\\.?[0-9]+"
+    .
+    'font-lock-number-face)
+   ("\\([<=>]=+\\|[!<>&|]\\)"
+    .
+    'font-lock-relation-operator-face)))
 
 
 ;; -----------------------------------------------------------------------------

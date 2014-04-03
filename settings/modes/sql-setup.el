@@ -12,12 +12,10 @@
 ;; (setenv "TNS_ADMIN"		"/home/hilbertjp")
 
 (eval-after-load "sql" '(load-library "sql-indent")) 
-
-(add-to-list 'auto-mode-alist '("\\.sql\\'" . sql-mode))
 (add-to-list 'ac-modes 'sql-mode)
 
-(setq sql-ms-program		"sqlcmd")
-(setq sql-oracle-program	"sqlplus")
+(setq sql-ms-program		"sqlcmd"
+      sql-oracle-program	"sqlplus")
 
 
 ;; --------------------------------------------------------------------------
@@ -32,11 +30,8 @@
   (hs-minor-mode t)
   ;; (hs-hide-all)
   
-  (auto-indent-mode -1)			; This screws with PL
   (flyspell-prog-mode)
   (ac-flyspell-workaround)
-
-  ;; (setq ac-ignore-case t)
   
   (sql-set-product 'oracle)
 
@@ -60,25 +55,18 @@
    [C-f12]              'sql-set-sqli-buffer
 
    ;; ---------- Help ----------
-   (kbd "C-h w")   	'(lambda ()
+   [(S-f1)]	   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point t (format "SQL %s "
 							    sql-product)))
-   (kbd "C-h W")   	'(lambda ()
+   (kbd "C-h w")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil (format "SQL %s "
 							      sql-product)))
    "\C-hf"              'sql-tables
    "\C-he"              'sql-explain
    "\C-hv"              'sql-describe
-   
-   ;; ---------- Auto Pairing ----------
-   (kbd "(")            'skeleton-pair-insert-maybe
-   (kbd "[")            'skeleton-pair-insert-maybe
-   (kbd "{")            'skeleton-pair-insert-maybe
-   (kbd "\"")           'skeleton-pair-insert-maybe
-   (kbd "\'")           'skeleton-pair-insert-maybe
-   (kbd "\`")           'skeleton-pair-insert-maybe))
+   ))
 
 (add-hook 'sql-interactive-mode-hook 'my-sql-interactive-mode-hook)
 (defun my-sql-interactive-mode-hook ()
@@ -90,7 +78,6 @@
   
   (add-to-list 'ac-sources 'ac-source-sql)
   (auto-complete-mode t)
-  (setq ac-ignore-case nil)
   
   ;; --------------------------------------------------------------------------
   ;; Key Bindings
@@ -106,12 +93,14 @@
    (kbd "<tab>")	'completion-at-point
 
    ;; ---------- Help ----------
+   [(S-f1)]	  	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t (format "SQL %s "
+							    sql-product)))
    (kbd "C-h w")   	'(lambda ()
 			   (interactive)
-			   (google-query-at-point t "SQL "))
-   (kbd "C-h W")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil "SQL "))
+			   (google-query-at-point nil (format "SQL %s "
+							      sql-product)))
    "\C-hf"              'sql-tables
    "\C-he"              'sql-explain
    "\C-hv"              'sql-describe
@@ -119,14 +108,7 @@
    ;; ---------- Frame Switching ----------
    [(f12)]              'switch-frame-next-sql
    [S-f12]              'sql-process-new
-
-   ;; ---------- Auto Pairing ----------
-   (kbd "(")            'skeleton-pair-insert-maybe
-   (kbd "[")            'skeleton-pair-insert-maybe
-   (kbd "{")            'skeleton-pair-insert-maybe
-   (kbd "\"")           'skeleton-pair-insert-maybe
-   (kbd "\'")           'skeleton-pair-insert-maybe
-   (kbd "\`")           'skeleton-pair-insert-maybe))
+   ))
 
 ;; --------------------------------------------------------------------------
 ;; Functions

@@ -74,7 +74,7 @@ If function is nil the key is unset."
  [(f5)]                 'linum-mode
  [(f6)]                 'explorer
 
-
+ (kbd "S-<tab>")	'auto-complete
  
  ;; ---------- Buffers ----------
 					; Cycle File Buffers
@@ -83,14 +83,14 @@ If function is nil the key is unset."
 					; Cycles all buffers
  [(shift f11)]		'(lambda () (interactive)
 			   (switch-frame-previous-buffer
-				     '(".*")
-				     '("\\*\\*\\*\\*")
-				     t))
+			    '(".*")
+			    '("\\*\\*\\*\\*")
+			    t))
  [(shift f10)]		'(lambda () (interactive)
 			   (switch-frame-next-buffer
-				     '(".*")
-				     '("\\*\\*\\*\\*")
-				     t))
+			    '(".*")
+			    '("\\*\\*\\*\\*")
+			    t))
  
  (kbd   "C-x k")                'kill-buffer-or-emacs
  (kbd   "C-S-b")                'bs-show
@@ -120,8 +120,8 @@ If function is nil the key is unset."
  (kbd   "C-S-j")                'tinyeat-join-lines
  
  ;; ---------- Commenting ----------
- (kbd   "M-;")                  'comment-dwim-line
- (kbd   "M-C-;")                'comment-dwim
+ (kbd   "M-;")                  'comment-dwim-line 
+ (kbd   "M-C-;")                'comment-dwim 
  
 
  ;; ---------- Expand Regions ----------

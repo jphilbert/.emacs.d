@@ -2,7 +2,6 @@
 ;; init.el (Global Options)
 ;; ----------------------------------------------------------------------------
 (require 'cl)
-(defvar *emacs-load-start* (current-time))
 
 ;; maps path of emacs files
 (let ((default-directory "~/.emacs.d/elpa/user/"))
@@ -55,13 +54,20 @@
  comint-move-point-for-output           t
  comint-prompt-read-only                nil)
 
+;; Electric Pair Mode
+(electric-pair-mode 1)
 
+
+;; -----------------------------------------------------------------------------
+;; Packages
+;; -----------------------------------------------------------------------------
 (require 'package)
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (when (< emacs-major-version 24)
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize)
+
 
 ;; -----------------------------------------------------------------------------
 ;; Directories / Backups
@@ -72,8 +78,12 @@
 
 ;; Put autosave files (ie #foo#) and backup files (ie foo~) in ~/.emacs.d/.
 (custom-set-variables
-  '(auto-save-file-name-transforms '((".*" "~/.emacs.d/autosaves/" t)))
-  '(backup-directory-alist '((".*" . "~/.emacs.d/backups/"))))
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(auto-save-file-name-transforms (quote ((".*" "~/.emacs.d/autosaves/" t))))
+ '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backups/")))))
 
 
 ;; -----------------------------------------------------------------------------
@@ -84,34 +94,14 @@
 (server-start)
 
 
-
 ;; ----------------------------------------------------------------------------
 ;; Tiny Tools
 ;; ----------------------------------------------------------------------------
 ;; (require 'tinybuffer nil t)		
-(require 'tinyef nil t)
-(require 'tinyeat nil t)
+(require 'tinyef)
+(require 'tinyeat)
 (add-hook 'tinyef-load-hook 'tinyef-minibuffer-define-key-extras)
 (setq tinyeat--load-hook '(tinyeat-install))
-
-
-;; ----------------------------------------------------------------------------
-;; Auto Indent
-;; ----------------------------------------------------------------------------
-(require 'auto-indent-mode nil t)
-;; (auto-indent-global-mode)		; Not good for all modes
-
-(autoload 'auto-indent-yank "auto-indent-mode" "" t)
-(autoload 'auto-indent-yank-pop "auto-indent-mode" "" t)
-
-(define-key global-map [remap yank] 'auto-indent-yank)
-(define-key global-map [remap yank-pop] 'auto-indent-yank-pop)
-
-(autoload 'auto-indent-delete-char "auto-indent-mode" "" t)
-(define-key global-map [remap delete-char] 'auto-indent-delete-char)
-
-(autoload 'auto-indent-kill-line "auto-indent-mode" "" t)
-(define-key global-map [remap kill-line] 'auto-indent-kill-line)
 
 
 ;; ----------------------------------------------------------------------------
@@ -128,7 +118,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Auto Complete
 (require 'auto-complete-config)
-(require 'my-pos-tip)			; For better tooltips
+(require 'my-pos-tip)			; For better Tool Tips
 
 (add-to-list 'ac-dictionary-directories
 	     "~/.emacs.d/packages/auto complete/ac-dict")
@@ -144,11 +134,12 @@
 	      ac-auto-start		2)
 (ac-flyspell-workaround)
 
-(define-key ac-completing-map (kbd "<tab>")	'ac-expand)
+(define-key ac-completing-map (kbd "<tab>")	'ac-next)
 (define-key ac-completing-map [(return)]	'ac-complete)
 
+
 ;; Icicles
-(require 'icicles nil t)
+(require 'icicles)
 (setq icicle-show-Completions-help-flag		nil
       icicle-candidate-width-factor		100
       icicle-Completions-display-min-input-chars 2
@@ -208,13 +199,14 @@ JPH: Removed periodic message"
 ;; Snippets
 ;; ----------------------------------------------------------------------------
 (require 'yasnippet)
-;; (yas/initialize)
-(yas/load-directory "~/.emacs.d/packages/yasnippet/snippets")
-(setq yas/prompt-functions '(yas/completing-prompt))
+(yas-global-mode 1)
+;; ;; (yas/initialize)
+;; (yas/load-directory "~/.emacs.d/packages/yasnippet/snippets")
+;; (setq yas/prompt-functions '(yas/completing-prompt))
 
-(setq yas/trigger-key (kbd "SPC"))
-(add-hook 'yas/minor-mode-on-hook 
-          '(lambda () (define-key yas/minor-mode-map yas/trigger-key 'yas/expand)))
+;; (setq yas/trigger-key (kbd "SPC"))
+;; (add-hook 'yas/minor-mode-on-hook 
+;;           '(lambda () (define-key yas/minor-mode-map yas/trigger-key 'yas/expand)))
 
 
 ;; ----------------------------------------------------------------------------
@@ -299,10 +291,11 @@ out it knowing."
 (setq Multi-Window-Default-Window-Height 45)
 (require 'frame-settings)
 
-;; ------------------------------ Footer ---------------------------------------
-;; (message "init.el loaded in %ds"
-;; 	 (destructuring-bind (hi lo ms) (current-time)
-;; 	   (- (+ hi lo)
-;; 	      (+ (first *emacs-load-start*)
-;; 		 (second *emacs-load-start*)))))
 
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(js2-function-param ((t (:foreground "SeaGreen")))))
