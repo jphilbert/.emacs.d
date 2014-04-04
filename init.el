@@ -120,8 +120,8 @@
 (require 'auto-complete-config)
 (require 'my-pos-tip)			; For better Tool Tips
 
-(add-to-list 'ac-dictionary-directories
-	     "~/.emacs.d/packages/auto complete/ac-dict")
+;; (add-to-list 'ac-dictionary-directories
+;; 	     "~/.emacs.d/packages/auto complete/ac-dict")
 (ac-config-default)
 (global-auto-complete-mode t)
 (setq-default ac-quick-help-delay	0.8
@@ -290,12 +290,3 @@ out it knowing."
 
 (setq Multi-Window-Default-Window-Height 45)
 (require 'frame-settings)
-
-
-
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(js2-function-param ((t (:foreground "SeaGreen")))))

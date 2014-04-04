@@ -141,7 +141,7 @@
 	     '(top . 10)
 	     (cons 'left (/ (x-display-pixel-width) 2)))))
 
-;; -------------------- Help Frame ---------------------
+;; -------------------- Python Help Frame ---------------------
 (add-to-list
  'special-display-regexps
  (list ".*\\*.*jedi.*\\*.*" 'display-default-frame
@@ -249,6 +249,20 @@
 	     `(top . ,(+ 30 Multi-Window-Terminal-Window-Top))
 	     `(left . ,(+ 30 Multi-Window-Terminal-Window-Left)))))
 
+
+;; -------------------- Skewer Frame(s) ---------------------
+(add-to-list
+ 'special-display-regexps
+ (list ".*\\*skewer-.*\\*.*" 'display-default-frame
+       (list '(unsplittable . nil)
+             '(horizontal-scroll-bars . nil)
+             '(vertical-scroll-bars . nil)
+             `(height . ,Multi-Window-Default-Window-Height)
+             `(width . ,Multi-Window-Default-Window-Width)
+	     `(top . ,(+ 20 Multi-Window-Terminal-Window-Top))
+	     `(left . ,(+ 20 Multi-Window-Terminal-Window-Left)))))
+
+
 ;; -------------------- YAS (New Snippet) ---------------------
 ;; (add-to-list
 ;;  'special-display-regexps
@@ -275,6 +289,23 @@
 ;; 	     `(left . ,(- 100 Multi-Window-Terminal-Window-Left)))))
      
 
+;; EXPERIMENTATION EMACS24
+;; (setq display-buffer-alist
+;;       (cons
+;;        '("\\*Package\\*"
+;; 	 (display-buffer-reuse-window
+;; 	  display-buffer-pop-up-frame)
+;; 	 (reusable-frames . 0)
+;; 	 (pop-up-frame-parameters .
+;; 				  ((height . 16)
+;; 				   (width . 80)
+;; 				   (unsplittable . t)
+;; 				   (minibuffer)
+;; 				   ;; (foreground-color . "red")
+;; 				   ;; (background-color . "black")
+;; 				   )
+;; 				  ))
+;;        nil))
 
 
 

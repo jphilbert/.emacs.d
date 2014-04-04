@@ -141,6 +141,7 @@ If function is nil the key is unset."
 ;; --------------------------------------------------------------------------
 ;; Comint Mode
 ;; --------------------------------------------------------------------------
+(require 'comint)
 (define-key comint-mode-map [C-down]
   'comint-next-prompt)
 (define-key comint-mode-map [C-up]

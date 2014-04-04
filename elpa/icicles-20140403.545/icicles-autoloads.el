@@ -3,7 +3,7 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "icicles" "icicles.el" (21308 29591 0 0))
+;;;### (autoloads nil "icicles" "icicles.el" (21311 1404 0 0))
 ;;; Generated autoloads from icicles.el
  (autoload 'icy-mode    "icicles" "Toggle Icicle mode - see `icicle-mode'." t nil)
  (autoload 'icicle-mode "icicles" 
@@ -28,7 +28,7 @@
 ;;;### (autoloads nil nil ("icicles-chg.el" "icicles-cmd1.el" "icicles-cmd2.el"
 ;;;;;;  "icicles-doc1.el" "icicles-doc2.el" "icicles-face.el" "icicles-fn.el"
 ;;;;;;  "icicles-mac.el" "icicles-mcmd.el" "icicles-mode.el" "icicles-opt.el"
-;;;;;;  "icicles-pkg.el" "icicles-var.el") (21308 29591 713000 0))
+;;;;;;  "icicles-pkg.el" ...) (21311 1404 669000 0))
 
 ;;;***
 

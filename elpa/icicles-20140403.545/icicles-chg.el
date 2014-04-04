@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 2007-2014, Drew Adams, all rights reserved.
 ;; Created: Tue Nov 27 07:47:53 2007
-;; Last-Updated: Tue Apr  1 13:26:16 2014 (-0700)
+;; Last-Updated: Wed Apr  2 22:36:57 2014 (-0700)
 ;;           By: dradams
-;;     Update #: 10757
+;;     Update #: 10768
 ;; URL: http://www.emacswiki.org/icicles-chg.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer,
@@ -5846,6 +5846,14 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-mode.el'")
 ;;
+;; 2014/04/02 dadams
+;;     icicle-define-icicle-maps:
+;;       Without touche-pas and without Bookmark+: do not define icicle-bookmark-with-tags-menu-map.
+;;       With touchs-pas and without Bookmark+: use icicle-search-goto-menu-map.
+;;       With touche-pas and with Bookmark+: just copy Bookmark+ keymaps.
+;;       Unless Bookmark+, add icicle-bookmark-other-window to Icicles submap.
+;;       Removed all of the replacement menu items for Bookmark+ case - ineffective, since copy-keymap.
+;;       (Typos) icicle-search-menu-map -> icicle-search-goto-menu-map; [search] -> [goto].
 ;; 2014/03/08 dadams
 ;;     icicle-top-level-prep:
 ;;       Test minibuffer-depth, not recursion-depth.  Do not set icicle-last-top-level-command for

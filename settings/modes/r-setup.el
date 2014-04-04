@@ -111,15 +111,6 @@
    ;; ---------- Frame Switching ----------
    [(f12)]              'switch-frame-previous
    [S-f12]		'R-process-new
-
-   ;; ---------- Auto Pairing ----------
-   ;; (kbd "(")            'skeleton-pair-insert-maybe ; Broke 
-   ;; (kbd "[")            'skeleton-pair-insert-maybe
-   ;; (kbd "{")            'skeleton-pair-insert-maybe
-   ;; (kbd "\"")           'skeleton-pair-insert-maybe
-   ;; (kbd "\'")           'skeleton-pair-insert-maybe
-   ;; (kbd "\`")           'skeleton-pair-insert-maybe
-   ;; (kbd "%")            'skeleton-pair-insert-maybe
    )
   )
 

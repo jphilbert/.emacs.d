@@ -66,27 +66,26 @@
 (add-hook 'css-mode-hook		'my-css-mode-hook)
 (defun my-css-mode-hook ()
   (interactive)
+  (skewer-css-mode)
   (flyspell-prog-mode)
   (hs-minor-mode)
-  ;; (auto-indent-minor-mode 1)
 
   ;; ------------------------------------------------------
   ;; Key Binding
   ;; ------------------------------------------------------
   (local-set-many-keys
    ;; ---------- Evaluation ----------
-   [(shift return)]	'(lambda ()
-			   (interactive)
-			   (save-buffer)
-			   (browse-url-of-buffer))
-
+   [(shift return)]	'css-eval
+   [(M-S-return)]	'css-revert
+   [(C-S-return)]	'css-eval-buffer
+   
    ;; ---------- Completion ----------
 
 
    ;; ---------- Help ----------
    [(S-f1)]	   	'(lambda ()
 			   (interactive)
-			   (google-query-at-point t "CCS "))
+			   (google-query-at-point t "CSS "))
    (kbd "C-h w")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "CSS "))
@@ -123,3 +122,26 @@
 			       (string-width start-tag)
 			       (string-width end-tag)))))))
 
+(defun css-eval ()
+  "Evaluates CSS code."
+  (interactive)
+  (if skewer-clients
+      (progn
+	(skewer-css-eval-current-rule)
+	(goto-char (skewer-css-end-of-rule))
+	(next-non-blank-line))
+    (message "ERROR: No Skewer Clients")))
+
+(defun css-revert ()
+  "Reverts any evaluated CSS code."
+  (interactive)
+  (if skewer-clients
+      (skewer-css-clear-all)
+    (message "ERROR: No Skewer Clients")))
+
+(defun css-eval-buffer ()
+  "Evaluates all CSS buffer."
+  (interactive)
+  (if skewer-clients
+      (skewer-css-eval-buffer)
+    (message "ERROR: No Skewer Clients")))
