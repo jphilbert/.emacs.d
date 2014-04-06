@@ -8,11 +8,11 @@
 ;; Copyright (C)	2012, John P. Hilbert, all rights reserved.
 ;; Created:		2012-02-13 20:30:16
 ;; Version:		0.2
-;; Last-Updated:	2012-03-26
+;; Last-Updated:	2014-04-05
 ;;           By:	John P. Hilbert
 ;; URL:			
 ;; Keywords:		<NONE>
-;; Compatibility:	GNU Emacs 23.2.1
+;; Compatibility:	GNU Emacs 24.3
 ;;
 ;; Features that might be required by this library:
 ;;	http://www.emacswiki.org/emacs/frame-cmds.el
@@ -46,7 +46,7 @@
 
 ;; This package is inspired from Drew Adam's OneOnOne Package and uses much of
 ;; his supplementary packages.  The key motivation was to streamline the
-;; package and make it as transparent as possible.
+;; package and make it as transparent as possible. adjasdkjasd as adjl
 ;; 
 ;;      - Use of Special Display lists for frame configuration
 ;;              - Displaying frames require display-buffer
@@ -90,12 +90,14 @@
 ;;      * First released.
 ;; 2012-03-14
 ;;	* added function to 'kill-buffer-or-emacs' for killing emacs if last
-;;frame.
+;;	  frame.
 ;; 2012-03-26
 ;;	* started adding rewrites for help functions.  For instance *Help*
-;;displays correctly at first, however reuses the buffer hence does not refit on
-;;subsequent displays.  Added a short (reusable piece to kill the frame if
-;;active) 
+;;	  displays correctly at first, however reuses the buffer hence does not
+;;	  refit on subsequent displays.  Added a short (reusable piece to kill
+;;	  the frame if active) 
+;; 2014-04-05
+;;	Removed all display functions.  Not much of a package anymore.
 ;; 
 
 ;; -----------------------------------------------------------------------------
@@ -113,6 +115,8 @@
 ;; Require
 ;; -----------------------------------------------------------------------------
 (require 'fit-frame)
+(require 'switch-frame)
+
 
 ;; -----------------------------------------------------------------------------
 ;; Variables
@@ -139,7 +143,6 @@
 
 ;; Change file opening to popup in other frame
 (defalias 'find-file 'find-file-other-frame)
-(setq-default display-buffer-reuse-frames t) ; ??? Don't remember why ???
 
 ;; When opening a file from outside emacs the server processes the request, this
 ;;  handles creating a new frame for the buffer
@@ -154,75 +157,11 @@
   (let ((frame   (posn-window (event-start event))))
     (kill-buffer-or-emacs (window-buffer (get-largest-window frame)))))
 
-;; This is why I have problems with *shell*.  Since I do not use any of the
-;;  other buffers just set to nil
+;; This is why I have problems with *shell*.
+;; Since I do not use any of the other buffers just set to nil
 (setq same-window-buffer-names nil)
 (setq-default fit-frame-max-height-percent 70)
-  
 
-;; -----------------------------------------------------------------------------
-;; Display functions
-;; -----------------------------------------------------------------------------
-(defun display-default-frame (buf &optional args) 
-  "Default (vanilla) display function.  Displays buffer in its
-own frame and double checks if it is within bounds."
-  (let ((return-window (select-window
-                        (funcall special-display-function buf args)))
-        (frame (raise-frame)))
-    
-    (set-window-buffer (frame-selected-window frame) buf)
-    (set-window-dedicated-p (frame-selected-window frame) nil)
-    (frame-selected-window frame)
-    (fix-frame-bounds frame)
-    
-    return-window))
-
-(defun display-default-frame (buf &optional args)
-  (if (and args (symbolp (car args)))
-      (apply (car args) buffer (cdr args))
-    
-    (let ((window (get-buffer-window buffer 0)))
-      (or
-       ;; If we have a window already, make it visible.
-       (when window
-         (let ((frame (window-frame window)))
-           (make-frame-visible frame)
-           (raise-frame frame)
-           window))
-       
-       ;; Reuse the current window if the user requested it.
-       (when (cdr (assq 'same-window args))
-         (condition-case nil
-             (progn (switch-to-buffer buffer) (selected-window))
-           (error nil)))
-       
-       ;; Stay on the same frame if requested.
-       (when (or (cdr (assq 'same-frame args)) (cdr (assq 'same-window args)))
-         (let* ((pop-up-windows t)
-                pop-up-frames
-                special-display-buffer-names special-display-regexps)
-           (display-buffer buffer)))
-       
-       ;; If no window yet, make one in a new frame.
-       (let ((frame
-              (with-current-buffer buffer
-                (make-frame (append args special-display-frame-alist)))))
-         (set-window-buffer (frame-selected-window frame) buffer)
-         (set-window-dedicated-p (frame-selected-window frame) t)
-         (frame-selected-window frame))))))
-
-(defun display-*Help*-frame (buf &optional args)
-  "Display *Help* buffer in its own frame.
-`special-display-function' is used to do the actual displaying.
-BUF and ARGS are the arguments to `special-display-function'."
-  (let ((calling-frame (selected-frame))
-        (return-window (select-window
-                        (funcall special-display-function buf args))))
-    (raise-frame)
-    (fit-frame)                         ; Fit the frame to its context
-    (setq mode-line-format nil)         ; Remove Mode Line
-    (raise-frame calling-frame)
-    return-window))
 
 ;; ----------------------------------------------------------------------------
 ;; Function Definitions

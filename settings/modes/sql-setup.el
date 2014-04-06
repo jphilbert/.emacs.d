@@ -31,7 +31,7 @@
   ;; (hs-hide-all)
   
   (flyspell-prog-mode)
-  (ac-flyspell-workaround)
+  (turn-on-auto-fill)
   
   (sql-set-product 'oracle)
 

@@ -13,6 +13,7 @@
   (hs-minor-mode t)
   (hs-hide-all)
   (flyspell-prog-mode)
+  (turn-on-auto-fill)
   
   (add-to-list 'ac-sources 'ac-source-functions)
   (add-to-list 'ac-sources 'ac-source-variables)
@@ -75,11 +76,8 @@
   "Combines describe-variable and describe-function into one.  Additionally does this instantaneously and applies display-*Help*-frame (correct formatting)."
   (interactive)
   (let ((fn (function-called-at-point))
-	(v (variable-at-point))
-	(b-exist (get-buffer "*Help*")))
+	(v (variable-at-point)))
     (if (eq v 0)
 	(describe-function fn)
-      (describe-variable v))
-    (when b-exist
-      (display-*Help*-frame "*Help*"))))
+      (describe-variable v))))
 

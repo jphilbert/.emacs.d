@@ -23,6 +23,7 @@
   
   ;; (hs-hide-all)				; Breaks if bad code
   (flyspell-prog-mode)
+  (turn-on-auto-fill)
   
   ;; --------------------------------------------------------------------------
   ;; Key Binding
@@ -114,7 +115,6 @@
   (interactive)
   (call-interactively 'python-shell-send-defun)
   (end-of-defun))
-
 
 (defun python-process-new ()
   "Creates a new python-process."

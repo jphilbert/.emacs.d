@@ -114,6 +114,11 @@
 ;;      unsplittable . nil              ; Very important
 ;;      user-position                                   
 ;;      vertical-scroll-bars
+;;	(auto-raise . t)
+;;	(auto-lower . t)		; Nice
+
+;; For pop-up-frame-parameters see:
+;; Manuals/elisp-manual-20-2.5/html_node/elisp_434.html
 ;;
 ;; See Also:
 ;;	http://www.gnu.org/s/emacs/manual/html_node/elisp/
@@ -132,136 +137,187 @@
 (add-to-list 'default-frame-alist '(vertical-scroll-bars . nil))
 
 ;; -------------------- Help Frame ---------------------
-(add-to-list
- 'special-display-regexps
- (list ".*\\*.*help.*\\*.*" 'display-*Help*-frame
-       (list '(horizontal-scroll-bars . nil)
-	     '(vertical-scroll-bars . nil)
-	     '(height . 40)
-	     '(top . 10)
-	     (cons 'left (/ (x-display-pixel-width) 2)))))
+(add-to-list 'display-buffer-alist
+	     `("\\*.*help.*\\*"
+	       (lambda (b a)
+		 (let ((return-window
+			(cond
+			 ((display-buffer-reuse-window b a))
+			 ((display-buffer-pop-up-frame b a)))))
+		 (fit-frame (get-frame b))   ; Fit Buffer
+		 (setq mode-line-format nil) ; Remove Mode Line
+		 return-window))	     
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . 15)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . 10)
+		 (left . ,(/ (x-display-pixel-width) 2))))))
 
 ;; -------------------- Python Help Frame ---------------------
-(add-to-list
- 'special-display-regexps
- (list ".*\\*.*jedi.*\\*.*" 'display-default-frame
-       (list '(horizontal-scroll-bars . nil)
-	     '(vertical-scroll-bars . nil)
-	     '(height . 10)
-	     '(top . 10)
-	     (cons 'left (/ (x-display-pixel-width) 2)))))
+;; TO DO: Auto Resize 
+(add-to-list 'display-buffer-alist
+	     `("\\*.*jedi.*\\*"
+	       (lambda (b a)
+		 (let ((return-window
+			(cond
+			 ((display-buffer-reuse-window b a))
+			 ((display-buffer-pop-up-frame b a)))))
+		 (fit-frame (get-frame b))   ; Fit Buffer
+		 (setq mode-line-format nil) ; Remove Mode Line
+		 return-window))	     
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . 15)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . 10)
+		 (left . ,(/ (x-display-pixel-width) 2))))))
 
 ;; -------------------- Occur Frame --------------------
-(add-to-list
- 'special-display-regexps
- (list ".*\\*Occur.*\\*.*" 'display-default-frame
-       (list '(unsplittable . nil)
-	     '(horizontal-scroll-bars . nil)
-	     '(vertical-scroll-bars . nil)
-	     '(height . 35)
-	     `(width . ,Multi-Window-Default-Window-Width)
-	     '(top . 10)
-	     (cons 'left (+ (/ (x-display-pixel-width) 2) 20)))))
+(add-to-list 'display-buffer-alist
+	     `("\\*Occur.*\\*"
+	       (display-buffer-reuse-window display-buffer-pop-up-frame)
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . 35)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . 10)
+		 (left . ,(+ (/ (x-display-pixel-width) 2) 20))))))
 
 ;; --------------- Shell / Power Shell Frame -----------
-(add-to-list
- 'special-display-regexps
- (list ".*\\*shell.*\\*.*" 'display-default-frame
-       (list '(unsplittable . nil)
-             '(horizontal-scroll-bars . nil)
-             '(vertical-scroll-bars . nil)
-             `(height . ,Multi-Window-Default-Window-Height)
-             `(width . ,Multi-Window-Default-Window-Width)
-             `(top . ,(+ 0 Multi-Window-Terminal-Window-Top))
-	     `(left . ,(+ 0 Multi-Window-Terminal-Window-Left)))))
+(add-to-list 'display-buffer-alist
+	     `("\\*shell.*\\*"
+	       (display-buffer-reuse-window display-buffer-pop-up-frame)
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . ,Multi-Window-Default-Window-Height)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . ,(+ 0 Multi-Window-Terminal-Window-Top))
+		 (left . ,(+ 0 Multi-Window-Terminal-Window-Left))))))
 
-(add-to-list
- 'special-display-regexps
- (list ".*\\*PowerShell.*\\*.*" 'display-default-frame
-       (list '(unsplittable . nil)
-             '(horizontal-scroll-bars . nil)
-             '(vertical-scroll-bars . nil)
-             `(height . ,Multi-Window-Default-Window-Height)
-             `(width . ,Multi-Window-Default-Window-Width)
-	     `(top . ,(+ 10 Multi-Window-Terminal-Window-Top))
-	     `(left . ,(+ 10 Multi-Window-Terminal-Window-Left)))))
+(add-to-list 'display-buffer-alist
+	     `("\\*PowerShell.*\\*"
+	       (display-buffer-reuse-window display-buffer-pop-up-frame)
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . ,Multi-Window-Default-Window-Height)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . ,(+ 10 Multi-Window-Terminal-Window-Top))
+		 (left . ,(+ 10 Multi-Window-Terminal-Window-Left))))))
 
 ;; -------------------- R Frame ---------------------
-(add-to-list
- 'special-display-regexps
- (list ".*\\*R.*\\*.*" 'display-default-frame
-       (list '(unsplittable . nil)
-             '(horizontal-scroll-bars . nil)
-             '(vertical-scroll-bars . nil)
-             `(height . ,Multi-Window-Default-Window-Height)
-             `(width . ,Multi-Window-Default-Window-Width)
-	     `(top . ,(+ 20 Multi-Window-Terminal-Window-Top))
-	     `(left . ,(+ 20 Multi-Window-Terminal-Window-Left)))))
+(add-to-list 'display-buffer-alist
+	     `("\\*R.*\\*"
+	       (display-buffer-reuse-window display-buffer-pop-up-frame)
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . ,Multi-Window-Default-Window-Height)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . ,(+ 20 Multi-Window-Terminal-Window-Top))
+		 (left . ,(+ 20 Multi-Window-Terminal-Window-Left))))))
 
 ;; -------------------- Message Frame ---------------------
-(add-to-list
- 'special-display-buffer-names
- (list "*Messages*" 'display-default-frame
-       (list '(unsplittable . nil)
-             '(horizontal-scroll-bars . nil)
-             '(vertical-scroll-bars . nil)
-             `(height . ,Multi-Window-Default-Window-Height)
-             `(width . ,Multi-Window-Default-Window-Width)
-	     `(top . ,(+ 50 Multi-Window-Terminal-Window-Top))
-	     `(left . ,(+ 50 Multi-Window-Terminal-Window-Left)))))
-
+(add-to-list 'display-buffer-alist
+	     `("\\*Messages\\*"
+	       (display-buffer-reuse-window display-buffer-pop-up-frame)
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . ,Multi-Window-Default-Window-Height)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . ,(+ 50 Multi-Window-Terminal-Window-Top))
+		 (left . ,(+ 50 Multi-Window-Terminal-Window-Left))))))
 
 ;; -------------------- Backtrace Frame --------------------
-(add-to-list
- 'special-display-buffer-names
- (list "*Backtrace*" 'display-default-frame
-       (list '(unsplittable . nil)
-             '(horizontal-scroll-bars . nil)
-             '(vertical-scroll-bars . nil)
-             '(height . 30)
-             `(width . ,Multi-Window-Default-Window-Width)
-	     `(top . ,(+ 60 Multi-Window-Terminal-Window-Top))
-	     `(left . ,(+ 60 Multi-Window-Terminal-Window-Left)))))
-
+(add-to-list 'display-buffer-alist
+	     `("\\*Backtrace\\*"
+	       (display-buffer-reuse-window display-buffer-pop-up-frame)
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (auto-lower . t)
+		 (minibuffer . nil)
+		 ;; TODO: Remove Status Line
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . 30)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . ,(+ 60 Multi-Window-Terminal-Window-Top))
+		 (left . ,(+ 60 Multi-Window-Terminal-Window-Left))))))
 
 ;; -------------------- Python Frame ---------------------
-(add-to-list
- 'special-display-regexps
- (list ".*\\*Python.*\\*.*" 'display-default-frame
-       (list '(unsplittable . nil)
-             '(horizontal-scroll-bars . nil)
-             '(vertical-scroll-bars . nil)
-             `(height . ,Multi-Window-Default-Window-Height)             
-             `(width . ,Multi-Window-Default-Window-Width)
-	     `(top . ,(+ 40 Multi-Window-Terminal-Window-Top))
-	     `(left . ,(+ 40 Multi-Window-Terminal-Window-Left)))))
-
+(add-to-list 'display-buffer-alist
+	     `("\\*Python.*\\*"
+	       (display-buffer-reuse-window display-buffer-pop-up-frame)
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . ,Multi-Window-Default-Window-Height)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . ,(+ 40 Multi-Window-Terminal-Window-Top))
+		 (left . ,(+ 40 Multi-Window-Terminal-Window-Left))))))
 
 ;; -------------------- SQL Frame ---------------------
-(add-to-list
- 'special-display-regexps
- (list ".*\\*SQL.*\\*.*" 'display-default-frame
-       (list '(unsplittable . nil)
-             '(horizontal-scroll-bars . nil)
-             '(vertical-scroll-bars . nil)
-             `(height . ,Multi-Window-Default-Window-Height)
-             `(width . ,Multi-Window-Default-Window-Width)
-	     `(top . ,(+ 30 Multi-Window-Terminal-Window-Top))
-	     `(left . ,(+ 30 Multi-Window-Terminal-Window-Left)))))
-
+(add-to-list 'display-buffer-alist
+	     `("\\*SQL.*\\*"
+	       (display-buffer-reuse-window display-buffer-pop-up-frame)
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . ,Multi-Window-Default-Window-Height)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . ,(+ 30 Multi-Window-Terminal-Window-Top))
+		 (left . ,(+ 30 Multi-Window-Terminal-Window-Left))))))
 
 ;; -------------------- Skewer Frame(s) ---------------------
-(add-to-list
- 'special-display-regexps
- (list ".*\\*skewer-.*\\*.*" 'display-default-frame
-       (list '(unsplittable . nil)
-             '(horizontal-scroll-bars . nil)
-             '(vertical-scroll-bars . nil)
-             `(height . ,Multi-Window-Default-Window-Height)
-             `(width . ,Multi-Window-Default-Window-Width)
-	     `(top . ,(+ 20 Multi-Window-Terminal-Window-Top))
-	     `(left . ,(+ 20 Multi-Window-Terminal-Window-Left)))))
-
+;; TO DO: resize / auto-lower CLIENT & Error buffers
+(add-to-list 'display-buffer-alist
+	     `("\\*skewer-.*\\*"
+	       (display-buffer-reuse-window display-buffer-pop-up-frame)
+	       (reusable-frames . 0)
+	       (pop-up-frame-parameters
+		.
+		((unsplittable . t)
+		 (horizontal-scroll-bars . nil)
+		 (vertical-scroll-bars . nil)
+		 (height . ,Multi-Window-Default-Window-Height)
+		 (width . ,Multi-Window-Default-Window-Width)
+		 (top . ,(+ 20 Multi-Window-Terminal-Window-Top))
+		 (left . ,(+ 20 Multi-Window-Terminal-Window-Left))))))
 
 ;; -------------------- YAS (New Snippet) ---------------------
 ;; (add-to-list
@@ -290,23 +346,6 @@
      
 
 ;; EXPERIMENTATION EMACS24
-;; (setq display-buffer-alist
-;;       (cons
-;;        '("\\*Package\\*"
-;; 	 (display-buffer-reuse-window
-;; 	  display-buffer-pop-up-frame)
-;; 	 (reusable-frames . 0)
-;; 	 (pop-up-frame-parameters .
-;; 				  ((height . 16)
-;; 				   (width . 80)
-;; 				   (unsplittable . t)
-;; 				   (minibuffer)
-;; 				   ;; (foreground-color . "red")
-;; 				   ;; (background-color . "black")
-;; 				   )
-;; 				  ))
-;;        nil))
-
 
 
 (provide 'frame-settings)

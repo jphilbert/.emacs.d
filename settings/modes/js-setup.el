@@ -5,16 +5,20 @@
 (require 'js2-mode)
 
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-;; (setq js2-bounce-indent-p t)		; Doesn't work well with <return>
+;; (setq js2-bounce-indent-p t)
+;; Doesn't work well with <return> reindent-then-newline-and-indent
 
 (add-hook 'js-mode-hook		'my-javascript-mode-hook)
 (add-hook 'js2-mode-hook	'my-javascript-mode-hook)
 (defun my-javascript-mode-hook ()
-  (interactive)
+  ;; (interactive)				; For Debugging
 
   (skewer-mode)
+
   ;; (flyspell-prog-mode)
+
   (hs-minor-mode t)
+  (turn-on-auto-fill)
 
   ;; (ac-js2-mode)
   ;; (setq ac-js2-evaluate-calls t)

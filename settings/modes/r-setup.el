@@ -43,6 +43,7 @@
 	       '(ess-mode "{" "}" "/[*/]" nil
 			  hs-c-like-adjust-block-beginning))
   (hs-hide-all)
+  (turn-on-auto-fill)
   
   (flyspell-prog-mode)
   

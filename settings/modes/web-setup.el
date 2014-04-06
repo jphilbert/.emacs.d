@@ -24,6 +24,9 @@
   (flyspell-prog-mode)
   (web-mode)
 
+  (setq-local comment-auto-fill-only-comments nil)
+  (turn-on-auto-fill)
+
   (add-to-list 'ac-sources 'ac-source-css-property)
   (auto-complete-mode)
   ;; ------------------------------------------------------
@@ -69,6 +72,8 @@
   (skewer-css-mode)
   (flyspell-prog-mode)
   (hs-minor-mode)
+
+  (turn-on-auto-fill)
 
   ;; ------------------------------------------------------
   ;; Key Binding

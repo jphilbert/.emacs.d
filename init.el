@@ -27,11 +27,12 @@
  delete-old-versions			t	; delete backups
  )
 
+(add-hook 'text-mode-hook
+	  'turn-on-auto-fill)		; Auto-Fill (Comments Only)
 (cua-mode			nil)	; CUA mode
 ;; (desktop-save-mode		t)	; Reload previous files
 (fset 'yes-or-no-p 'y-or-n-p)		; Simplify Questions
 
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 ;; Prevent annoying "Active processes exist" query when you quit
 (defadvice save-buffers-kill-emacs (around no-query-kill-emacs activate)
@@ -109,8 +110,9 @@
 ;; ----------------------------------------------------------------------------
 (setq-default ispell-program-name "aspell.exe")
 (setq ispell-list-command "list"
-      ispell-extra-args '("--sug-mode=fast")
-      text-mode-hook '(lambda() (flyspell-mode t)))
+      ispell-extra-args '("--sug-mode=fast"))
+(add-hook 'text-mode-hook
+	  '(lambda() (flyspell-mode t)))
 
 
 ;; ----------------------------------------------------------------------------
@@ -286,7 +288,6 @@ out it knowing."
 ;; -----------------------------------------------------------------------------
 (require 'aesthetics)		; after Auto-Complete loaded
 (require 'multi-window)
-(require 'switch-frame)
 
 (setq Multi-Window-Default-Window-Height 45)
 (require 'frame-settings)
