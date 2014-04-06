@@ -8,11 +8,11 @@
 ;; Copyright (C)	2012, John P. Hilbert, all rights reserved.
 ;; Created:		2012-02-10 09:59:07
 ;; Version:		0.1
-;; Last-Updated:	2012-02-10 09:59:07
+;; Last-Updated:	2014-04-06
 ;;           By:	John P. Hilbert
 ;; URL:		
 ;; Keywords:		<NONE>
-;; Compatibility:	GNU Emacs 23.3.1
+;; Compatibility:	GNU Emacs 23.3.1 - 24.3
 ;;
 ;; Features that might be required by this library:
 ;; <NONE>
@@ -40,9 +40,10 @@
 ;; -----------------------------------------------------------------------------
 ;; Commentary:
 ;; -----------------------------------------------------------------------------
-;; Simple cycling focus of frames
-
-;; 
+;; Simple cycling focus of frames.  As opposed to simply moving up or down the
+;; frame stack, the primary functions (switch-frame-...-buffer) allow filtering
+;; of buffer.  The filtering can be automatic via custom variables or passing of
+;; include or exclude regexp lists.
 ;;
 
 ;; -----------------------------------------------------------------------------
@@ -60,7 +61,15 @@
 ;; -----------------------------------------------------------------------------
 ;; Customize:
 ;; -----------------------------------------------------------------------------
-;; <NONE>
+(defcustom switch-frame-exclude-buffer-regexps '("\\*")
+  "*List of regular expressions for excluded buffers. The default setting EXCLUDES buffers containing '*'."
+  :type 'string
+  :group 'switch-frame)
+
+(defcustom switch-frame-include-buffer-regexps '(".*")
+  "*List of regular expressions for including buffers. The default setting d INCLUDES all buffers."
+  :type 'string
+  :group 'switch-frame)
 ;;
 ;; All of the above can customize by:
 ;;      M-x customize-group RET switch-frame RET
@@ -75,6 +84,10 @@
 ;;	* SWITCH-FRAME-XXX - SETS the current buffer in the end
 ;;	* added function END-OF-BUFFER-ALL function that moves the cursor to the
 ;;	  end for all windows
+;; 2014-04-06
+;;	* Moved non-package or unneeded functions (end-of-buffer-all,
+;;	  save-frame-excursions)
+;;	* Non-functional changes in some methods
 ;; 
 
 ;; -----------------------------------------------------------------------------
@@ -93,27 +106,14 @@
 ;; -----------------------------------------------------------------------------
 ;; <NONE>
 
-;; -----------------------------------------------------------------------------
-;; Code:
-;; -----------------------------------------------------------------------------
-(defcustom switch-frame-exclude-buffer-regexps '("\\*")
-  "*List of regular expressions for excluded buffers. The default setting EXCLUDES buffers containing '*'."
-  :type 'string
-  :group 'switch-frame)
-
-(defcustom switch-frame-include-buffer-regexps '(".*")
-  "*List of regular expressions for including buffers. The default setting d INCLUDES all buffers."
-  :type 'string
-  :group 'switch-frame)
-
-
 ;; --------------------------------------------------------------------------
 ;; Functions
 ;; --------------------------------------------------------------------------
 (defun switch-frame-exclude-p (name &optional exclude-list)
   "Return non-nil if buffer NAME can be included.
 That is if NAME matches none of the `switch-frame-exclude-buffer-regexps'."
-  (let ((rl (if exclude-list exclude-list switch-frame-exclude-buffer-regexps)))
+  (let ((rl (or exclude-list
+	      switch-frame-exclude-buffer-regexps)))
     (while (and rl (not (string-match (car rl) name)))
       (setq rl (cdr rl)))
     (null rl)))
@@ -121,7 +121,8 @@ That is if NAME matches none of the `switch-frame-exclude-buffer-regexps'."
 (defun switch-frame-include-p (name &optional include-list)
   "Return non-nil if buffer NAME can be included.
 That is if NAME matches none of the `switch-frame-exclude-buffer-regexps'."
-  (let ((rl (if include-list include-list switch-frame-include-buffer-regexps)))
+  (let ((rl (or include-list
+	      switch-frame-include-buffer-regexps)))
     (while (and rl (string-match (car rl) name))
       (setq rl (cdr rl)))
     (null rl)))
@@ -158,24 +159,9 @@ That is if NAME matches none of the `switch-frame-exclude-buffer-regexps'."
       (when set-active
 	(set-buffer (car (last l)))))))
 
-(defun save-frame-excursion (&rest x)
-  "Like save-window-excursion, however restores current frame"
-  (interactive)
-  (let (this-frame (selected-frame))
-    (save-window-excursion x)
-    (raise-frame this-frame)))
-
-(defun end-of-buffer-all ()
-  "Moves the cursor to the end for all windows showing current buffer."
-  (interactive)
-  (goto-char (point-max))
-  (let ((windows (get-buffer-window-list (current-buffer) nil t)))
-      (while windows
-        (set-window-point (car windows) (point-max))
-        (setq windows (cdr windows)))))
 
 ;; --------------------------------------------------------------------------
-;; Common Wrappers
+;; Common (interactive) Wrappers
 ;; --------------------------------------------------------------------------
 (defun switch-frame-next ()
   (interactive)

@@ -1,4 +1,3 @@
-(provide 'misc)
 
 (defun today ()
   "Insert string for today's date nicely formatted"
@@ -161,7 +160,6 @@ of comment-dwim, when it inserts comment at the end of the line."
 	  (set-marker next-line-marker nil)))
     (funcall fn)))
   
-
 (defun tab-to-tab-stop-magic ()
   "Insert tabs to line or region"
   (interactive)
@@ -181,3 +179,5 @@ of comment-dwim, when it inserts comment at the end of the line."
 		  (point)
 		  nil
 		  -1)))
+
+(provide 'misc)

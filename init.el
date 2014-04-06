@@ -18,20 +18,20 @@
 (setq-default
  comment-auto-fill-only-comments	t	; but only for comments
  inhibit-startup-screen			t	; No Splash Screen
- visible-bell				t	; No Beep
- skeleton-pair				t  	; Auto pair matching
- fill-column				80
+ visible-bell					t	; No Beep
+ skeleton-pair					t  	; Auto pair matching
+ fill-column					80
  x-select-enable-clipboard		t
  redisplay-dont-pause			t
  scroll-preserve-screen-position	1	; Keeps cursor in one spot
  delete-old-versions			t	; delete backups
  )
 
-(add-hook 'text-mode-hook
-	  'turn-on-auto-fill)		; Auto-Fill (Comments Only)
-(cua-mode			nil)	; CUA mode
-;; (desktop-save-mode		t)	; Reload previous files
-(fset 'yes-or-no-p 'y-or-n-p)		; Simplify Questions
+(add-hook
+ 'text-mode-hook 'turn-on-auto-fill)		; Auto-Fill (Comments Only)
+(cua-mode			t)				; CUA mode
+;; (desktop-save-mode		t)		; Reload previous files
+(defalias 'yes-or-no-p 'y-or-n-p)		; Simplify Questions
 
 
 ;; Prevent annoying "Active processes exist" query when you quit
@@ -44,8 +44,9 @@
 ;; Scratch Buffer
 (setq-default
  initial-scratch-message
- ";; ----- Scratch Buffer -----
-")
+ ";; --------------- Scratch Buffer ---------------
+"
+ initial-major-mode 'emacs-lisp-mode)
 
 ;; Common terminal defaults
 (setq-default
@@ -57,6 +58,10 @@
 
 ;; Electric Pair Mode
 (electric-pair-mode 1)
+
+;; Change Tab Stops
+(setq-default tab-width 5)
+(setq-default tab-stop-list (number-sequence 5 120 5))
 
 
 ;; -----------------------------------------------------------------------------
@@ -122,8 +127,6 @@
 (require 'auto-complete-config)
 (require 'my-pos-tip)			; For better Tool Tips
 
-;; (add-to-list 'ac-dictionary-directories
-;; 	     "~/.emacs.d/packages/auto complete/ac-dict")
 (ac-config-default)
 (global-auto-complete-mode t)
 (setq-default ac-quick-help-delay	0.8
@@ -261,18 +264,17 @@ out it knowing."
 ;; (require 'egg nil t)
 ;; (require 'gist nil t)
 
+
+;; -----------------------------------------------------------------------------
+;; Miscellaneous Packages
+;; -----------------------------------------------------------------------------
 (require 'expand-region)		; Expand regions
-
-(require 'websearch)			; Search web functionality
-(require 'misc)				; Miscellaneous User created functions
-
-(require 'keybinding nil t)		; General Key-binding Setup
-(require 'mouse3)			; Additional Mouse Button functions
+(require 'websearch)		; Search web functionality
+(require 'misc)			; Miscellaneous User created functions
 
 
 ;; ----------------------------------------------------------------------------
-;; Particular Modes
-;;	Note: the order may be important
+;; Modes
 ;; ----------------------------------------------------------------------------
 (require 'lisp-setup nil t)
 (require 'sql-setup nil t)
@@ -283,11 +285,17 @@ out it knowing."
 (require 'shell-setup nil t)
 (require 'powershell-setup nil t)
 
-;; -----------------------------------------------------------------------------
-;; Emacs Aesthetics
-;; -----------------------------------------------------------------------------
-(require 'aesthetics)		; after Auto-Complete loaded
-(require 'multi-window)
 
-(setq Multi-Window-Default-Window-Height 45)
-(require 'frame-settings)
+;; -----------------------------------------------------------------------------
+;; Key-Binding
+;; -----------------------------------------------------------------------------
+(require 'keybinding nil t)	; General Key-binding Setup
+(require 'mouse3)			; Additional Mouse Button functions
+
+
+;; -----------------------------------------------------------------------------
+;; Aesthetics
+;; -----------------------------------------------------------------------------
+(require 'aesthetics)		; Near the end of file (due to mode dependencies
+						; among other things)
+(require 'frame-settings)	; Setup frames

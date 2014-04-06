@@ -75,9 +75,11 @@
 (defun describe-variable-or-function ()
   "Combines describe-variable and describe-function into one.  Additionally does this instantaneously and applies display-*Help*-frame (correct formatting)."
   (interactive)
-  (let ((fn (function-called-at-point))
+  (let ((calling-frame (get-frame))
+	(fn (function-called-at-point))
 	(v (variable-at-point)))
     (if (eq v 0)
 	(describe-function fn)
-      (describe-variable v))))
+      (describe-variable v))
+    (raise-frame calling-frame)))	; Switch back to calling frame
 

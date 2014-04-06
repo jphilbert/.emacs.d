@@ -2,7 +2,6 @@
 ;; KEYBINDING.EL --- General Key Binding
 ;; -----------------------------------------------------------------------------
 ;; Filename:		KEYBINDING.EL
-;; Description:		General Key Binding
 ;; Author:		John P. Hilbert <jphilbert@gmail.com>
 ;; Created:		2012-02-13 20:19:37
 ;; Last-Updated:	2014-04-02
