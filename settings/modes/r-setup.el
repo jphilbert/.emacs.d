@@ -5,30 +5,21 @@
 (require 'ess-site)
 
 (setq-default
- inferior-R-args		"--no-restore-history --no-save"
- ess-ask-for-ess-directory      nil          ; Suppress ask for directory
- ess-local-process-name		"R"          ; Set Process Name
- ess-r-args-show-as		'tooltip     ; R ARGS as tool tip
- ess-r-args-show-prefix		""           ; Remove ARG Prefix
+ inferior-R-args			"--no-restore-history --no-save"
+ ess-ask-for-ess-directory     nil			; Suppress ask for directory
+ ess-local-process-name		"R"			; Set Process Name
+ ess-r-args-show-as			'tooltip		; R ARGS as tool tip
+ ess-r-args-show-prefix		""			; Remove ARG Prefix
  ess-r-args-noargsmsg		"No Args"
- ess-help-kill-bogus-buffers	t            ; Kill silly buffers
- ess-eval-visibly-p		nil
- ess-help-own-frame		1
- ess-S-assign-key		(kbd "C-=") ; StatET-like assignment
+ ess-help-kill-bogus-buffers	t			; Kill silly buffers
+ ess-eval-visibly-p			nil
+ ess-help-own-frame			1
+ ess-S-assign-key			(kbd "C-=")	; StatET-like assignment
  ;;inferior-R-program-name "C:\\Program Files\\R\\R-2.5.0\\bin\\Rterm.exe"
- ess-history-file		nil)
+ ess-history-file			nil)
 
-(ess-toggle-S-assign-key	t)	     ; enable above key definition
+(ess-toggle-S-assign-key		t)	     ; enable above key definition
 (ess-toggle-underscore		nil)	     ; leave my underscore alone
-
-(defvar  ac-source-R
-  '((prefix     . ess-ac-start)
-    (requires   . 0)  ;;; <- this one is 0 by default
-    (candidates . ess-ac-candidates)
-    (document   . ess-ac-help)
-    )
-  "Auto-completion source for R function arguments"
-  )
 
 
 ;; --------------------------------------------------------------------------
@@ -44,6 +35,9 @@
 			  hs-c-like-adjust-block-beginning))
   (hs-hide-all)
   (turn-on-auto-fill)
+
+  (add-to-list 'ac-sources 'ac-source-R-objects)
+  (add-to-list 'ac-sources 'ac-source-R-args)
   
   (flyspell-prog-mode)
   
@@ -85,6 +79,9 @@
 (add-hook 'inferior-ess-mode-hook	'my-inferior-r-mode-hook)
 (defun my-inferior-r-mode-hook ()
   (text-scale-set -1.1)
+
+  (add-to-list 'ac-sources 'ac-source-R-objects)
+  (add-to-list 'ac-sources 'ac-source-R-args)
   
   ;; ------------------------------------------------------
   ;; Key Binding
@@ -140,9 +137,6 @@
   (interactive)
   (save-frame-excursion
    (call-interactively 'ess-eval-region)
-   (process-send-string
-    (get-ess-process ess-current-process-name)
-    "cat(\"\\n\") \n")
    (switch-frame-current-R))
   (deactivate-mark))
 
@@ -151,9 +145,6 @@
   (interactive)
   (save-frame-excursion
    (call-interactively 'ess-eval-function-or-paragraph-and-step)
-   (process-send-string
-    (get-ess-process ess-current-process-name)
-    "cat(\"\\n\") \n")
    (switch-frame-current-R)))
 
 (defun R-process-new ()
@@ -237,7 +228,7 @@
    (progn
      (ess-force-buffer-current)
      (when current-prefix-arg ;update cache if prefix
-       (with-current-buffer (process-buffer (get-ess-process
+       (with-current-buffer (process-buffer (ess-process-get
 					     ess-current-process-name))
 	 (ess-process-put 'sp-for-help-changed? t)))
      (list (ess-find-help-file-auto "Help on"))))
