@@ -15,7 +15,8 @@
 (add-to-list 'ac-modes 'sql-mode)
 
 (setq sql-ms-program		"sqlcmd"
-      sql-oracle-program	"sqlplus")
+      sql-oracle-program		"sqlplus"
+	 sql-oracle-scan-on		nil)
 
 
 ;; --------------------------------------------------------------------------
@@ -124,8 +125,7 @@
 
   (unless sql-buffer
     (sql-set-sqli-buffer))
-  
-  ;; Eval
+
   (if (and transient-mark-mode mark-active)
       (sql-eval-region)
     (sql-eval-paragraph))
@@ -150,7 +150,10 @@
   (interactive)
   (save-frame-excursion
    (sql-oracle)
-   (sql-rename-buffer)))
+   (sql-rename-buffer)
+   (setq sql-buffer (buffer-name))		; Not sure why we need to set the sqli
+								; buffer to it's self here
+   ))
 
 (defun switch-frame-next-sql ()
   "thisandthat."
@@ -446,3 +449,4 @@ table(dbms_xplan.display('plan_table',null,'typical -cost -bytes -rows -partitio
        t) ".[a-z0-9_]+")
     .
     'font-lock-builtin-face)))
+
