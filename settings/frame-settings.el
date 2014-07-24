@@ -161,8 +161,9 @@
 				    (cond
 					((display-buffer-reuse-window b a))
 					((display-buffer-pop-up-frame b a)))))
+			    (with-current-buffer b
+				 (setq mode-line-format nil)) ; Remove Mode Line		    
 			    (fit-frame (get-frame b))   ; Fit Buffer
-			    (setq mode-line-format nil) ; Remove Mode Line
 			    return-window))	     
 			(reusable-frames . 0)
 			(pop-up-frame-parameters
@@ -212,6 +213,24 @@
 			  (width . ,Frame-Default-Width)
 			  (top . 10)
 			  (left . ,(+ (/ (x-display-pixel-width) 2) 20))))))
+
+
+;; -------------------- DIRED ---------------------
+(add-to-list 'display-buffer-alist
+		   `((lambda (buff a) (equal (with-current-buffer buff major-mode)
+						    'dired-mode))
+			(display-buffer-reuse-window display-buffer-pop-up-frame)
+			(reusable-frames . 0)
+			(pop-up-frame-parameters
+			 .
+			 ((unsplittable . t)
+			  (horizontal-scroll-bars . nil)
+			  (vertical-scroll-bars . nil)
+			  (height . ,Frame-Default-Height)
+			  (width . ,(truncate (* 1.5 Frame-Default-Width)))
+			  (top . 20)
+			  (left . 40)))))
+
 
 ;; --------------- Shell / Power Shell Frame -----------
 (add-to-list 'display-buffer-alist
@@ -342,6 +361,10 @@
 			  (width . ,Frame-Default-Width)
 			  (top . ,(+ 20 Frame-Terminal-Top))
 			  (left . ,(+ 20 Frame-Terminal-Left))))))
+
+
+
+
 
 ;; -------------------- YAS (New Snippet) ---------------------
 ;; (add-to-list

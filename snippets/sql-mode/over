@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: over
+# key: over
+# --
+over(
+	${1:partition by $2}${3: order by $4}) $0

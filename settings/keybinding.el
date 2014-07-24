@@ -58,7 +58,8 @@ If function is nil the key is unset."
  ;; ---------- File ----------
  (kbd "C-s")                    'save-buffer
  (kbd "C-S-s")                  'write-file
- (kbd "C-o")                    'find-file 
+ (kbd "C-o")                    'find-file
+ (kbd "C-x d")					'dired-other-frame
 
  ;; ---------- Find / Replace ----------
  "\C-f"                         'isearch-forward

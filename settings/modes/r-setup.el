@@ -22,13 +22,44 @@
 (ess-toggle-underscore		nil)	     ; leave my underscore alone
 
 
+(setq ess-jph-style '(JPH (ess-indent-level . 4)
+					 (ess-first-continued-statement-offset . 2)
+                          (ess-continued-statement-offset . 0)
+					 (ess-brace-offset . 0)
+					 (ess-arg-function-offset . 4)
+					 (ess-arg-function-offset-new-line quote
+												(4))
+					 (ess-expression-offset . 4)
+					 (ess-else-offset . 0)
+					 (ess-close-brace-offset . 0)))
+
+;; (RRR
+;;  (ess-indent-level . 4)
+;;  (ess-first-continued-statement-offset . 0)
+;;  (ess-continued-statement-offset . 4)
+;;  (ess-brace-offset . 0)
+;;  (ess-arg-function-offset . 4)
+;;  (ess-arg-function-offset-new-line quote
+;; 							 (4))
+;;  (ess-expression-offset . 4)
+;;  (ess-else-offset . 0)
+;;  (ess-close-brace-offset . 0))
+
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
 (add-hook 'ess-mode-hook		'my-r-mode-hook)
-(defun my-r-mode-hook ()
+
+(defun my-r-mode-hook ()  
   (interactive)
- 
+
+  (if (not (assoc 'JPH ess-style-alist))
+      (setq ess-style-alist (cons ess-jph-style ess-style-alist)))
+  (setq ess-default-style 'JPH)
+  (setq ess-style 'JPH)
+  ;; (setq ess-auto-newline t)
+  (ess-set-style 'JPH)
+
   (hs-minor-mode t)
   (add-to-list 'hs-special-modes-alist
 	       '(ess-mode "{" "}" "/[*/]" nil
