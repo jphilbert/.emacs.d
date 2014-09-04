@@ -6,14 +6,14 @@
 ;; Author:		John P. Hilbert <jphilbert@gmail.com>
 ;; Created:		2012-02-13 19:54:33
 ;; Version:		0.1
-;; Last-Updated:	2013-05-23
+;; Last-Updated:	2014-09-04 
 ;; Compatibility:	GNU Emacs 23.2.1
 ;;
 ;; Features that might be required by this library:
 ;;	- Font: Envy Code R (11pt)
 ;;	- color-theme
 
-;; !!!This file is NOT part of GNU Emacs!!!
+;; !!!This file is NOT part of GNU Emacs!!! 
 
 ;; -----------------------------------------------------------------------------
 ;; Commentary:
@@ -40,7 +40,11 @@
 ;; -----------------------------------------------------------------------------
 ;; General Settings
 ;; -----------------------------------------------------------------------------
+(add-to-list 'pretty-lambda-auto-modes 'python-mode)
 (pretty-lambda-for-modes)		; Lambda mode for all
+
+
+
 
 ;; Set the Font and Color
 (set-face-attribute             'default

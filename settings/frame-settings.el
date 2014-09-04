@@ -176,17 +176,18 @@
 			  (top . 10)
 			  (left . ,(/ (x-display-pixel-width) 2))))))
 
-;; -------------------- Python Help Frame ---------------------
+;; -------------------- Anaconda Doc Frame ---------------------
 ;; TO DO: Auto Resize 
 (add-to-list 'display-buffer-alist
-		   `("\\*.*jedi.*\\*"
+		   `("\\*.*anaconda-doc.*\\*"
 			(lambda (b a)
 			  (let ((return-window
 				    (cond
 					((display-buffer-reuse-window b a))
 					((display-buffer-pop-up-frame b a)))))
+			    (with-current-buffer b
+				 (setq mode-line-format nil)) ; Remove Mode Line
 			    (fit-frame (get-frame b))   ; Fit Buffer
-			    (setq mode-line-format nil) ; Remove Mode Line
 			    return-window))	     
 			(reusable-frames . 0)
 			(pop-up-frame-parameters

@@ -4,8 +4,8 @@
 (provide 'python-setup)
 ;; (require 'python)
 
-;; requires ac-anaconda
-;; requires anaconda-mode
+;; Jedi
+(autoload 'jedi:setup "jedi" nil t)
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
@@ -13,8 +13,11 @@
 (add-hook 'python-mode-hook		'my-python-mode-hook)
 (defun my-python-mode-hook ()
   (interactive)
-  (ac-anaconda-setup)  
-  ;; (auto-complete)
+  
+  (jedi:setup)
+  (setq jedi:setup-keys		t
+	jedi:complete-on-dot	t)
+  (auto-complete)
   
   (hs-minor-mode t)
   ;; (auto-indent-minor-mode -1)
@@ -33,8 +36,8 @@
    [(shift return)]     'python-eval
 
    ;; ---------- Indent / Tabs ----------
-   (kbd "<C-tab>")		'tab-to-tab-stop-magic
-   (kbd "<tab>")		'indent-for-tab-command  
+   (kbd "<C-tab>")	'tab-to-tab-stop-magic
+   (kbd "<tab>")        'indent-for-tab-command  
 
    ;; ---------- Help ----------
    [(S-f1)]	   	'(lambda ()
@@ -43,19 +46,21 @@
    (kbd "C-h w")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "Python "))
-   (kbd "C-h f")   	'anaconda-mode-view-doc
+   (kbd "C-h f")   	'jedi:show-doc
    
    ;; ---------- Frame Switching ----------
-   [(f12)]              'python-shell-switch-to-shell
+   [(f12)]              'switch-frame-current-python
    ;; [S-f12]              'python-process-new
    ;; [C-f12]              'python-process-set 
    )
   )
 
 (add-hook 'inferior-python-mode-hook	'my-inferior-python-mode-hook)
-
 (defun my-inferior-python-mode-hook ()
-  (ac-anaconda-setup) 
+  (setq jedi:setup-keys		t
+	jedi:complete-on-dot	t)
+  (jedi:setup)
+
   (text-scale-set -1.1)
   
   ;; --------------------------------------------------------------------------
@@ -69,7 +74,6 @@
    (kbd "C-h w")   	'(lambda ()
 			   (interactive)
 			   (google-query-at-point nil "Python "))
-   (kbd "C-h f")   	'anaconda-mode-view-doc
 
    ;; ---------- Frame Switching ----------
    [(f12)]              'switch-frame-previous
@@ -82,11 +86,6 @@
 (defun python-eval ()
   "Evaluates python code based on context."
   (interactive)
-
-  ;; Start a shell if needed
-  (unless (python-shell-get-process)
-    (run-python (python-shell-parse-command) nil))
-  
   ;; Eval
   (if (and transient-mark-mode mark-active)
       (python-eval-region)
@@ -130,3 +129,4 @@
   (interactive)
   (python-shell-switch-to-shell)
   (end-of-buffer-all))
+
