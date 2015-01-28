@@ -16,7 +16,12 @@
 
 (setq sql-ms-program		"sqlcmd"
       sql-oracle-program		"sqlplus"
-	 sql-oracle-scan-on		nil)
+	 sql-oracle-scan-on		nil
+	 sql-send-terminator	nil		; since I don't put GO after
+								; (CAUSE ISSUES IN SQLPLUS if non-nil)
+	 sql-ms-options		'("-w" "80")
+	 )
+
 
 
 ;; --------------------------------------------------------------------------
@@ -189,32 +194,6 @@
     (progn
       (mark-paragraph)
       (call-interactively 'indent-region))))
-
-;; MS SQL FIX - REMOVED PASSWORD
-;; (defun sql-connect-ms ()
-;; "Create comint buffer and connect to Microsoft using the login
-;; parameters and command options."
-;; ;; Put all parameters to the program (if defined) in a list and call
-;; ;; make-comint.
-;; (let ((params sql-ms-options))
-;;   (if (not (string= "" sql-server))
-;;       (setq params (append (list "-S" sql-server) params)))
-;;   (if (not (string= "" sql-database))
-;;       (setq params (append (list "-d" sql-database) params)))
-;;   (if (not (string= "" sql-user))
-;;       (setq params (append (list "-U" sql-user) params)))
-;;   ;; (if (not (string= "" sql-password))
-;;   ;; 	(setq params (append (list "-P" sql-password) params))
-;;   ;;   (if (string= "" sql-user)
-;;   ;; 	  ;; if neither user nor password is provided, use system
-;;   ;; 	  ;; credentials.
-;;   ;; 	  (setq params (append (list "-E") params))
-;;   ;; 	;; If -P is passed to ISQL as the last argument without a
-;;   ;; 	;; password, it's considered null.
-;;   ;; 	(setq params (append params (list "-P")))))
-;;   (print params)
-;;   (set-buffer (apply 'make-comint "SQL" sql-ms-program
-;; 		     nil params))))
 
 
 ;; -----------------------------------------------------------------------------

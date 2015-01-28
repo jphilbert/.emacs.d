@@ -56,9 +56,6 @@
  comint-move-point-for-output           t
  comint-prompt-read-only                nil)
 
-;; Electric Pair Mode
-(electric-pair-mode 1)
-
 ;; Change Tab Stops
 (setq-default tab-width 5)
 (setq-default tab-stop-list (number-sequence 5 120 5))
