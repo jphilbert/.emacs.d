@@ -49,7 +49,7 @@
 ;; Set the Font and Color
 (set-face-attribute             'default
                                 nil
-                                :font "envy code r-11")
+                                :font "envy code r-13")
 (set-background-color           "snow")
 
 (color-theme-initialize)
@@ -163,29 +163,29 @@
 (set-face-attribute 'ac-yasnippet-candidate-face
 		    nil
 		    :slant 'italic
-		    :font "envy code r-10"
+		    :font "envy code r-11"
 		    :background "#00222c"
 		    :foreground "light gray")
 (set-face-attribute 'ac-yasnippet-selection-face
 		    nil
 		    :slant 'italic
-		    :font "envy code r-10"
+		    :font "envy code r-11"
 		    :background "SteelBlue4"
 		    :foreground "white")
 
 (set-face-attribute 'ac-candidate-face
 		    nil
-		    :font "envy code r-10"
+		    :font "envy code r-11"
 		    :background "#00222c"
 		    :foreground "light gray")
 (set-face-attribute 'ac-selection-face
 		    nil
-		    :font "envy code r-10"
+		    :font "envy code r-11"
 		    :background "SteelBlue4"
 		    :foreground "white")
 (set-face-attribute 'popup-tip-face
 		    nil
-		    :font "envy code r-10"
+		    :font "envy code r-11"
 		    :height 90
 		    :background "#00222c"
 		    :foreground "light gray")
@@ -194,7 +194,9 @@
 (set-face-attribute 'ac-yasnippet-candidate-face
 		    nil
 		    :foreground "sandybrown")
-
+(set-face-attribute 'popup-summary-face
+		    nil
+		    :font "envy code r-11")
 
 
 

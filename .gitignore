@@ -14,5 +14,6 @@ server
 .places
 session.*
 *.elc
+*.gpg
 ac-comphist.dat
 frame-settings.*

@@ -4,7 +4,7 @@
 ;; Filename:		KEYBINDING.EL
 ;; Author:		John P. Hilbert <jphilbert@gmail.com>
 ;; Created:		2012-02-13 20:19:37
-;; Last-Updated:	2014-04-02
+;; Last-Updated:	2015-04-29
 ;;           By:	John P. Hilbert
 ;; Compatibility:	GNU Emacs 23.2.1
 ;;
@@ -61,6 +61,9 @@ If function is nil the key is unset."
  (kbd "RET")            'reindent-then-newline-and-indent
  (kbd "<C-tab>")        'tab-to-tab-stop
 
+ (kbd "<S-tab>")        'tab-to-tab-stop
+ (kbd "<S-SPC>")        'cua-set-mark
+
  ;; ---------- File ----------
  (kbd "C-s")                    'save-buffer
  (kbd "C-S-s")                  'write-file
@@ -80,8 +83,8 @@ If function is nil the key is unset."
  [(f5)]                 'linum-mode
  [(f6)]                 'explorer
 
- (kbd "S-<tab>")	'auto-complete
- 
+ ;; (kbd "<tab>")	'auto-complete
+		
  ;; ---------- Buffers ----------
 					; Cycle File Buffers
  [(f11)]                 'switch-frame-previous
@@ -109,10 +112,18 @@ If function is nil the key is unset."
 			   (select-window (minibuffer-window))))
 
  ;; ---------- Moving Frames ----------
- (kbd   "<M-up>")               'move-frame-up
- (kbd   "<M-left>")             'move-frame-left
- (kbd   "<M-right>")            'move-frame-right
- (kbd   "<M-down>")             'move-frame-down
+ ;; (kbd   "<M-up>")               'move-frame-up
+ ;; (kbd   "<M-left>")             'move-frame-left
+ ;; (kbd   "<M-right>")            'move-frame-right
+ ;; (kbd   "<M-down>")             'move-frame-down
+
+ (kbd   "<M-up>")               'beginning-of-buffer
+ (kbd   "<M-left>")             'beginning-of-line
+ (kbd   "<home>")               'beginning-of-line
+ (kbd   "<M-right>")            'end-of-line
+ (kbd   "<end>")                'end-of-line
+ 
+ (kbd   "<M-down>")             'end-of-buffer
  
  ;; ---------- Killing / Yanking ----------
  (kbd   "M-z")                  'tinyeat-kill-buffer-lines-main
@@ -133,7 +144,7 @@ If function is nil the key is unset."
  ;; ---------- Expand Regions ----------
  (kbd "C-=")			'er/expand-region	; C +
  (kbd "C--")			'er/contract-region	; C -
- (kbd "S-SPC")			'er/expand-region
+ ;; (kbd "S-SPC")			'er/expand-region
 
  ;; ---------- Help ----------
  (kbd "C-h g")			'websearch-google

@@ -9,7 +9,17 @@
 (add-to-list 'load-path "~/.emacs.d/settings/")
 (add-to-list 'load-path "~/.emacs.d/settings/modes/")
 
+(require 'exec-path-from-shell)
+(exec-path-from-shell-initialize)
+
 (require 'user-info)
+
+
+;; MAC Settings
+(setq-default
+ ns-auto-hide-menu-bar		t
+ ns-command-modifier		'control
+ ns-control-modifier		'super)
 
 
 ;; ----------------------------------------------------------------------------
@@ -51,8 +61,8 @@
 ;; Common terminal defaults
 (setq-default
  ansi-color-for-comint-mode             t
- comint-scroll-to-bottom-on-input	t
- comint-scroll-to-bottom-on-output	t
+ comint-scroll-to-bottom-on-input		t
+ comint-scroll-to-bottom-on-output		t
  comint-move-point-for-output           t
  comint-prompt-read-only                nil)
 
@@ -67,15 +77,13 @@
 (require 'package)
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.milkbox.net/packages/") t)
-(when (< emacs-major-version 24)
-  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
+(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
 (package-initialize)
 
 
 ;; -----------------------------------------------------------------------------
 ;; Directories / Backups
 ;; -----------------------------------------------------------------------------
-(make-directory "~/.emacs.d/server/" t)
 (make-directory "~/.emacs.d/backups/" t)
 (make-directory "~/.emacs.d/autosaves/" t)
 
@@ -92,9 +100,10 @@
 ;; -----------------------------------------------------------------------------
 ;; Opens Files with Emacs (if Emacs is running)
 ;; -----------------------------------------------------------------------------
-(require 'server)
-(defun server-ensure-safe-dir (dir) "Noop" t) ; Suppress common windows error
-(server-start)
+;;(make-directory "~/.emacs.d/server/" t)
+;; (require 'server)
+;; (defun server-ensure-safe-dir (dir) "Noop" t) ; Suppress common windows error
+;; (server-start)
 
 
 ;; ----------------------------------------------------------------------------
@@ -110,11 +119,17 @@
 ;; ----------------------------------------------------------------------------
 ;; Aspell
 ;; ----------------------------------------------------------------------------
-(setq-default ispell-program-name "aspell.exe")
+(setq-default ispell-program-name "/usr/local/bin/aspell")
 (setq ispell-list-command "list"
       ispell-extra-args '("--sug-mode=fast"))
 (add-hook 'text-mode-hook
-	  '(lambda() (flyspell-mode t)))
+		'(lambda() (flyspell-mode t)))
+
+;; (eval-after-load "flyspell"
+;;   '(progn
+;;      (define-key flyspell-mode-map (kbd "<C-down-mouse-3>")
+;;        #'flyspell-correct-word)))
+
 
 
 ;; ----------------------------------------------------------------------------
@@ -208,13 +223,6 @@ JPH: Removed periodic message"
 ;; ----------------------------------------------------------------------------
 (require 'yasnippet)
 (yas-global-mode 1)
-;; ;; (yas/initialize)
-;; (yas/load-directory "~/.emacs.d/packages/yasnippet/snippets")
-;; (setq yas/prompt-functions '(yas/completing-prompt))
-
-;; (setq yas/trigger-key (kbd "SPC"))
-;; (add-hook 'yas/minor-mode-on-hook 
-;;           '(lambda () (define-key yas/minor-mode-map yas/trigger-key 'yas/expand)))
 
 
 ;; ----------------------------------------------------------------------------
@@ -285,8 +293,9 @@ out it knowing."
 ;; (require 'latex-setup nil t)
 (require 'web-setup nil t)
 (require 'python-setup nil t)
-(require 'shell-setup nil t)
-(require 'powershell-setup nil t)
+(require 'bash-setup nil t)
+;; (require 'shell-setup nil t)
+;; (require 'powershell-setup nil t)
 
 
 ;; -----------------------------------------------------------------------------
