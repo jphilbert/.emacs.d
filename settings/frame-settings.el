@@ -6,7 +6,7 @@
 ;; Maintainer:		John P. Hilbert <jphilbert@gmail.com>
 ;; Created:		2013-07-23 08:42:02
 ;; Version:		2.0
-;; Last-Updated:	2014-04-06
+;; Last-Updated:	2015-04-29
 ;;           By:	John P. Hilbert
 ;; URL:			
 ;; Keywords:		<NONE>
@@ -50,7 +50,14 @@
 ;; -----------------------------------------------------------------------------
 (defvar Frame-Terminal-Top 5
   "Default terminal window top position")
-(defvar Frame-Terminal-Left (/ (x-display-pixel-width) 2)
+
+(defvar Frame-Terminal-Left
+  (-
+   (nth 2 (cdr (assoc 'geometry	; Display Width
+		      (car (display-monitor-attributes-list)))))
+   (* (frame-char-width) 80)		; Frame Width
+   120						; Max Offset (see below)
+   50)						; Buffer
   "Default terminal window left position")
 
 (defvar Frame-Default-Height 45
@@ -64,6 +71,9 @@
 
 (defvar Frame-Default-Left 5
   "The default window (frame) left in characters")
+
+(defvar Frame-Cascade-Offset 25
+  "Pixels to offset frame for cascading")
 
 ;; -----------------------------------------------------------------------------
 ;; Change log:
@@ -112,6 +122,60 @@
 (setq-default
  fit-frame-max-height-percent		70
  fit-frame-max-width			Frame-Default-Width)
+
+
+;; Cascade (push to FRAME-FUNCTIONS-MISC functions)
+(add-hook 'before-make-frame-hook 'cascade-default-frame-alist)
+(defun cascade-default-frame-alist ()
+  (let ((current-top (cdr (assoc 'top default-frame-alist)))
+	(current-left (cdr (assoc 'left default-frame-alist)))
+	(max-right (-
+		    (nth
+		     2
+		     (cdr
+		      (assoc 'geometry		; Display Width
+			     (car (display-monitor-attributes-list)))))
+		    (* (frame-char-width)
+		       Frame-Default-Width)	; Frame Width
+		    120					; Max Offset (see below)
+		    50					; Buffer
+		    (* (frame-char-width)
+		       Frame-Default-Width))	; Frame Width
+		   )
+	(max-down (-
+		    (nth
+		     3
+		     (cdr
+		      (assoc 'geometry		; Display Width
+			     (car (display-monitor-attributes-list)))))
+		    (* (frame-char-height)
+		       Frame-Default-Height)	; Frame Height
+		    50)					; Buffer
+			)
+	)
+    ;; (message "Top: %d. Left: %d. Max-Down: %d. Max-Right: %d."
+    ;; 	     current-top current-left max-down max-right)
+    (setq default-frame-alist
+		(mapcar (lambda (kv)
+				(cond ((memq (car kv) '(top))
+					  (cons (car kv)
+						   (if (< (+ current-top Frame-Cascade-Offset)
+								max-down)
+							  (+ current-top Frame-Cascade-Offset)
+							Frame-Default-Top)))
+					 ((memq (car kv) '(left))
+					  (cons (car kv)
+						   (if (< (+ current-left Frame-Cascade-Offset)
+								max-right)
+							  (+ current-left Frame-Cascade-Offset)
+							Frame-Default-Left)))
+					 (t kv)))
+			   default-frame-alist))   
+    ;; (message "Top: %d. Left: %d. "
+    ;; 	     (cdr (assoc 'top default-frame-alist))
+    ;; 	     (cdr (assoc 'top default-frame-alist)))
+    nil
+    ))
 
 ;; -----------------------------------------------------------------------------
 ;; Frame Settings
@@ -174,7 +238,7 @@
 			  (height . 15)
 			  (width . ,Frame-Default-Width)
 			  (top . 10)
-			  (left . ,(/ (x-display-pixel-width) 2))))))
+			  (left . ,(- Frame-Terminal-Left 20))))))
 
 ;; -------------------- Anaconda Doc Frame ---------------------
 ;; TO DO: Auto Resize 
@@ -198,7 +262,7 @@
 			  (height . 15)
 			  (width . ,Frame-Default-Width)
 			  (top . 10)
-			  (left . ,(/ (x-display-pixel-width) 2))))))
+			  (left . ,(- Frame-Terminal-Left 20))))))
 
 ;; -------------------- Occur Frame --------------------
 (add-to-list 'display-buffer-alist
@@ -213,7 +277,7 @@
 			  (height . 35)
 			  (width . ,Frame-Default-Width)
 			  (top . 10)
-			  (left . ,(+ (/ (x-display-pixel-width) 2) 20))))))
+			  (left . ,(- Frame-Terminal-Left 0))))))
 
 
 ;; -------------------- DIRED ---------------------
@@ -259,8 +323,8 @@
 			  (vertical-scroll-bars . nil)
 			  (height . ,Frame-Default-Height)
 			  (width . ,Frame-Default-Width)
-			  (top . ,(+ 10 Frame-Terminal-Top))
-			  (left . ,(+ 10 Frame-Terminal-Left))))))
+			  (top . ,(+ 20 Frame-Terminal-Top))
+			  (left . ,(+ 20 Frame-Terminal-Left))))))
 
 ;; -------------------- R Frame ---------------------
 (add-to-list 'display-buffer-alist
@@ -274,8 +338,8 @@
 			  (vertical-scroll-bars . nil)
 			  (height . ,Frame-Default-Height)
 			  (width . ,Frame-Default-Width)
-			  (top . ,(+ 20 Frame-Terminal-Top))
-			  (left . ,(+ 20 Frame-Terminal-Left))))))
+			  (top . ,(+ 40 Frame-Terminal-Top))
+			  (left . ,(+ 40 Frame-Terminal-Left))))))
 
 ;; -------------------- Message Frame ---------------------
 (add-to-list 'display-buffer-alist
@@ -289,8 +353,8 @@
 			  (vertical-scroll-bars . nil)
 			  (height . ,Frame-Default-Height)
 			  (width . ,Frame-Default-Width)
-			  (top . ,(+ 50 Frame-Terminal-Top))
-			  (left . ,(+ 50 Frame-Terminal-Left))))))
+			  (top . ,(+ 100 Frame-Terminal-Top))
+			  (left . ,(+ 100 Frame-Terminal-Left))))))
 
 ;; -------------------- Backtrace Frame --------------------
 (add-to-list 'display-buffer-alist
@@ -314,8 +378,8 @@
 			  (vertical-scroll-bars . nil)
 			  (height . 15)
 			  (width . ,Frame-Default-Width)
-			  (top . ,(+ 60 Frame-Terminal-Top))
-			  (left . ,(+ 60 Frame-Terminal-Left))))))
+			  (top . ,(+ 120 Frame-Terminal-Top))
+			  (left . ,(+ 120 Frame-Terminal-Left))))))
 
 ;; -------------------- Python Frame ---------------------
 (add-to-list 'display-buffer-alist
@@ -329,8 +393,8 @@
 			  (vertical-scroll-bars . nil)
 			  (height . ,Frame-Default-Height)
 			  (width . ,Frame-Default-Width)
-			  (top . ,(+ 40 Frame-Terminal-Top))
-			  (left . ,(+ 40 Frame-Terminal-Left))))))
+			  (top . ,(+ 80 Frame-Terminal-Top))
+			  (left . ,(+ 80 Frame-Terminal-Left))))))
 
 ;; -------------------- SQL Frame ---------------------
 (add-to-list 'display-buffer-alist
@@ -344,8 +408,8 @@
 			  (vertical-scroll-bars . nil)
 			  (height . ,Frame-Default-Height)
 			  (width . ,Frame-Default-Width)
-			  (top . ,(+ 30 Frame-Terminal-Top))
-			  (left . ,(+ 30 Frame-Terminal-Left))))))
+			  (top . ,(+ 60 Frame-Terminal-Top))
+			  (left . ,(+ 60 Frame-Terminal-Left))))))
 
 ;; -------------------- Skewer Frame(s) ---------------------
 ;; TO DO: resize / auto-lower CLIENT & Error buffers
@@ -360,8 +424,8 @@
 			  (vertical-scroll-bars . nil)
 			  (height . ,Frame-Default-Height)
 			  (width . ,Frame-Default-Width)
-			  (top . ,(+ 20 Frame-Terminal-Top))
-			  (left . ,(+ 20 Frame-Terminal-Left))))))
+			  (top . ,(+ 40 Frame-Terminal-Top))
+			  (left . ,(+ 40 Frame-Terminal-Left))))))
 
 
 

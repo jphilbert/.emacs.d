@@ -9,17 +9,20 @@
 (add-to-list 'load-path "~/.emacs.d/settings/")
 (add-to-list 'load-path "~/.emacs.d/settings/modes/")
 
+;; -----------------------------------------------------------------------------
+;; Packages
+;; -----------------------------------------------------------------------------
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
+(package-initialize)
+
 (require 'exec-path-from-shell)
 (exec-path-from-shell-initialize)
 
 (require 'user-info)
 
-
-;; MAC Settings
-(setq-default
- ns-auto-hide-menu-bar		t
- ns-command-modifier		'control
- ns-control-modifier		'super)
 
 
 ;; ----------------------------------------------------------------------------
@@ -42,6 +45,13 @@
 (cua-mode			t)				; CUA mode
 ;; (desktop-save-mode		t)		; Reload previous files
 (defalias 'yes-or-no-p 'y-or-n-p)		; Simplify Questions
+
+
+;; OSX Settings
+(setq-default
+ ns-auto-hide-menu-bar		t
+ ns-command-modifier		'control
+ ns-control-modifier		'super)
 
 
 ;; Prevent annoying "Active processes exist" query when you quit
@@ -71,14 +81,6 @@
 (setq-default tab-stop-list (number-sequence 5 120 5))
 
 
-;; -----------------------------------------------------------------------------
-;; Packages
-;; -----------------------------------------------------------------------------
-(require 'package)
-(add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/") t)
-(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
-(package-initialize)
 
 
 ;; -----------------------------------------------------------------------------
@@ -97,8 +99,9 @@
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backups/")))))
 
 
+
 ;; -----------------------------------------------------------------------------
-;; Opens Files with Emacs (if Emacs is running)
+;; Opens Files with Emacs (if Emacs is running) (WINDOWS ONLY)
 ;; -----------------------------------------------------------------------------
 ;;(make-directory "~/.emacs.d/server/" t)
 ;; (require 'server)
