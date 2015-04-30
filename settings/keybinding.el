@@ -164,6 +164,38 @@ If function is nil the key is unset."
  )
 
 
+
+;; --------------------------------------------------------------------------
+;; Mini Buffer
+;; --------------------------------------------------------------------------
+;; Remaps up/down to mini-buffer history cycling again
+(dolist (map (append (list minibuffer-local-completion-map
+			   minibuffer-local-must-match-map)
+		     (when (boundp 'minibuffer-local-filename-completion-map)
+		       (list minibuffer-local-filename-completion-map))))
+  (define-key map [up] 'previous-history-element)
+  (define-key map [down] 'next-history-element))
+
+
+;; --------------------------------------------------------------------------
+;; Isearch Fix
+;; --------------------------------------------------------------------------
+(define-many-keys isearch-mode-map
+  "\C-f"				'isearch-repeat-forward
+  (kbd "C-S-f")		'isearch-repeat-backward
+  (kbd "C-s")			'save-buffer
+  (kbd "C-S-s")		'write-file)
+
+
+;; --------------------------------------------------------------------------
+;; Help
+;; --------------------------------------------------------------------------
+(require 'man)
+(define-key Man-mode-map		"q" 'kill-buffer-or-emacs)
+(define-key help-mode-map	"q" 'kill-buffer-or-emacs)
+(define-key ess-help-mode-map	"q" 'kill-buffer-or-emacs)
+
+
 ;; --------------------------------------------------------------------------
 ;; Comint Mode
 ;; --------------------------------------------------------------------------
@@ -191,39 +223,6 @@ If function is nil the key is unset."
   [S-f12]              'shell-new
   )
 
-
-
-;; --------------------------------------------------------------------------
-;; Mini Buffer
-;; --------------------------------------------------------------------------
-;; Remaps up/down to mini-buffer history cycling again
-(dolist (map (append (list minibuffer-local-completion-map
-			   minibuffer-local-must-match-map)
-		     (when (boundp 'minibuffer-local-filename-completion-map)
-		       (list minibuffer-local-filename-completion-map))))
-  (define-key map [up] 'previous-history-element)
-  (define-key map [down] 'next-history-element))
-
-
-;; --------------------------------------------------------------------------
-;; Isearch Fix
-;; --------------------------------------------------------------------------
-(define-many-keys isearch-mode-map
-  "\C-f"				'isearch-repeat-forward
-  (kbd "C-S-f")		'isearch-repeat-backward
-  (kbd "C-s")			'save-buffer
-  (kbd "C-S-s")		'write-file)
-
-
-;; --------------------------------------------------------------------------
-;; Help
-;; --------------------------------------------------------------------------
-;; (define-key Man-mode-map		"q" 'kill-buffer-or-emacs)
-(define-key help-mode-map	"q" 'kill-buffer-or-emacs)
-(define-key ess-help-mode-map	"q" 'kill-buffer-or-emacs)
-
-
-;;; KEYBINDING.EL ends here
 
 ;; --------------------------------------------------------------------------
 ;; SQL
@@ -285,3 +284,76 @@ If function is nil the key is unset."
    ;; "\C-he"              'sql-explain
    ;; "\C-hv"              'sql-describe
    )
+
+
+;; --------------------------------------------------------------------------
+;; R
+;; --------------------------------------------------------------------------
+(define-many-keys ess-mode-map
+   ;; [(return)]		'newline-and-indent
+
+   ;; ---------- Evaluation ----------
+   [(shift return)]     'R-eval
+   
+
+   ;; ---------- Indent / Tabs ----------
+   (kbd "<C-tab>")		'tab-to-tab-stop-magic
+   (kbd "<tab>")		'indent-for-tab-command
+   
+   
+   ;; ---------- Help ----------
+   [(S-f1)]	   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t "R "))
+   (kbd "C-h w")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point nil "R "))
+
+   "\C-hf"      	'R-object-help
+   "\C-hv"      	'R-object-str
+   "\C-ho"      	'R-object-summaries
+   "\C-hn"      	'R-object-names
+   "\C-hV"      	'ess-display-vignettes
+   "\C-hH"      	'ess-handy-commands
+
+   ;; ---------- Frame Switching ----------
+   [(f12)]              'switch-frame-current-R
+   [S-f12]              'R-process-new
+   [C-f12]              'ess-switch-process
+   )
+
+(define-many-keys inferior-ess-mode-map
+   ;; ---------- Input / Prompt Scrolling ----------
+   [C-up]               'comint-previous-prompt
+   [C-down]             'comint-next-prompt
+   [up]                 'comint-previous-input
+   [down]               'comint-next-input
+   [S-C-up]			'previous-line
+   [S-C-down]			'next-line
+
+   
+   ;; ---------- Completion ----------
+   ;; (kbd "<tab>")	'completion-at-point
+
+
+   ;; ---------- Help ----------
+   [(S-f1)]	   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t "R "))
+   (kbd "C-h w")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point nil "R "))
+
+   "\C-hf"      	'R-object-help
+   "\C-hv"      	'R-object-str
+   "\C-ho"      	'R-object-summaries
+   "\C-hn"      	'R-object-names
+   "\C-hV"      	'ess-display-vignettes
+   "\C-hH"      	'ess-handy-commands
+   
+   ;; ---------- Frame Switching ----------
+   [(f12)]          'switch-frame-previous
+   [S-f12]		'R-process-new
+   )
+
+;;; KEYBINDING.EL ends here

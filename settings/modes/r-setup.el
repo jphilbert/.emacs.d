@@ -70,78 +70,14 @@
   (add-to-list 'ac-sources 'ac-source-R-objects)
   (add-to-list 'ac-sources 'ac-source-R-args)
   
-  (flyspell-prog-mode)
-  
-  ;; ------------------------------------------------------
-  ;; Key Binding
-  ;; ------------------------------------------------------
-  (local-set-many-keys
-   ;; [(return)]		'newline-and-indent
-
-   ;; ---------- Evaluation ----------
-   [(shift return)]     'R-eval
-   
-
-   ;; ---------- Indent / Tabs ----------
-   (kbd "<C-tab>")	'tab-to-tab-stop-magic
-   (kbd "<tab>")        'indent-for-tab-command
-   
-   
-   ;; ---------- Help ----------
-   [(S-f1)]	   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point t "R "))
-   (kbd "C-h w")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil "R "))
-
-   "\C-hf"      	'R-object-help
-   "\C-hv"      	'R-object-str
-   "\C-ho"      	'R-object-summaries
-   "\C-hn"      	'R-object-names
-
-   ;; ---------- Frame Switching ----------
-   [(f12)]              'switch-frame-current-R
-   [S-f12]              'R-process-new
-   [C-f12]              'ess-switch-process
-   )
-  )
+  (flyspell-prog-mode))
 
 (add-hook 'inferior-ess-mode-hook	'my-inferior-r-mode-hook)
 (defun my-inferior-r-mode-hook ()
   (text-scale-set -1.1)
 
   (add-to-list 'ac-sources 'ac-source-R-objects)
-  (add-to-list 'ac-sources 'ac-source-R-args)
-  
-  ;; ------------------------------------------------------
-  ;; Key Binding
-  ;; ------------------------------------------------------
-  (local-set-many-keys
-   ;; ---------- Input / Prompt Scrolling ----------
-   [C-up]               'comint-previous-prompt
-   [C-down]             'comint-next-prompt
-   [up]                 'comint-previous-input
-   [down]               'comint-next-input
-
-   ;; ---------- Help ----------
-   [(S-f1)]	   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point t "R "))
-   (kbd "C-h w")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil "R "))
-
-   "\C-hf"      	'R-object-help
-   "\C-hv"      	'R-object-str
-   "\C-ho"      	'R-object-summaries
-   "\C-hn"      	'R-object-names
-   
-   ;; ---------- Frame Switching ----------
-   [(f12)]              'switch-frame-previous
-   [S-f12]		'R-process-new
-   )
-  )
+  (add-to-list 'ac-sources 'ac-source-R-args))
 
 (add-hook
  'ess-help-mode-hook
