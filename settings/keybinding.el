@@ -356,4 +356,49 @@ If function is nil the key is unset."
    [S-f12]		'R-process-new
    )
 
+;; --------------------------------------------------------------------------
+;; Python
+;; --------------------------------------------------------------------------
+(define-many-keys python-mode-map
+   [(return)]		'newline-and-indent
+   
+   ;; ---------- Evaluation ----------
+   [(shift return)]     'python-eval
+
+   ;; ---------- Indent / Tabs ----------
+   (kbd "<S-tab>")		'tab-to-tab-stop-magic
+   (kbd "<tab>")		'indent-for-tab-command  
+
+   ;; ---------- Help ----------
+   [(S-f1)]	   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t "Python "))
+   (kbd "C-h w")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point nil "Python "))
+   (kbd "C-h f")   	'anaconda-mode-view-doc
+   
+   ;; ---------- Frame Switching ----------
+   [(f12)]              'python-shell-switch-to-shell
+   ;; [S-f12]              'python-process-new
+   ;; [C-f12]              'python-process-set 
+   )
+
+(define-many-keys inferior-python-mode-map
+  [S-C-up]		'previous-line
+  [S-C-down]		'next-line
+  
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "Python "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "Python "))
+  (kbd "C-h f")   	'anaconda-mode-view-doc
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-previous
+  )
+
 ;;; KEYBINDING.EL ends here
