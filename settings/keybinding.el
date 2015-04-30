@@ -54,6 +54,15 @@ If function is nil the key is unset."
         (local-set-key k f)))))
 
 
+(defun define-many-keys (m &rest key-func-pair)
+  "Defines many keys to MAP"
+  (while key-func-pair
+    (let ((k (pop key-func-pair))
+          (f (pop key-func-pair)))
+	 (define-key m k f))))
+
+
+
 ;; --------------------------------------------------------------------------
 ;; Setting Keys
 ;; --------------------------------------------------------------------------
@@ -159,16 +168,29 @@ If function is nil the key is unset."
 ;; Comint Mode
 ;; --------------------------------------------------------------------------
 (require 'comint)
-(define-key comint-mode-map [C-down]
-  'comint-next-prompt)
-(define-key comint-mode-map [C-up]
-  'comint-previous-prompt)
+(define-many-keys comint-mode-map
+  [C-down]		'comint-next-prompt
+  [C-up]			'comint-previous-prompt
+  ;; These are nice (forget about previous/next-input)
+  [down]			'comint-next-matching-input-from-input
+  [up]			'comint-previous-matching-input-from-input
+  [S-C-up]		'previous-line
+  [S-C-down]		'next-line
+  
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "bash "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "bash "))
+  (kbd "C-h f")   	'man-at-point 
 
-;; These are nice (forget about previous/next-input)
-(define-key comint-mode-map [down]
-  'comint-next-matching-input-from-input)
-(define-key comint-mode-map [up]
-  'comint-previous-matching-input-from-input)
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-previous
+  [S-f12]              'shell-new
+  )
+
 
 
 ;; --------------------------------------------------------------------------
@@ -186,12 +208,80 @@ If function is nil the key is unset."
 ;; --------------------------------------------------------------------------
 ;; Isearch Fix
 ;; --------------------------------------------------------------------------
-(define-key isearch-mode-map "\C-f"             'isearch-repeat-forward)
-(define-key isearch-mode-map (kbd "C-S-f")      'isearch-repeat-backward)
-(define-key isearch-mode-map (kbd "C-s")        'save-buffer)
-(define-key isearch-mode-map (kbd "C-S-s")      'write-file)
+(define-many-keys isearch-mode-map
+  "\C-f"				'isearch-repeat-forward
+  (kbd "C-S-f")		'isearch-repeat-backward
+  (kbd "C-s")			'save-buffer
+  (kbd "C-S-s")		'write-file)
 
+
+;; --------------------------------------------------------------------------
+;; Help
+;; --------------------------------------------------------------------------
+;; (define-key Man-mode-map		"q" 'kill-buffer-or-emacs)
+(define-key help-mode-map	"q" 'kill-buffer-or-emacs)
+(define-key ess-help-mode-map	"q" 'kill-buffer-or-emacs)
 
 
 ;;; KEYBINDING.EL ends here
 
+;; --------------------------------------------------------------------------
+;; SQL
+;; --------------------------------------------------------------------------
+(define-many-keys sql-interactive-mode-map
+   ;; ---------- Input / Prompt Scrolling ----------
+   [C-up]               'comint-previous-prompt
+   [C-down]             'comint-next-prompt
+   [up]                 'comint-previous-input
+   [down]               'comint-next-input
+   [S-C-up]			'previous-line
+   [S-C-down]			'next-line
+   
+
+   ;; ---------- Completion ----------
+   (kbd "<tab>")	'completion-at-point
+
+   ;; ---------- Help ----------
+   [(S-f1)]	  	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t (format "SQL %s "
+							    sql-product)))
+   (kbd "C-h w")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point nil (format "SQL %s "
+							      sql-product)))
+   ;; "\C-hf"              'sql-tables
+   ;; "\C-he"              'sql-explain
+   ;; "\C-hv"              'sql-describe
+
+   ;; ---------- Frame Switching ----------
+   [(f12)]              'switch-frame-next-sql
+   [S-f12]              'sql-process-new
+   )
+
+(define-many-keys sql-mode-map
+   ;; ---------- Evaluation ----------
+   [(shift return)]     'sql-eval
+
+   ;; ---------- Indent / Tabs ----------
+   (kbd "<C-tab>")		'tab-to-tab-stop-magic
+   (kbd "<tab>")		'sql-fix-indent
+
+   ;; ---------- Frame Switching ----------
+   [(f12)]              'switch-frame-current-sql
+   [S-f12]              'sql-connect
+   [C-f12]              'sql-set-sqli-buffer
+
+   ;; ---------- Help ----------
+   [(S-f1)]	   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t (format "SQL %s "
+							    sql-product)))
+   (kbd "C-h w")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point nil (format "SQL %s "
+							      sql-product)))
+   ;; "\C-hf"              'sql-tables
+   ;; "\C-he"              'sql-explain
+   ;; "\C-hv"              'sql-describe
+   )
