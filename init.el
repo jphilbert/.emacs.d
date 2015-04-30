@@ -18,6 +18,12 @@
 (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
 (package-initialize)
 
+(defun packages ()
+  (interactive)
+  (new-frame)
+  (set-frame-width nil 160)
+  (package-show-package-list))
+
 (require 'exec-path-from-shell)
 (exec-path-from-shell-initialize)
 

@@ -359,6 +359,7 @@ If function is nil the key is unset."
 ;; --------------------------------------------------------------------------
 ;; Python
 ;; --------------------------------------------------------------------------
+(require 'python)
 (define-many-keys python-mode-map
    [(return)]		'newline-and-indent
    

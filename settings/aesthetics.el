@@ -165,13 +165,13 @@
 		    :slant 'italic
 		    :font "envy code r-11"
 		    :background "#00222c"
-		    :foreground "light gray")
+		    :foreground "burlywood2")
 (set-face-attribute 'ac-yasnippet-selection-face
 		    nil
 		    :slant 'italic
 		    :font "envy code r-11"
 		    :background "SteelBlue4"
-		    :foreground "white")
+		    :foreground "burlywood2")
 
 (set-face-attribute 'ac-candidate-face
 		    nil
@@ -190,14 +190,22 @@
 		    :background "#00222c"
 		    :foreground "light gray")
 
-(copy-face 'ac-candidate-face 'ac-yasnippet-candidate-face)
-(set-face-attribute 'ac-yasnippet-candidate-face
-		    nil
-		    :foreground "sandybrown")
+;; (copy-face 'ac-candidate-face 'ac-yasnippet-candidate-face)
+;; (set-face-attribute 'ac-yasnippet-candidate-face
+;; 		    nil
+;; 		    :foreground "sandybrown")
+
 (set-face-attribute 'popup-summary-face
 		    nil
-		    :font "envy code r-11")
+		    :font "envy code r-11"
+		    :background "#00222c"
+		    :foreground "gray50")
 
+(set-face-attribute 'tooltip
+		    nil
+		    :font "envy code r-11"
+		    :background "black"
+		    :foreground "light gray")
 
 
 ;; -----------------------------------------------------------------------------
