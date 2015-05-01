@@ -195,6 +195,14 @@ If function is nil the key is unset."
 (define-key ess-help-mode-map	"q" 'kill-buffer-or-emacs)
 
 
+
+;; --------------------------------------------------------------------------
+;; Key-binding for Modes
+;; TODO: Wrap in hooks so we don't need to load the packages prior
+;;	OR something
+;; --------------------------------------------------------------------------
+
+
 ;; --------------------------------------------------------------------------
 ;; Comint Mode
 ;; --------------------------------------------------------------------------
@@ -222,6 +230,7 @@ If function is nil the key is unset."
   [S-f12]              'shell-new
   )
 
+(require 'sh-script)
 (define-many-keys sh-mode-map
  ;; ---------- Evaluation ----------
  [(shift return)]     'shell-eval
