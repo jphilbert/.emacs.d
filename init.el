@@ -302,7 +302,7 @@ out it knowing."
 ;; (require 'latex-setup nil t)
 (require 'web-setup nil t)
 (require 'python-setup nil t)
-(require 'bash-setup nil t)
+(require 'sh-setup nil t)
 ;; (require 'shell-setup nil t)
 ;; (require 'powershell-setup nil t)
 

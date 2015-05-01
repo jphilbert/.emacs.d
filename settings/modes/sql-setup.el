@@ -13,7 +13,7 @@
 		   "/Applications/Postgres.app/Contents/Versions/9.4/bin")
 
 ;; Servers
-(require 'sql-settings "sql_settings.el.gpg")
+(require 'sql-settings "~/settings/sql_settings.el.gpg")
 
 
 (eval-after-load "sql" '(load-library "sql-indent")) 
