@@ -53,7 +53,6 @@ If function is nil the key is unset."
           (local-unset-key k)
         (local-set-key k f)))))
 
-
 (defun define-many-keys (m &rest key-func-pair)
   "Defines many keys to MAP"
   (while key-func-pair
@@ -210,19 +209,37 @@ If function is nil the key is unset."
   [S-C-down]		'next-line
   
   ;; ---------- Help ----------
+  (kbd "C-h f")   	'man-at-point 
   [(S-f1)]	   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "bash "))
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "bash "))
-  (kbd "C-h f")   	'man-at-point 
 
   ;; ---------- Frame Switching ----------
   [(f12)]              'switch-frame-previous
   [S-f12]              'shell-new
   )
 
+(define-many-keys sh-mode-map
+ ;; ---------- Evaluation ----------
+ [(shift return)]     'shell-eval
+
+ ;; ---------- Help ----------
+ (kbd "C-h f")   	'man-at-point
+ [(S-f1)]	   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t "bash "))
+ (kbd "C-h W")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "bash "))
+
+
+ ;; ---------- Frame Switching ----------
+ [(f12)]              'switch-frame-current-shell
+ [S-f12]              'shell-new
+ [C-f12]              'shell-buffer-choose)
 
 ;; --------------------------------------------------------------------------
 ;; SQL
