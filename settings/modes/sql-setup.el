@@ -27,6 +27,13 @@
 	 sql-ms-options		'("-w" "80")
 	 )
 
+(sql-set-product-feature
+ 'postgres
+ :func-desc "\\d+")
+
+(sql-set-product-feature
+ 'oracle
+ :func-desc "describe")
 
 
 ;; --------------------------------------------------------------------------
@@ -146,14 +153,13 @@
 
 
 ;; -----------------------------------------------------------------------------
-;; Help Functions (ORACLE ONLY)
-;;	- Vary by product, perhaps remove
+;; Help Functions
+;;	- Vary by product / in progress
 ;; -----------------------------------------------------------------------------
 (defun sql-describe ()
   "Describe the current table"
   (interactive)
   (save-frame-excursion 
-   (sql-send-string "SET LINESIZE 60;\n")
    (save-excursion
      (setq loc (+ (search-backward-regexp "[\\( \t\n\r]") 1)))
    (save-excursion
@@ -161,8 +167,9 @@
 	   (buffer-substring-no-properties
 	    loc 
 	    (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
-   (sql-send-string (concat "DESC " objname ";"))
-   (sql-send-string "SET LINESIZE 3000;\n")))
+   (sql-send-string (concat (sql-get-product-feature sql-product :func-desc)
+					   " "
+					   objname ";"))))
 
 (defun sql-tables (name-pattern owner-pattern)
   (interactive "sName: \nsOwner: ")

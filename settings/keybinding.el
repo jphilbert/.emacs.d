@@ -277,7 +277,7 @@ If function is nil the key is unset."
 							      sql-product)))
    ;; "\C-hf"              'sql-tables
    ;; "\C-he"              'sql-explain
-   ;; "\C-hv"              'sql-describe
+   "\C-hv"              'sql-describe
 
    ;; ---------- Frame Switching ----------
    [(f12)]              'switch-frame-next-sql
@@ -308,7 +308,7 @@ If function is nil the key is unset."
 							      sql-product)))
    ;; "\C-hf"              'sql-tables
    ;; "\C-he"              'sql-explain
-   ;; "\C-hv"              'sql-describe
+   "\C-hv"              'sql-describe
    )
 
 
