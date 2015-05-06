@@ -2,6 +2,8 @@
 ;; SQL MODE
 ;; ----------------------------------------------------------------------------
 (provide 'sql-setup)
+(require 'sql)
+
 
 ;; ORACLE Path
 (defvar SQL-ORACLE-Init-Path
