@@ -27,6 +27,13 @@
 (require 'exec-path-from-shell)
 (exec-path-from-shell-initialize)
 
+(exec-path-from-shell-copy-env "PYTHONPATH")
+(exec-path-from-shell-copy-env "DYLD_LIBRARY_PATH")
+(exec-path-from-shell-copy-env "AMAZONREDSHIFTODBCINI")
+(exec-path-from-shell-copy-env "ODBCINI")
+(exec-path-from-shell-copy-env "ODBCSYSINI")
+
+
 (require 'user-info)
 
 

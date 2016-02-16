@@ -76,7 +76,8 @@ If function is nil the key is unset."
  (kbd "C-s")                    'save-buffer
  (kbd "C-S-s")                  'write-file
  (kbd "C-o")                    'find-file
- (kbd "C-x d")					'dired-other-frame
+ ;;(kbd "C-x s")				  'save-some-buffers
+ ;;(kbd "C-x d")					'dired-other-frame
 
  ;; ---------- Find / Replace ----------
  "\C-f"                         'isearch-forward
@@ -109,7 +110,7 @@ If function is nil the key is unset."
 			    '("\\*\\*\\*\\*")
 			    t))
  
- (kbd   "C-x k")                'kill-buffer-or-emacs
+ ;;(kbd   "C-x k")                'kill-buffer-or-emacs
  (kbd   "C-S-b")                'bs-show
  (kbd   "C-b")                  'display-buffer-other-frame
 
@@ -150,7 +151,7 @@ If function is nil the key is unset."
  
 
  ;; ---------- Expand Regions ----------
- (kbd "C-=")			'er/expand-region	; C +
+ (kbd "C-+")			'er/expand-region	; C +
  (kbd "C--")			'er/contract-region	; C -
  ;; (kbd "S-SPC")			'er/expand-region
 

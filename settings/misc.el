@@ -180,4 +180,27 @@ of comment-dwim, when it inserts comment at the end of the line."
 		  nil
 		  -1)))
 
+
+;; ---------------------------------------------------------------------------
+;; MAC Cut and Paste
+;; ---------------------------------------------------------------------------
+(defun pbcopy ()
+  (interactive)
+  (call-process-region (point) (mark) "pbcopy")
+  (setq deactivate-mark t))
+
+(defun pbpaste ()
+  (interactive)
+  (call-process-region (point) (if mark-active (mark) (point)) "pbpaste" t t))
+
+(defun pbcut ()
+  (interactive)
+  (pbcopy)
+  (delete-region (region-beginning) (region-end)))
+
+(global-set-key (kbd "C-c") 'pbcopy)
+(global-set-key (kbd "C-v") 'pbpaste)
+(global-set-key (kbd "C-x") 'pbcut)
+(global-set-key (kbd "C-z") 'undo)
+
 (provide 'misc)

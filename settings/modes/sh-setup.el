@@ -13,7 +13,7 @@
 
 (add-hook 'shell-mode-hook 'my-shell-mode-hook)
 (defun my-shell-mode-hook ()
-  (auto-fill-mode nil)
+  (auto-fill-mode 0)
   (text-scale-set -1.1)
 
   (auto-complete-mode t)

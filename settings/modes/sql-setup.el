@@ -71,7 +71,7 @@
   (auto-complete-mode t)
   ;; (setq ac-ignore-case nil)
 
-  (toggle-truncate-lines t)
+  (toggle-truncate-lines 1)
   )
 
 ;; --------------------------------------------------------------------------
