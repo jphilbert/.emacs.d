@@ -6,40 +6,17 @@
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(setq emacs-lisp-mode-hook		'my-lisp-mode-hook
-      lisp-mode-hook			'my-lisp-mode-hook
-      lisp-interaction-mode-hook	'my-lisp-mode-hook)
+(add-hook emacs-lisp-mode-hook		'my-lisp-mode-hook)
+(add-hook lisp-mode-hook				'my-lisp-mode-hook)
+(add-hook lisp-interaction-mode-hook	'my-lisp-mode-hook)
 (defun my-lisp-mode-hook ()
-  (hs-minor-mode t)
+  (hs-minor-mode)
   (hs-hide-all)
   (flyspell-prog-mode)
   (turn-on-auto-fill)
   
   (add-to-list 'ac-sources 'ac-source-functions)
   (add-to-list 'ac-sources 'ac-source-variables)
-  
-  ;; -------------------- Key bindings --------------------
-  (local-set-many-keys
-   ;; ---------- Evaluation ----------
-   [(shift return)]     'elisp-eval
-   
-   ;; ---------- Indent / Tabs ----------
-   (kbd "C-<tab>")	'tab-to-tab-stop-magic
-   (kbd "<tab>")        'indent-for-tab-command   
-
-   ;; ---------- Help ----------
-   "\C-hf"      	'describe-variable-or-function
-   [(S-f1)]		'(lambda ()
-			   (interactive)
-			   (google-query-at-point t "emacs "))
-   (kbd "C-h w")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil "emacs "))
-
-   ;; ---------- Frame Switching ----------
-   [(f12)]              'switch-frame-current-message
-
-   )
   )
 
 ;; --------------------------------------------------------------------------

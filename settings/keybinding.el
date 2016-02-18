@@ -181,6 +181,246 @@ If function is nil the key is unset."
 (define-key isearch-mode-map (kbd "C-S-s")      'write-file)
 
 
+;; --------------------------------------------------------------------------
+;; Help
+;; --------------------------------------------------------------------------
+(require 'man)
+(define-key Man-mode-map		"q" 'kill-buffer-or-emacs)
+(define-key help-mode-map	"q" 'kill-buffer-or-emacs)
+(define-key ess-help-mode-map	"q" 'kill-buffer-or-emacs)
+
+
+;; --------------------------------------------------------------------------
+;; Comint Mode
+;; --------------------------------------------------------------------------
+(require 'comint)
+(define-many-keys comint-mode-map
+  [C-down]		'comint-next-prompt
+  [C-up]			'comint-previous-prompt
+  ;; These are nice (forget about previous/next-input)
+  [down]			'comint-next-matching-input-from-input
+  [up]			'comint-previous-matching-input-from-input
+  [S-C-up]		'previous-line
+  [S-C-down]		'next-line
+  
+  ;; ---------- Help ----------
+  (kbd "C-h f")   	'man-at-point 
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "bash "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "bash "))
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-previous
+  [S-f12]              'shell-new
+  )
+
+
+;; --------------------------------------------------------------------------
+;; SQL
+;; --------------------------------------------------------------------------
+(define-many-keys sql-interactive-mode-map
+  ;; ---------- Input / Prompt Scrolling ----------
+  [C-up]               'comint-previous-prompt
+  [C-down]             'comint-next-prompt
+  [up]                 'comint-previous-input
+  [down]               'comint-next-input
+  [S-C-up]			'previous-line
+  [S-C-down]			'next-line
+  
+
+  ;; ---------- Completion ----------
+  (kbd "<tab>")	'completion-at-point
+
+  ;; ---------- Help ----------
+  [(S-f1)]	  	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t (format "SQL %s "
+											 sql-product)))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil (format "SQL %s "
+											   sql-product)))
+  ;; "\C-hf"              'sql-tables
+  ;; "\C-he"              'sql-explain
+  "\C-hv"              'sql-describe
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-next-sql
+  [S-f12]              'sql-process-new
+  )
+
+(define-many-keys sql-mode-map
+  ;; ---------- Evaluation ----------
+  [(shift return)]     'sql-eval
+
+  ;; ---------- Indent / Tabs ----------
+  (kbd "<C-tab>")		'tab-to-tab-stop-magic
+  (kbd "<tab>")		'sql-fix-indent
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-current-sql
+  [S-f12]              'sql-connect
+  [C-f12]              'sql-set-sqli-buffer
+
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t (format "SQL %s "
+											 sql-product)))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil (format "SQL %s "
+											   sql-product)))
+  ;; "\C-hf"              'sql-tables
+  ;; "\C-he"              'sql-explain
+  "\C-hv"              'sql-describe
+  )
+
+
+;; --------------------------------------------------------------------------
+;; R
+;; --------------------------------------------------------------------------
+(define-many-keys ess-mode-map
+  ;; [(return)]		'newline-and-indent
+
+  ;; ---------- Evaluation ----------
+  [(shift return)]     'R-eval
+  
+
+  ;; ---------- Indent / Tabs ----------
+  (kbd "<C-tab>")		'tab-to-tab-stop-magic
+  (kbd "<tab>")		'indent-for-tab-command
+  
+  
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "R "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "R "))
+
+  "\C-hf"      	'R-object-help
+  "\C-hv"      	'R-object-str
+  "\C-ho"      	'R-object-summaries
+  "\C-hn"      	'R-object-names
+  "\C-hV"      	'ess-display-vignettes
+  "\C-hH"      	'ess-handy-commands
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-current-R
+  [S-f12]              'R-process-new
+  [C-f12]              'ess-switch-process
+  )
+
+(define-many-keys inferior-ess-mode-map
+  ;; ---------- Input / Prompt Scrolling ----------
+  [C-up]               'comint-previous-prompt
+  [C-down]             'comint-next-prompt
+  [up]                 'comint-previous-input
+  [down]               'comint-next-input
+  [S-C-up]			'previous-line
+  [S-C-down]			'next-line
+
+  
+  ;; ---------- Completion ----------
+  ;; (kbd "<tab>")	'completion-at-point
+
+
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "R "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "R "))
+
+  "\C-hf"      	'R-object-help
+  "\C-hv"      	'R-object-str
+  "\C-ho"      	'R-object-summaries
+  "\C-hn"      	'R-object-names
+  "\C-hV"      	'ess-display-vignettes
+  "\C-hH"      	'ess-handy-commands
+  
+  ;; ---------- Frame Switching ----------
+  [(f12)]          'switch-frame-previous
+  [S-f12]		'R-process-new
+  )
+
+;; --------------------------------------------------------------------------
+;; Python
+;; --------------------------------------------------------------------------
+(require 'python)
+(define-many-keys python-mode-map
+  [(return)]		'newline-and-indent
+  
+  ;; ---------- Evaluation ----------
+  [(shift return)]     'python-eval
+
+  ;; ---------- Indent / Tabs ----------
+  (kbd "<S-tab>")		'tab-to-tab-stop-magic
+  (kbd "<tab>")		'indent-for-tab-command  
+
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "Python "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "Python "))
+  (kbd "C-h f")   	'anaconda-mode-view-doc
+  
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'python-shell-switch-to-shell
+  ;; [S-f12]              'python-process-new
+  ;; [C-f12]              'python-process-set 
+  )
+
+(define-many-keys inferior-python-mode-map
+  [S-C-up]		'previous-line
+  [S-C-down]		'next-line
+  
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "Python "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "Python "))
+  (kbd "C-h f")   	'anaconda-mode-view-doc
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-previous
+  )
+
+;; --------------------------------------------------------------------------
+;; Elisp
+;; --------------------------------------------------------------------------
+(define-many-keys emacs-lisp-mode-map
+  ;; ---------- Evaluation ----------
+  [(shift return)]     'elisp-eval
+  
+  ;; ---------- Indent / Tabs ----------
+  (kbd "C-<tab>")	'tab-to-tab-stop-magic
+  (kbd "<tab>")        'indent-for-tab-command   
+
+  ;; ---------- Help ----------
+  "\C-hf"      	'describe-variable-or-function
+  [(S-f1)]		'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "emacs "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "emacs "))
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-current-message
+
+  )
+;; emacs-lisp-mode-map
 
 ;;; KEYBINDING.EL ends here
 

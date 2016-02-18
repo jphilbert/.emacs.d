@@ -22,34 +22,6 @@
   ;; (hs-hide-all)				; Breaks if bad code
   (flyspell-prog-mode)
   (turn-on-auto-fill)
-  
-  ;; --------------------------------------------------------------------------
-  ;; Key Binding
-  ;; --------------------------------------------------------------------------
-  (local-set-many-keys
-   [(return)]		'newline-and-indent
-   
-   ;; ---------- Evaluation ----------
-   [(shift return)]     'python-eval
-
-   ;; ---------- Indent / Tabs ----------
-   (kbd "<C-tab>")		'tab-to-tab-stop-magic
-   (kbd "<tab>")		'indent-for-tab-command  
-
-   ;; ---------- Help ----------
-   [(S-f1)]	   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point t "Python "))
-   (kbd "C-h w")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil "Python "))
-   (kbd "C-h f")   	'anaconda-mode-view-doc
-   
-   ;; ---------- Frame Switching ----------
-   [(f12)]              'python-shell-switch-to-shell
-   ;; [S-f12]              'python-process-new
-   ;; [C-f12]              'python-process-set 
-   )
   )
 
 (add-hook 'inferior-python-mode-hook	'my-inferior-python-mode-hook)
@@ -57,23 +29,7 @@
 (defun my-inferior-python-mode-hook ()
   (ac-anaconda-setup) 
   (text-scale-set -1.1)
-  
-  ;; --------------------------------------------------------------------------
-  ;; Key-binding
-  ;; --------------------------------------------------------------------------
-  (local-set-many-keys
-   ;; ---------- Help ----------
-   [(S-f1)]	   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point t "Python "))
-   (kbd "C-h w")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil "Python "))
-   (kbd "C-h f")   	'anaconda-mode-view-doc
-
-   ;; ---------- Frame Switching ----------
-   [(f12)]              'switch-frame-previous
-   ))
+  )
 
 
 ;; --------------------------------------------------------------------------

@@ -2,14 +2,21 @@
 ;; SQL MODE
 ;; ----------------------------------------------------------------------------
 (provide 'sql-setup)
+(require 'sql)
 
+
+;; ORACLE Path
 (defvar SQL-ORACLE-Init-Path
 "~/Public_Files/Hilbert/Common/SQL/sql defaults.sql"
 "Path to Oracle Init File")
 
+;; POSTGRES Path
+(add-to-list 'exec-path
+		   "C:/Program Files/PostgreSQL/9.5/bin")
 
-;; (setenv "LD_LIBRARY_PATH"	"/usr/lib/oracle/11.2/client64/lib")
-;; (setenv "TNS_ADMIN"		"/home/hilbertjp")
+;; Servers
+(require 'sql-servers "~/Documents/Keys/sql-servers.el")
+
 
 (eval-after-load "sql" '(load-library "sql-indent")) 
 (add-to-list 'ac-modes 'sql-mode)
@@ -22,6 +29,13 @@
 	 sql-ms-options		'("-w" "80")
 	 )
 
+(sql-set-product-feature
+ 'postgres
+ :func-desc "\\d+")
+
+(sql-set-product-feature
+ 'oracle
+ :func-desc "describe")
 
 
 ;; --------------------------------------------------------------------------
@@ -39,40 +53,11 @@
   (flyspell-prog-mode)
   (turn-on-auto-fill)
   
-  (sql-set-product 'oracle)
+  (sql-set-product 'postgres)
 
   ;; (setq comment-start "/*") **/
   ;; (setq comment-end "*\/") **/
-  
-  ;; ------------------------------------------------------
-  ;; Key Binding
-  ;; ------------------------------------------------------
-  (local-set-many-keys
-   ;; ---------- Evaluation ----------
-   [(shift return)]     'sql-eval
-
-   ;; ---------- Indent / Tabs ----------
-   (kbd "<C-tab>")	'tab-to-tab-stop-magic
-   (kbd "<tab>")        'sql-fix-indent
-
-   ;; ---------- Frame Switching ----------
-   [(f12)]              'switch-frame-current-sql
-   [S-f12]              'sql-process-new
-   [C-f12]              'sql-set-sqli-buffer
-
-   ;; ---------- Help ----------
-   [(S-f1)]	   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point t (format "SQL %s "
-							    sql-product)))
-   (kbd "C-h w")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil (format "SQL %s "
-							      sql-product)))
-   "\C-hf"              'sql-tables
-   "\C-he"              'sql-explain
-   "\C-hv"              'sql-describe
-   ))
+  )
 
 (add-hook 'sql-interactive-mode-hook 'my-sql-interactive-mode-hook)
 (defun my-sql-interactive-mode-hook ()
@@ -84,37 +69,10 @@
   
   (add-to-list 'ac-sources 'ac-source-sql)
   (auto-complete-mode t)
-  
-  ;; --------------------------------------------------------------------------
-  ;; Key Bindings
-  ;; --------------------------------------------------------------------------
-  (local-set-many-keys
-   ;; ---------- Input / Prompt Scrolling ----------
-   [C-up]               'comint-previous-prompt
-   [C-down]             'comint-next-prompt
-   [up]                 'comint-previous-input
-   [down]               'comint-next-input
+  ;; (setq ac-ignore-case nil)
 
-   ;; ---------- Completion ----------
-   (kbd "<tab>")	'completion-at-point
-
-   ;; ---------- Help ----------
-   [(S-f1)]	  	'(lambda ()
-			   (interactive)
-			   (google-query-at-point t (format "SQL %s "
-							    sql-product)))
-   (kbd "C-h w")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil (format "SQL %s "
-							      sql-product)))
-   "\C-hf"              'sql-tables
-   "\C-he"              'sql-explain
-   "\C-hv"              'sql-describe
-
-   ;; ---------- Frame Switching ----------
-   [(f12)]              'switch-frame-next-sql
-   [S-f12]              'sql-process-new
-   ))
+  (toggle-truncate-lines 1)
+  )
 
 ;; --------------------------------------------------------------------------
 ;; Functions
@@ -124,7 +82,7 @@
   (interactive)
   ;; Pre Eval
   (when (eq (length (switch-frame-buffer-list '("\\*SQL.*") '("^ "))) 0)
-    (sql-process-new)
+    (call-interactively 'sql-connect)
     ;; Possible loop until process is found?
     )
 
@@ -198,12 +156,12 @@
 
 ;; -----------------------------------------------------------------------------
 ;; Help Functions
+;;	- Vary by product / in progress
 ;; -----------------------------------------------------------------------------
 (defun sql-describe ()
   "Describe the current table"
   (interactive)
   (save-frame-excursion 
-   (sql-send-string "SET LINESIZE 60;\n")
    (save-excursion
      (setq loc (+ (search-backward-regexp "[\\( \t\n\r]") 1)))
    (save-excursion
@@ -211,8 +169,9 @@
 	   (buffer-substring-no-properties
 	    loc 
 	    (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
-   (sql-send-string (concat "DESC " objname ";"))
-   (sql-send-string "SET LINESIZE 3000;\n")))
+   (sql-send-string (concat (sql-get-product-feature sql-product :func-desc)
+					   " "
+					   objname ";"))))
 
 (defun sql-tables (name-pattern owner-pattern)
   (interactive "sName: \nsOwner: ")
@@ -428,4 +387,3 @@ table(dbms_xplan.display('plan_table',null,'typical -cost -bytes -rows -partitio
        t) ".[a-z0-9_]+")
     .
     'font-lock-builtin-face)))
-
