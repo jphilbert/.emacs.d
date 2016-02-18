@@ -9,4 +9,5 @@
 (setq user-full-name	"John P. Hilbert"
       user-mail-address "jphilbert@gmail.com")
 
+(setq default-directory "~/")
 
