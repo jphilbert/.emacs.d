@@ -23,4 +23,8 @@ A registry file has been included to facilitate this.  It does the following:
 
 Aspell
 ------
-Installing Aspell is done in two trivial steps:  First the application (aspell-X.XX-X-X-setup.exe) must be downloaded and installed, then the word list (aspell-en-X.XX-X-X.exe) .  It is also strongly suggested that it’s binary directory (C:\Program Files\ASPELL\BIN\) be added to the system path.
+Installing [ASPELL for win32](http://aspell.net/win32/) is done in two trivial
+steps: First the application (aspell-X.XX-X-X-setup.exe) must be downloaded and
+installed, then the word list (aspell-en-X.XX-X-X.exe). It is also strongly
+suggested that it’s binary directory (C:\Program Files\ASPELL\BIN\) be added to
+the system path **however** this path is used in init.el.

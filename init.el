@@ -110,7 +110,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Aspell
 ;; ----------------------------------------------------------------------------
-(setq-default ispell-program-name "aspell.exe")
+(setq-default ispell-program-name "C:\\program files\\aspell\\bin\\aspell.exe")
 (setq ispell-list-command "list"
       ispell-extra-args '("--sug-mode=fast"))
 (add-hook 'text-mode-hook
