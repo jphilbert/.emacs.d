@@ -174,7 +174,7 @@
 			  (height . 15)
 			  (width . ,Frame-Default-Width)
 			  (top . 10)
-			  (left . ,(/ (x-display-pixel-width) 2))))))
+			  (left . ,(/ (x-display-pixel-width) 3))))))
 
 ;; -------------------- Anaconda Doc Frame ---------------------
 ;; TO DO: Auto Resize 
