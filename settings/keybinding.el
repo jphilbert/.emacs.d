@@ -53,6 +53,12 @@ If function is nil the key is unset."
           (local-unset-key k)
         (local-set-key k f)))))
 
+(defun define-many-keys (m &rest key-func-pair)
+  "Defines many keys to MAP"
+  (while key-func-pair
+    (let ((k (pop key-func-pair))
+          (f (pop key-func-pair)))
+	 (define-key m k f))))
 
 ;; --------------------------------------------------------------------------
 ;; Setting Keys

@@ -6,9 +6,10 @@
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(add-hook emacs-lisp-mode-hook		'my-lisp-mode-hook)
-(add-hook lisp-mode-hook				'my-lisp-mode-hook)
-(add-hook lisp-interaction-mode-hook	'my-lisp-mode-hook)
+(add-hook 'emacs-lisp-mode-hook		'my-lisp-mode-hook)
+(add-hook 'lisp-mode-hook			'my-lisp-mode-hook)
+(add-hook 'lisp-interaction-mode-hook	'my-lisp-mode-hook)
+
 (defun my-lisp-mode-hook ()
   (hs-minor-mode)
   (hs-hide-all)

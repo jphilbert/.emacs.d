@@ -10,10 +10,6 @@
 "~/Public_Files/Hilbert/Common/SQL/sql defaults.sql"
 "Path to Oracle Init File")
 
-;; POSTGRES Path
-(add-to-list 'exec-path
-		   "C:/Program Files/PostgreSQL/9.5/bin")
-
 ;; Servers
 (require 'sql-servers "~/Documents/Keys/sql-servers.el")
 
@@ -36,6 +32,7 @@
 (sql-set-product-feature
  'oracle
  :func-desc "describe")
+
 
 
 ;; --------------------------------------------------------------------------
@@ -61,17 +58,13 @@
 
 (add-hook 'sql-interactive-mode-hook 'my-sql-interactive-mode-hook)
 (defun my-sql-interactive-mode-hook ()
-  (require 'ac-sql)
-  (require 'sql)
-  ;; (defalias 'sql-get-login 'ignore)
-
   (text-scale-set -1.1)
   
   (add-to-list 'ac-sources 'ac-source-sql)
   (auto-complete-mode t)
   ;; (setq ac-ignore-case nil)
 
-  (toggle-truncate-lines 1)
+  ;; (setq-default truncate-lines t)
   )
 
 ;; --------------------------------------------------------------------------
