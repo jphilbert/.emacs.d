@@ -2,6 +2,7 @@
 ;; init.el (Global Options)
 ;; ----------------------------------------------------------------------------
 (require 'cl)
+(setq start-time (current-time))
 
 ;; maps path of emacs files
 (let ((default-directory "~/.emacs.d/elpa/user/"))
@@ -61,6 +62,9 @@
 (setq-default tab-stop-list (number-sequence 5 120 5))
 
 
+(message "SETTING - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
+
 ;; -----------------------------------------------------------------------------
 ;; Packages
 ;; -----------------------------------------------------------------------------
@@ -71,6 +75,8 @@
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize)
 
+(message "PACKAGES - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
 
 ;; -----------------------------------------------------------------------------
 ;; Directories / Backups
@@ -88,6 +94,8 @@
  '(auto-save-file-name-transforms (quote ((".*" "~/.emacs.d/autosaves/" t))))
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backups/")))))
 
+(message "DIRECTORIES / BACKUPS - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
 
 ;; -----------------------------------------------------------------------------
 ;; Opens Files with Emacs (if Emacs is running)
@@ -96,6 +104,8 @@
 (defun server-ensure-safe-dir (dir) "Noop" t) ; Suppress common windows error
 (server-start)
 
+(message "SERVER - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
 
 ;; ----------------------------------------------------------------------------
 ;; Tiny Tools
@@ -108,13 +118,16 @@
 
 
 ;; ----------------------------------------------------------------------------
-;; Asell
+;; Aspell
 ;; ----------------------------------------------------------------------------
 (setq-default ispell-program-name "aspell.exe")
 (setq ispell-list-command "list"
       ispell-extra-args '("--sug-mode=fast"))
 (add-hook 'text-mode-hook
 	  '(lambda() (flyspell-mode t)))
+
+(message "TINY TOOLS / ASPELL - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
 
 
 ;; ----------------------------------------------------------------------------
@@ -149,6 +162,9 @@
       icicle-change-region-background-flag	t
       icicle-region-background			"black")
 (icy-mode t)
+
+(message "AC / ICICLES - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
 
 ;; ----------------------------------------------------------------------------
 ;; Dired+
@@ -208,14 +224,9 @@ JPH: Removed periodic message"
 ;; ----------------------------------------------------------------------------
 (require 'yasnippet)
 (yas-global-mode 1)
-;; ;; (yas/initialize)
-;; (yas/load-directory "~/.emacs.d/packages/yasnippet/snippets")
-;; (setq yas/prompt-functions '(yas/completing-prompt))
 
-;; (setq yas/trigger-key (kbd "SPC"))
-;; (add-hook 'yas/minor-mode-on-hook 
-;;           '(lambda () (define-key yas/minor-mode-map yas/trigger-key 'yas/expand)))
-
+(message "YAS - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
 
 ;; ----------------------------------------------------------------------------
 ;; Folding
@@ -259,6 +270,8 @@ out it knowing."
 		("Mode"		16 16 middle bs--get-mode-name)
 		(""		2 2 left "  ")))
 
+(message "DWIM / BUFFER - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
 
 ;; --------------------------------------------------------------------------
 ;; GIT
@@ -275,6 +288,8 @@ out it knowing."
 (require 'websearch)		; Search web functionality
 (require 'misc)			; Miscellaneous User created functions
 
+(message "MISC PACK - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
 
 ;; ----------------------------------------------------------------------------
 ;; Modes
@@ -288,6 +303,8 @@ out it knowing."
 (require 'shell-setup nil t)
 (require 'powershell-setup nil t)
 
+(message "MODES - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
 
 ;; -----------------------------------------------------------------------------
 ;; Key-Binding
@@ -302,3 +319,6 @@ out it knowing."
 (require 'aesthetics)		; Near the end of file (due to mode dependencies
 						; among other things)
 (require 'frame-settings)	; Setup frames
+
+(message "KEYBINDING / AESTHETICS - Time: %.03fs" (float-time (time-since start-time)))
+(setq start-time (current-time))
