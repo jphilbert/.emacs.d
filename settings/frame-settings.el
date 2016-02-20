@@ -281,6 +281,7 @@
 
 
 ;; -------------------- DIRED ---------------------
+;; (defalias 'dired 'dired-other-frame)
 (add-to-list 'display-buffer-alist
 		   `((lambda (buff a) (equal (with-current-buffer buff major-mode)
 						    'dired-mode))
@@ -292,7 +293,7 @@
 			  (horizontal-scroll-bars . nil)
 			  (vertical-scroll-bars . nil)
 			  (height . ,Frame-Default-Height)
-			  (width . ,(truncate (* 1.5 Frame-Default-Width)))
+			  (width . ,(truncate (* 1.0 Frame-Default-Width)))
 			  (top . 20)
 			  (left . 40)))))
 
@@ -445,18 +446,33 @@
 
 
 ;; -------------------- Package Frame ---------------------
-;; (add-to-list
-;;  'special-display-regexps
-;;  (list ".*\\*Packages.*\\*.*" 'display-default-frame
-;;        (list '(unsplittable . nil)
-;;              '(horizontal-scroll-bars . nil)
-;;              '(vertical-scroll-bars . nil)
-;;              `(height . ,Frame-Default-Height)
-;;              `(width . ,(+ 100 Frame-Default-Width))
-;; 	     `(top . ,Frame-Terminal-Top)
-;; 	     `(left . ,(- 100 Frame-Terminal-Left)))))
 
+(defun my-list-packages (orig-fun &rest args)
+  (let ((cur (current-buffer)))
+    (get-buffer-create "*Packages*")
+    (apply orig-fun args)
+    (switch-to-buffer cur)  
+    (display-buffer "*Packages*")))
 
+(advice-add 'list-packages :around #'my-list-packages)
+
+(advice-remove 'list-packages #'my-list-packages)
+
+(add-to-list 'display-buffer-alist
+		   `( ".*\\*Packages.*\\*.*"
+			(display-buffer-reuse-window display-buffer-pop-up-frame)
+			(reusable-frames . 0)
+			(pop-up-frame-parameters
+			 .
+			 ((unsplittable . t)
+			  (horizontal-scroll-bars . nil)
+			  (vertical-scroll-bars . nil)
+			  (height . ,Frame-Default-Height)
+			  (width . 160)
+			  (top . 10)
+			  (left . 10)))))
+
+(my-list-packages)
 
 (provide 'frame-settings)
 
