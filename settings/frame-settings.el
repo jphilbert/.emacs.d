@@ -281,7 +281,7 @@
 
 
 ;; -------------------- DIRED ---------------------
-;; (defalias 'dired 'dired-other-frame)
+(defalias 'dired 'dired-other-frame)
 (add-to-list 'display-buffer-alist
 		   `((lambda (buff a) (equal (with-current-buffer buff major-mode)
 						    'dired-mode))
@@ -446,7 +446,6 @@
 
 
 ;; -------------------- Package Frame ---------------------
-
 (defun my-list-packages (orig-fun &rest args)
   (let ((cur (current-buffer)))
     (get-buffer-create "*Packages*")
@@ -455,8 +454,6 @@
     (display-buffer "*Packages*")))
 
 (advice-add 'list-packages :around #'my-list-packages)
-
-(advice-remove 'list-packages #'my-list-packages)
 
 (add-to-list 'display-buffer-alist
 		   `( ".*\\*Packages.*\\*.*"
@@ -471,8 +468,6 @@
 			  (width . 160)
 			  (top . 10)
 			  (left . 10)))))
-
-(my-list-packages)
 
 (provide 'frame-settings)
 
