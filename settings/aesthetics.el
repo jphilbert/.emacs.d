@@ -41,7 +41,7 @@
 ;; General Settings
 ;; -----------------------------------------------------------------------------
 (add-to-list 'pretty-lambda-auto-modes 'python-mode)
-(pretty-lambda-mode)		; Lambda mode for all
+(pretty-lambda-for-modes)		; Lambda mode for all
 
 
 

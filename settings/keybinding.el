@@ -81,7 +81,7 @@ If function is nil the key is unset."
  ;; ---------- Miscellaneous ----------
  [(f1)]                 'ac-show-quick-help
  [(f2)]                 'occur
- [(f3)]			'fold-dwim-toggle
+ [(f3)]			    'fold-dwim-toggle
  [(shift f3)]           'fold-dwim-toggle-all
  [(f5)]                 'linum-mode
  [(f6)]                 'explorer
@@ -356,6 +356,7 @@ If function is nil the key is unset."
   [S-f12]		'R-process-new
   )
 
+
 ;; --------------------------------------------------------------------------
 ;; Python
 ;; --------------------------------------------------------------------------
@@ -402,6 +403,7 @@ If function is nil the key is unset."
   [(f12)]              'switch-frame-previous
   )
 
+
 ;; --------------------------------------------------------------------------
 ;; Elisp
 ;; --------------------------------------------------------------------------
@@ -426,7 +428,93 @@ If function is nil the key is unset."
   [(f12)]              'switch-frame-current-message
 
   )
-;; emacs-lisp-mode-map
+
+
+;; --------------------------------------------------------------------------
+;; Markdown
+;; --------------------------------------------------------------------------
+(require 'markdown-mode)
+(define-many-keys markdown-mode-map
+  ;; ---------- Evaluation ----------
+  [(shift return)]		'markdown-preview
+  
+  ;; ---------- Styles ----------
+  (kbd "C-b")			'markdown-insert-italic
+  (kbd "C-i")			'markdown-insert-bold
+  (kbd "C-l")			'markdown-insert-link
+  (kbd "C-j")			'markdown-insert-code
+  
+
+  ;; ---------- Hide-Show ----------
+  [(f3)]			     'markdown-hide-subtree
+  [(shift f3)]           'markdown-show-subtree
+  
+  ;; ---------- Help ----------
+  "\C-hf"      	'(lambda ()
+				   (interactive)
+				   (browse-url
+   "https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet")
+				   )
+  [(S-f1)]		'(lambda ()
+				   (interactive)
+				   (browse-url
+   "https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet")
+				   )
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "markdown "))
+  )
+
+
+;; --------------------------------------------------------------------------
+;; Shell
+;; --------------------------------------------------------------------------
+(define-many-keys ntcmd-mode-map
+  ;; ---------- Evaluation ----------
+  [(shift return)]     'shell-eval
+
+  ;; ---------- Help ----------
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "dos "))
+  (kbd "C-h W")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "dos "))
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-current-shell
+  [S-f12]              'shell-new
+  [C-f12]              'shell-buffer-choose
+  
+  ;; ---------- Auto Pairing ----------
+  (kbd "(")            'skeleton-pair-insert-maybe
+  (kbd "[")            'skeleton-pair-insert-maybe
+  (kbd "{")            'skeleton-pair-insert-maybe
+  (kbd "\"")           'skeleton-pair-insert-maybe
+  (kbd "\'")           'skeleton-pair-insert-maybe
+  (kbd "\`")           'skeleton-pair-insert-maybe)  
+
+(define-many-keys shell-mode-map
+   ;; ---------- Help ----------
+   (kbd "C-h w")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t "dos "))
+   (kbd "C-h W")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point nil "dos "))
+   
+   ;; ---------- Frame Switching ----------
+   [(f12)]              'switch-frame-next-shell
+   [S-f12]              'shell-new
+
+   ;; ---------- Auto Pairing ----------
+   (kbd "(")            'skeleton-pair-insert-maybe
+   (kbd "[")            'skeleton-pair-insert-maybe
+   (kbd "{")            'skeleton-pair-insert-maybe
+   (kbd "\"")           'skeleton-pair-insert-maybe
+   (kbd "\'")           'skeleton-pair-insert-maybe
+   (kbd "\`")           'skeleton-pair-insert-maybe)
+
 
 ;;; KEYBINDING.EL ends here
 

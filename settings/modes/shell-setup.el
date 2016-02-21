@@ -14,32 +14,7 @@
 (add-hook 'ntcmd-mode-hook 'my-bat-mode-hook)
 (defun my-bat-mode-hook ()
   (auto-fill-mode nil)
-
-  ;; -------------------- Key bindings -------------------- 
-  (local-set-many-keys
-   ;; ---------- Evaluation ----------
-   [(shift return)]     'shell-eval
-
-   ;; ---------- Help ----------
-   (kbd "C-h w")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point t "dos "))
-   (kbd "C-h W")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil "dos "))
-
-   ;; ---------- Frame Switching ----------
-   [(f12)]              'switch-frame-current-shell
-   [S-f12]              'shell-new
-   [C-f12]              'shell-buffer-choose
-   
-   ;; ---------- Auto Pairing ----------
-   (kbd "(")            'skeleton-pair-insert-maybe
-   (kbd "[")            'skeleton-pair-insert-maybe
-   (kbd "{")            'skeleton-pair-insert-maybe
-   (kbd "\"")           'skeleton-pair-insert-maybe
-   (kbd "\'")           'skeleton-pair-insert-maybe
-   (kbd "\`")           'skeleton-pair-insert-maybe))
+   )
 
 (add-hook 'shell-mode-hook 'my-shell-mode-hook)
 (defun my-shell-mode-hook ()
@@ -51,28 +26,7 @@
         comint-scroll-to-bottom-on-output       t
         comint-move-point-for-output            t
         comint-prompt-read-only                 t)
-  
-  ;; -------------------- Key bindings -------------------- 
-  (local-set-many-keys
-   ;; ---------- Help ----------
-   (kbd "C-h w")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point t "dos "))
-   (kbd "C-h W")   	'(lambda ()
-			   (interactive)
-			   (google-query-at-point nil "dos "))
-   
-   ;; ---------- Frame Switching ----------
-   [(f12)]              'switch-frame-next-shell
-   [S-f12]              'shell-new
-
-   ;; ---------- Auto Pairing ----------
-   (kbd "(")            'skeleton-pair-insert-maybe
-   (kbd "[")            'skeleton-pair-insert-maybe
-   (kbd "{")            'skeleton-pair-insert-maybe
-   (kbd "\"")           'skeleton-pair-insert-maybe
-   (kbd "\'")           'skeleton-pair-insert-maybe
-   (kbd "\`")           'skeleton-pair-insert-maybe))
+  )
 
 
 ;; --------------------------------------------------------------------------

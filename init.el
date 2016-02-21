@@ -269,6 +269,13 @@ out it knowing."
 		("Mode"		16 16 middle bs--get-mode-name)
 		(""		2 2 left "  ")))
 
+
+;; ----------------------------------------------------------------------------
+;; Mark Down
+;; ----------------------------------------------------------------------------
+(setq-default markdown-command "multimarkdown")
+
+
 (message "DWIM / BUFFER - Time: %.03fs" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
