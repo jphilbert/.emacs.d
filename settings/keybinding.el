@@ -83,6 +83,7 @@ If function is nil the key is unset."
  [(f2)]                 'occur
  [(f3)]			    'fold-dwim-toggle
  [(shift f3)]           'fold-dwim-toggle-all
+ [(f4)]			    'ispell-word
  [(f5)]                 'linum-mode
  [(f6)]                 'explorer
 
@@ -439,8 +440,8 @@ If function is nil the key is unset."
   [(shift return)]		'markdown-preview
   
   ;; ---------- Styles ----------
-  (kbd "C-b")			'markdown-insert-italic
-  (kbd "C-i")			'markdown-insert-bold
+  (kbd "C-i")			'markdown-insert-italic
+  (kbd "C-b")			'markdown-insert-bold
   (kbd "C-l")			'markdown-insert-link
   (kbd "C-j")			'markdown-insert-code
   
