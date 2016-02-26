@@ -16,34 +16,12 @@
  ess-help-own-frame			1
  ess-S-assign-key			(kbd "C-=")	; StatET-like assignment
  ;;inferior-R-program-name "C:\\Program Files\\R\\R-2.5.0\\bin\\Rterm.exe"
- ess-history-file			nil)
+ ess-history-file			nil,
+ ess-default-style			'C++)
 
 (ess-toggle-S-assign-key		t)	     ; enable above key definition
 (ess-toggle-underscore		nil)	     ; leave my underscore alone
 
-
-(setq ess-jph-style '(JPH (ess-indent-level . 4)
-					 (ess-first-continued-statement-offset . 2)
-                          (ess-continued-statement-offset . 0)
-					 (ess-brace-offset . 0)
-					 (ess-arg-function-offset . 4)
-					 (ess-arg-function-offset-new-line quote
-												(4))
-					 (ess-expression-offset . 4)
-					 (ess-else-offset . 0)
-					 (ess-close-brace-offset . 0)))
-
-;; (RRR
-;;  (ess-indent-level . 4)
-;;  (ess-first-continued-statement-offset . 0)
-;;  (ess-continued-statement-offset . 4)
-;;  (ess-brace-offset . 0)
-;;  (ess-arg-function-offset . 4)
-;;  (ess-arg-function-offset-new-line quote
-;; 							 (4))
-;;  (ess-expression-offset . 4)
-;;  (ess-else-offset . 0)
-;;  (ess-close-brace-offset . 0))
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
@@ -51,14 +29,7 @@
 (add-hook 'ess-mode-hook		'my-r-mode-hook)
 
 (defun my-r-mode-hook ()  
-  (interactive)
-
-  (if (not (assoc 'JPH ess-style-alist))
-      (setq ess-style-alist (cons ess-jph-style ess-style-alist)))
-  (setq ess-default-style 'JPH)
-  (setq ess-style 'JPH)
-  ;; (setq ess-auto-newline t)
-  (ess-set-style 'JPH)
+  (interactive)  
 
   (hs-minor-mode t)
   (add-to-list 'hs-special-modes-alist
