@@ -16,8 +16,8 @@
  ess-help-own-frame			1
  ess-S-assign-key			(kbd "C-=")	; StatET-like assignment
  ;;inferior-R-program-name "C:\\Program Files\\R\\R-2.5.0\\bin\\Rterm.exe"
- ess-history-file			nil,
- ess-default-style			'C++)
+ ess-history-file			nil
+ ess-default-style			'RStudio)
 
 (ess-toggle-S-assign-key		t)	     ; enable above key definition
 (ess-toggle-underscore		nil)	     ; leave my underscore alone
