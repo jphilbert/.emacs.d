@@ -30,6 +30,10 @@
  :func-desc "\\d+")
 
 (sql-set-product-feature
+ 'postgres
+ :func-show-table '("select * from" "limit 5"))
+
+(sql-set-product-feature
  'oracle
  :func-desc "describe")
 
@@ -165,6 +169,27 @@
    (sql-send-string (concat (sql-get-product-feature sql-product :func-desc)
 					   " "
 					   objname ";"))))
+
+(defun sql-show-table ()
+  "Lists the top elements of a table"
+  (interactive)
+  (save-frame-excursion 
+   (save-excursion
+     (setq loc (+ (search-backward-regexp "[\\( \t\n\r]") 1)))
+   (save-excursion
+     (setq objname
+	   (buffer-substring-no-properties
+	    loc 
+	    (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
+   (sql-send-string (concat
+				 (car(sql-get-product-feature sql-product
+										:func-list-table))
+				 " "
+				 objname
+				 " "
+				 (cadr(sql-get-product-feature sql-product
+										 :func-list-table))
+				 ";"))))
 
 (defun sql-tables (name-pattern owner-pattern)
   (interactive "sName: \nsOwner: ")
@@ -380,3 +405,4 @@ table(dbms_xplan.display('plan_table',null,'typical -cost -bytes -rows -partitio
        t) ".[a-z0-9_]+")
     .
     'font-lock-builtin-face)))
+

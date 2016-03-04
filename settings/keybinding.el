@@ -253,6 +253,7 @@ If function is nil the key is unset."
   ;; "\C-hf"              'sql-tables
   ;; "\C-he"              'sql-explain
   "\C-hv"              'sql-describe
+  "\C-hs"              'sql-show-table
 
   ;; ---------- Frame Switching ----------
   [(f12)]              'switch-frame-next-sql
@@ -284,6 +285,7 @@ If function is nil the key is unset."
   ;; "\C-hf"              'sql-tables
   ;; "\C-he"              'sql-explain
   "\C-hv"              'sql-describe
+  "\C-hs"              'sql-show-table
   )
 
 
