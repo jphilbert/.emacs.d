@@ -183,12 +183,12 @@
 	    (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
    (sql-send-string (concat
 				 (car(sql-get-product-feature sql-product
-										:func-list-table))
+										:func-show-table))
 				 " "
 				 objname
 				 " "
 				 (cadr(sql-get-product-feature sql-product
-										 :func-list-table))
+										 :func-show-table))
 				 ";"))))
 
 (defun sql-tables (name-pattern owner-pattern)
