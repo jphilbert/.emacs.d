@@ -179,6 +179,8 @@ If function is nil the key is unset."
   (define-key map [up] 'previous-history-element)
   (define-key map [down] 'next-history-element))
 
+;; Stops accidentally clicking Mini-Buffer and opening *messages*
+(define-key minibuffer-inactive-mode-map [mouse-1] nil)
 
 ;; --------------------------------------------------------------------------
 ;; Isearch Fix
