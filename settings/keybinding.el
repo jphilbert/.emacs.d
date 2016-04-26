@@ -77,7 +77,7 @@ If function is nil the key is unset."
  "\C-f"                         'isearch-forward
  (kbd "C-S-f")                  'isearch-backward
  "\C-r"                         'query-replace
- "\C-R"                         'replace-regexp
+ (kbd "C-S-r")                  'replace-regexp
  
  ;; ---------- Miscellaneous ----------
  [(f1)]                 'ac-show-quick-help

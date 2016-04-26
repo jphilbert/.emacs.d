@@ -7,6 +7,8 @@
 ;; requires ac-anaconda
 ;; requires anaconda-mode
 
+(setq-default python-shell-prompt-detect-failure-warning nil)
+
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
