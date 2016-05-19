@@ -260,7 +260,7 @@ If function is nil the key is unset."
 
   ;; ---------- Frame Switching ----------
   [(f12)]              'switch-frame-next-sql
-  [S-f12]              'sql-process-new
+  [S-f12]              'sql-connect
   )
 
 (define-many-keys sql-mode-map

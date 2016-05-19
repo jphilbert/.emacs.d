@@ -11,7 +11,7 @@
 "Path to Oracle Init File")
 
 ;; Servers
-(require 'sql-servers "~/Documents/Keys/sql-servers.el")
+(require 'sql-servers "~/settings/Redshift/sql-servers.el")
 
 
 (eval-after-load "sql" '(load-library "sql-indent")) 
@@ -63,6 +63,7 @@
 (add-hook 'sql-interactive-mode-hook 'my-sql-interactive-mode-hook)
 (defun my-sql-interactive-mode-hook ()
   (text-scale-set -1.1)
+  (sql-rename-buffer)
   
   (add-to-list 'ac-sources 'ac-source-sql)
   (auto-complete-mode t)
@@ -104,16 +105,6 @@
   (save-frame-excursion
    (call-interactively 'sql-send-paragraph))
   (forward-paragraph))
-
-(defun sql-process-new ()
-  "Creates a new SQL-ORACLE process."
-  (interactive)
-  (save-frame-excursion
-   (sql-oracle)
-   (sql-rename-buffer)
-   (setq sql-buffer (buffer-name))		; Not sure why we need to set the sqli
-								; buffer to it's self here
-   ))
 
 (defun switch-frame-next-sql ()
   "thisandthat."

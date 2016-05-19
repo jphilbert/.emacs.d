@@ -7,6 +7,14 @@
 ;; requires ac-anaconda
 ;; requires anaconda-mode
 
+(custom-set-variables
+ '(python-guess-indent nil)
+ '(python-indent 4))
+
+;; fixes odd random error in emacs
+(add-to-list 'process-coding-system-alist
+		   '("python" cp1251-unix . cp1251-unix))
+
 (setq-default python-shell-prompt-detect-failure-warning nil)
 
 ;; --------------------------------------------------------------------------
@@ -51,7 +59,8 @@
     (if (or (> (current-indentation) 0)
 	    (python-info-looking-at-beginning-of-defun))
 	(python-eval-defun)
-      (python-eval-paragraph)))
+	(python-eval-paragraph)))
+  (python-nav-forward-statement)
   (switch-frame-current-python)
   (switch-frame-previous))
 
