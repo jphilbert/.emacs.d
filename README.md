@@ -28,3 +28,7 @@ steps: First the application (aspell-X.XX-X-X-setup.exe) must be downloaded and
 installed, then the word list (aspell-en-X.XX-X-X.exe). It is also strongly
 suggested that it’s binary directory (C:\Program Files\ASPELL\BIN\) be added to
 the system path **however** this path is used in init.el.
+
+Font
+----
+I use the [Envy R](https://damieng.com/blog/2008/05/26/envy-code-r-preview-7-coding-font-released) which should be install (or an error may be thrown)
