@@ -31,4 +31,4 @@ the system path **however** this path is used in init.el.
 
 Font
 ----
-I use the [Envy R](https://damieng.com/blog/2008/05/26/envy-code-r-preview-7-coding-font-released) which should be install (or an error may be thrown)
+I use the font [Envy R](https://damieng.com/blog/2008/05/26/envy-code-r-preview-7-coding-font-released) which should be install (or an error may be thrown)
