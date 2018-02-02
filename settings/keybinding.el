@@ -60,6 +60,7 @@ If function is nil the key is unset."
           (f (pop key-func-pair)))
 	 (define-key m k f))))
 
+
 ;; --------------------------------------------------------------------------
 ;; Setting Keys
 ;; --------------------------------------------------------------------------
@@ -112,9 +113,9 @@ If function is nil the key is unset."
 
 					; Toggle between mini-buffer
  [M-f1]			(ti::definteractive
-			 (if (window-minibuffer-p (selected-window))
-			     (select-window (get-largest-window))
-			   (select-window (minibuffer-window))))
+				 (if (window-minibuffer-p (selected-window))
+					(select-window (get-largest-window))
+				   (select-window (minibuffer-window))))
 
  ;; ---------- Moving Frames ----------
  (kbd   "<M-up>")               'move-frame-up
@@ -129,10 +130,15 @@ If function is nil the key is unset."
  (kbd   "<M-backspace>")        'tinyeat-backward-preserve
  (kbd   "<S-backspace>")        'tinyeat-delete-whole-word
  (kbd   "M-d")                  'tinyeat-forward-preserve
- (kbd   "C-M-d")                'tinyeat-delete-paragraph
+ (kbd   "<C-M-backspace>")	  'tinyeat-delete-paragraph
  (kbd   "C-S-y")                'tinyeat-yank-overwrite
  (kbd   "C-S-j")                'tinyeat-join-lines
- 
+
+ "\M-V"					'yank-pop-forwards
+ "\M-v"					'cua-paste-pop ; this doesn't work due to it being
+								; key defined my CUA mode (see fix
+								; below) 
+
  ;; ---------- Commenting ----------
  (kbd   "M-;")                  'comment-dwim-line 
  (kbd   "M-C-;")                'comment-dwim 
@@ -150,6 +156,8 @@ If function is nil the key is unset."
  ;; ********** Deletions **********
  (kbd   "C-h C-f")              nil
  )
+
+(define-key cua--cua-keys-keymap (kbd "M-v") 'cua-paste-pop) ; CUA overwrite
 
 
 ;; --------------------------------------------------------------------------

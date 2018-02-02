@@ -11,7 +11,7 @@
 "Path to Oracle Init File")
 
 ;; Servers
-(require 'sql-servers "~/settings/Redshift/sql-servers.el")
+(require 'sql-servers "~/settings/Redshift/sql-servers.el" t) 
 
 
 (eval-after-load "sql" '(load-library "sql-indent")) 

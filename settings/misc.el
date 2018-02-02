@@ -183,6 +183,5 @@ of comment-dwim, when it inserts comment at the end of the line."
 (defun yank-pop-forwards (arg)
       (interactive "p")
       (yank-pop (- arg)))
-(global-set-key "\M-Y" 'yank-pop-forwards) ; M-Y (Meta-Shift-Y)
 
 (provide 'misc)

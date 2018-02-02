@@ -1,11 +1,13 @@
 .emacs.d
 ========
 
-My Emacs settings
+My Emacs settings for 24.4
+
 
 Install
 -------
-Download and extract the binary zip, emacs-XX.X-bin-i386.zip, to C:\.  Note that the archive file typically contains the root emacs-XX.X, however I typically rename this to simply EMACS yielding a cleaner install (any additional versions I keep the number and rename the directory when I toggle between).  In either case, the binary directory (i.e. C:\EMACS\BIN ) is required to be added to the system path. 
+Download and extract the binary zip, emacs-24.4-bin-i686-pc-mingw32.zip, to C:\.  Note that the archive file typically contains the root emacs-XX.X, however I typically rename this to simply EMACS yielding a cleaner install (any additional versions I keep the number and rename the directory when I toggle between).  In either case, the binary directory (i.e. C:\EMACS\BIN ) is required to be added to the system path. 
+
 
 System Variables
 ----------------
