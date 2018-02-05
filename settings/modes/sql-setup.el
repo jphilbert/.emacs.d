@@ -5,13 +5,8 @@
 (require 'sql)
 
 
-;; ORACLE Path
-(defvar SQL-ORACLE-Init-Path
-"~/Public_Files/Hilbert/Common/SQL/sql defaults.sql"
-"Path to Oracle Init File")
-
-;; Servers
-(require 'sql-servers "~/settings/Redshift/sql-servers.el" t) 
+;; SQL Servers (put in secure location)
+(require 'sql-servers "M:/sql-servers.el" t) 
 
 
 (eval-after-load "sql" '(load-library "sql-indent")) 
@@ -24,19 +19,6 @@
 								; (CAUSE ISSUES IN SQLPLUS if non-nil)
 	 sql-ms-options		'("-w" "80")
 	 )
-
-(sql-set-product-feature
- 'postgres
- :func-desc "\\d+")
-
-(sql-set-product-feature
- 'postgres
- :func-show-table '("select * from" "limit 5"))
-
-(sql-set-product-feature
- 'oracle
- :func-desc "describe")
-
 
 
 ;; --------------------------------------------------------------------------
@@ -54,7 +36,7 @@
   (flyspell-prog-mode)
   (turn-on-auto-fill)
   
-  (sql-set-product 'postgres)
+  ;; (sql-set-product 'oracle)
 
   ;; (setq comment-start "/*") **/
   ;; (setq comment-end "*\/") **/
@@ -71,6 +53,127 @@
 
   ;; (setq-default truncate-lines t)
   )
+
+;; --------------------------------------------------------------------------
+;; Product Features
+;; --------------------------------------------------------------------------
+(sql-set-product-feature
+ 'postgres
+ :func-desc "\\d+")
+
+(sql-set-product-feature
+ 'postgres
+ :func-show-table "select * from TABLE limit 5;")
+
+(sql-set-product-feature
+ 'oracle
+ :func-desc "describe")
+
+(sql-set-product-feature
+ 'oracle
+ :func-show-table "select * from TABLE where rownum <= 5;")
+
+(sql-set-product-feature
+ 'oracle
+ :init-file "M:/sql defaults.sql")
+
+(sql-set-product-feature
+ 'oracle
+ :func-list-tables "SELECT * FROM
+	(SELECT 'V' as type, owner, view_name as name
+	FROM all_views
+	UNION
+	SELECT 'T' as type, owner, table_name as name
+	FROM all_tables
+        ORDER BY owner, name)
+	WHERE owner LIKE '%OWNER_PATTERN%'
+        AND name LIKE '%TABLE_PATTERN%';")
+
+(sql-set-product-feature
+ 'oracle
+ :func-find-column "select
+    table_name,
+    column_name
+    from
+    all_tab_columns
+    where
+    column_name like '%PATTERN%';")
+
+(sql-set-product-feature
+ 'oracle
+ :func-user-tables  "SELECT
+        table_name,
+        round(sum(bytes)/(1024*1024),1) AS size_mb,
+	sum(NUM_ROWS) as number_rows,
+	max(created) as created,
+	cast(COMMENTS as varchar2(20)) as comments
+      FROM
+	user_extents
+	JOIN
+	all_tables
+	ON segment_name = table_name
+	join
+	all_objects
+	on table_name = object_name
+	left join
+	user_tab_comments using(table_name)
+      WHERE
+        segment_type = 'TABLE'
+	and
+	table_name like '%PATTERN%'
+      GROUP BY
+        table_name,
+	COMMENTS
+      order by
+        table_name;
+     SELECT
+       tablespace_name,
+       bytes / 1024 / 1024 as used_in_mb,
+       -- max_bytes / 1024 / 1024 as max_in_mb,
+	cast(trunc(100 * bytes / max_bytes) as varchar2(3)) ||
+	' %' as used
+     FROM
+       USER_TS_QUOTAS
+     WHERE
+	max_bytes > 0;")
+
+(sql-set-product-feature
+ 'oracle
+ :func-user-functions "SELECT
+	object_name,
+	object_type,
+	status
+     FROM
+	ALL_OBJECTS
+     WHERE
+	OBJECT_TYPE
+	IN ('FUNCTION','PROCEDURE') and
+	owner = user;")
+
+(sql-set-product-feature
+ 'oracle
+ :func-last-error "set underline off;
+	select *
+	from SYS.USER_ERRORS
+	WHERE rownum = 1
+	ORDER BY rownum DESC;
+	set underline on;")
+
+(sql-set-product-feature
+ 'oracle
+ :func-explain  "explain plan for (REGION);
+	select plan_table_output
+	from table(dbms_xplan.display('plan_table',null,'basic +cost'))
+	union all
+	select plan_table_output
+	from table(dbms_xplan.display('plan_table',null,'basic +bytes +rows'))
+	union all
+	select plan_table_output from
+	table(dbms_xplan.display('plan_table',null,'typical -cost -bytes -rows
+-partition -parallel +PREDICATE +note'));")
+
+
+
 
 ;; --------------------------------------------------------------------------
 ;; Functions
@@ -125,13 +228,16 @@
   "Evaluates an SQL file."
   (interactive "fEnter File: ")
   (sql-send-string
-   (get-string-from-file f))
-  )
+   (get-string-from-file f)))
 
 (defun sql-eval-init ()
   "Evaluates SQL Init File."
   (interactive)
-  (sql-eval-file SQL-ORACLE-Init-Path))
+  (let ((init-file (sql-get-product-feature sql-product :init-file)))
+    (when init-file
+	 (sql-eval-file init-file))))
+     
+(advice-add 'sql-product-interactive :after #'sql-eval-init)
 
 (defun sql-fix-indent ()
   "Fixes indents for a whole paragraph. Pretty much all one should need."
@@ -149,155 +255,116 @@
 (defun sql-describe ()
   "Describe the current table"
   (interactive)
-  (save-frame-excursion 
-   (save-excursion
-     (setq loc (+ (search-backward-regexp "[\\( \t\n\r]") 1)))
-   (save-excursion
-     (setq objname
-	   (buffer-substring-no-properties
-	    loc 
-	    (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
-   (sql-send-string (concat (sql-get-product-feature sql-product :func-desc)
-					   " "
-					   objname ";"))))
+  (let ((func (sql-get-product-feature sql-product :func-desc)))
+    (if func
+	   (save-frame-excursion 
+	    (save-excursion
+		 (setq loc (+ (search-backward-regexp "[\\( \t\n\r]") 1)))
+	    (save-excursion
+		 (setq objname
+			  (buffer-substring-no-properties
+			   loc 
+			   (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
+	    (sql-send-string (concat func
+						    " "
+						    objname ";")))
+	 (message "no :func-desc defined for product %s" sql-product))))
 
 (defun sql-show-table ()
   "Lists the top elements of a table"
   (interactive)
-  (save-frame-excursion 
-   (save-excursion
-     (setq loc (+ (search-backward-regexp "[\\( \t\n\r]") 1)))
-   (save-excursion
-     (setq objname
-	   (buffer-substring-no-properties
-	    loc 
-	    (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
-   (sql-send-string (concat
-				 (car(sql-get-product-feature sql-product
-										:func-show-table))
-				 " "
-				 objname
-				 " "
-				 (cadr(sql-get-product-feature sql-product
-										 :func-show-table))
-				 ";"))))
+  (let ((func (sql-get-product-feature sql-product :func-show-table)))
+    (if func
+	   (save-frame-excursion 
+	    (save-excursion
+		 (setq loc (+ (search-backward-regexp "[\\( \t\n\r]") 1)))
+	    (save-excursion
+		 (setq objname
+			  (buffer-substring-no-properties
+			   loc 
+			   (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
+	    (sql-send-string (replace-regexp-in-string
+					  "TABLE"
+					  (upcase objname)
+					  func)))
+	 (message "no :func-desc defined for product %s" sql-product))))
 
-(defun sql-tables (name-pattern owner-pattern)
-  (interactive "sName: \nsOwner: ")
-  (sql-eval-init)
-  (save-frame-excursion
-   (sql-send-string
-    (concat
-     "SELECT * FROM
-	(SELECT 'V' as type, owner, view_name as name
-	FROM all_views
-	UNION
-	SELECT 'T' as type, owner, table_name as name
-	FROM all_tables
-        ORDER BY owner, name)
-	WHERE owner LIKE '%" (upcase owner-pattern)"%'
-        AND name LIKE '%" (upcase name-pattern) "%';"))
-   (display-buffer sql-buffer)))
+(defun sql-tables (table-pattern owner-pattern)
+  "Lists tables (or views) that match table / schema pattern"
+  (interactive "sTable: \nsOwner/Schema: ")
+  (let ((func (sql-get-product-feature sql-product :func-list-tables)))
+    (if func     
+	 (save-frame-excursion
+	  (sql-send-string
+	   (replace-regexp-in-string
+	    "OWNER_PATTERN"
+	    (upcase owner-pattern)
+	    (replace-regexp-in-string
+		"TABLE_PATTERN"
+		(upcase table-pattern)
+		func)))
+	  (display-buffer sql-buffer))
+	 (message "no :func-list-tables defined for product %s" sql-product))))
 
 (defun sql-find-column (pattern)
+  "Find all tables / views that contain column"
   (interactive "sPattern: ")
-  (sql-eval-init)
-  (save-frame-excursion 
-   (sql-send-string
-    (concat
-     "select
-    table_name,
-    column_name
-    from
-    all_tab_columns
-    where
-    column_name like '%" (upcase pattern) "%';"))))
+  (let ((func (sql-get-product-feature sql-product :func-find-column)))
+    (if func     
+	 (save-frame-excursion
+	  (sql-send-string
+	   (replace-regexp-in-string
+	    "PATTERN"
+	    (upcase pattern)
+	    func))
+	  (display-buffer sql-buffer))
+	 (message "no :func-find-column defined for product %s" sql-product))))
 
 (defun sql-user-tables (pattern)
+  "Show all USER tables"
   (interactive "sPattern: ")
-  (sql-eval-init)
-  (save-frame-excursion 
-   (sql-send-string (concat 
-    "SELECT
-        table_name,
-        round(sum(bytes)/(1024*1024),1) AS size_mb,
-	sum(NUM_ROWS) as number_rows,
-	max(created) as created,
-	cast(COMMENTS as varchar2(20)) as comments
-      FROM
-	user_extents
-	JOIN
-	all_tables
-	ON segment_name = table_name
-	join
-	all_objects
-	on table_name = object_name
-	left join
-	user_tab_comments using(table_name)
-      WHERE
-        segment_type = 'TABLE'
-	and
-	table_name like '%" (upcase pattern) "%'
-      GROUP BY
-        table_name,
-	COMMENTS
-      order by
-        table_name;
-     SELECT
-       tablespace_name,
-       bytes / 1024 / 1024 as used_in_mb,
-       -- max_bytes / 1024 / 1024 as max_in_mb,
-	cast(trunc(100 * bytes / max_bytes) as varchar2(3)) ||
-	' %' as used
-     FROM
-       USER_TS_QUOTAS
-     WHERE
-	max_bytes > 0;"))))
+   (let ((func (sql-get-product-feature sql-product :func-user-tables)))
+    (if func     
+	 (save-frame-excursion
+	  (sql-send-string
+	   (replace-regexp-in-string
+	    "PATTERN"
+	    (upcase pattern)
+	    func))
+	  (display-buffer sql-buffer))
+	 (message "no :func-user-tables defined for product %s" sql-product))))
 
 (defun sql-user-functions ()
+  "Shows all USER functions"
   (interactive)
-  (save-frame-excursion 
-   (sql-send-string
-    "SELECT
-	object_name,
-	object_type,
-	status
-     FROM
-	ALL_OBJECTS
-     WHERE
-	OBJECT_TYPE
-	IN ('FUNCTION','PROCEDURE') and
-	owner = user;")))
+   (let ((func (sql-get-product-feature sql-product :func-user-functions)))
+    (if func     
+	 (save-frame-excursion
+	  (sql-send-string func)
+	  (display-buffer sql-buffer))
+	 (message "no :func-user-functions defined for product %s" sql-product))))
 
 (defun sql-last-error ()
+  "Shows last error"
   (interactive)
-  (save-frame-excursion 
-   (sql-send-region
- "set underline off;
-select *
-from SYS.USER_ERRORS
-WHERE rownum = 1
-ORDER BY rownum DESC;
-set underline on;")))
+   (let ((func (sql-get-product-feature sql-product :func-last-error)))
+    (if func     
+	 (save-frame-excursion
+	  (sql-send-string func)
+	  (display-buffer sql-buffer))
+	 (message "no :func-last-error defined for product %s" sql-product))))
 
 (defun sql-explain ()
   "Explain plan of code"
   (interactive)
-  (save-frame-excursion 
-   ;; (sql-send-string "SET LINESIZE 60;\n")
-   (sql-send-string "explain plan for (")
-   (call-interactively 'sql-send-region)
-   (sql-send-string ");")
-   (sql-send-string "select plan_table_output
-from table(dbms_xplan.display('plan_table',null,'basic +cost'))
-union all
-select plan_table_output
-from table(dbms_xplan.display('plan_table',null,'basic +bytes +rows'))
-union all
-select plan_table_output from
-table(dbms_xplan.display('plan_table',null,'typical -cost -bytes -rows -partition -parallel +PREDICATE +note'));")
-   ;; (sql-send-string "SET LINESIZE 3000;\n")
-   ))
+  (let ((func (sql-get-product-feature sql-product :func-explain)))
+    (if func
+	   (save-frame-excursion 
+	    (sql-send-string (replace-regexp-in-string
+					  "REGION"
+					  (get-region-as-string)
+					  func)))
+	 (message "no :func-explain defined for product %s" sql-product))))
 
 
 ;; --------------------------------------------------------------------------

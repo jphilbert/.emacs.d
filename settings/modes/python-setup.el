@@ -7,9 +7,14 @@
 ;; requires ac-anaconda
 ;; requires anaconda-mode
 
+(require 'anaconda-mode)
+
 (custom-set-variables
  '(python-guess-indent nil)
  '(python-indent 4))
+
+;; Set if not in path
+(setq python-shell-interpreter "C:/ProgramData/Anaconda3/python.exe")
 
 ;; fixes odd random error in emacs
 (add-to-list 'process-coding-system-alist
@@ -23,7 +28,8 @@
 (add-hook 'python-mode-hook		'my-python-mode-hook)
 (defun my-python-mode-hook ()
   (interactive)
-  (ac-anaconda-setup)  
+  (ac-anaconda-setup)
+  (anaconda-mode)
   ;; (auto-complete)
   
   (hs-minor-mode t)
@@ -38,6 +44,7 @@
 
 (defun my-inferior-python-mode-hook ()
   (ac-anaconda-setup) 
+  (python-shell-switch-to-shell)
   (text-scale-set -1.1)
   )
 

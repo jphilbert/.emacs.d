@@ -291,6 +291,7 @@ out it knowing."
 ;; -----------------------------------------------------------------------------
 ;; Key-Binding
 ;; -----------------------------------------------------------------------------
+;; TODO: move mode bindings into mode files
 (require 'keybinding nil t)	; General Key-binding Setup
 (require 'mouse3)			; Additional Mouse Button functions
 
