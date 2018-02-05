@@ -392,7 +392,7 @@ If function is nil the key is unset."
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "Python "))
-  (kbd "C-h f")   	'anaconda-mode-view-doc
+  (kbd "C-h f")   	'anaconda-mode-show-doc
   
   ;; ---------- Frame Switching ----------
   [(f12)]              'python-shell-switch-to-shell
@@ -411,7 +411,7 @@ If function is nil the key is unset."
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "Python "))
-  (kbd "C-h f")   	'anaconda-mode-view-doc
+  (kbd "C-h f")   	'anaconda-mode-show-doc
 
   ;; ---------- Frame Switching ----------
   [(f12)]              'switch-frame-previous

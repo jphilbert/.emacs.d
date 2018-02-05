@@ -17,10 +17,10 @@
 (setq python-shell-interpreter "C:/ProgramData/Anaconda3/python.exe")
 
 ;; fixes odd random error in emacs
-(add-to-list 'process-coding-system-alist
-		   '("python" cp1251-unix . cp1251-unix))
+;; (add-to-list 'process-coding-system-alist
+;;		   '("python" cp1251-unix . cp1251-unix))
 
-(setq-default python-shell-prompt-detect-failure-warning nil)
+;; (setq-default python-shell-prompt-detect-failure-warning nil)
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
@@ -28,8 +28,8 @@
 (add-hook 'python-mode-hook		'my-python-mode-hook)
 (defun my-python-mode-hook ()
   (interactive)
-  (ac-anaconda-setup)
   (anaconda-mode)
+  (ac-anaconda-setup)
   ;; (auto-complete)
   
   (hs-minor-mode t)
@@ -41,7 +41,6 @@
   )
 
 (add-hook 'inferior-python-mode-hook	'my-inferior-python-mode-hook)
-
 (defun my-inferior-python-mode-hook ()
   (ac-anaconda-setup) 
   (python-shell-switch-to-shell)
