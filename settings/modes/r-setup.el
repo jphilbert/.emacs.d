@@ -57,6 +57,78 @@
  '(lambda () (font-lock-mode t)))
 
 ;; --------------------------------------------------------------------------
+;; Keybinding
+;; --------------------------------------------------------------------------
+(define-many-keys ess-mode-map
+  ;; [(return)]		'newline-and-indent
+
+  ;; ---------- Evaluation ----------
+  [(shift return)]     'R-eval
+  
+
+  ;; ---------- Indent / Tabs ----------
+  (kbd "<C-tab>")		'tab-to-tab-stop-magic
+  (kbd "<tab>")		'indent-for-tab-command
+  
+  
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "R "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "R "))
+
+  "\C-hf"      	'R-object-help
+  "\C-hv"      	'R-object-str
+  "\C-ho"      	'R-object-summaries
+  "\C-hn"      	'R-object-names
+  "\C-hV"      	'ess-display-vignettes
+  "\C-hH"      	'ess-handy-commands
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-current-R
+  [S-f12]              'R-process-new
+  [C-f12]              'ess-switch-process
+  )
+
+(define-many-keys inferior-ess-mode-map
+  ;; ---------- Input / Prompt Scrolling ----------
+  [C-up]               'comint-previous-prompt
+  [C-down]             'comint-next-prompt
+  [up]                 'comint-previous-input
+  [down]               'comint-next-input
+  [S-C-up]			'previous-line
+  [S-C-down]			'next-line
+
+  
+  ;; ---------- Completion ----------
+  ;; (kbd "<tab>")	'completion-at-point
+
+
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "R "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "R "))
+
+  "\C-hf"      	'R-object-help
+  "\C-hv"      	'R-object-str
+  "\C-ho"      	'R-object-summaries
+  "\C-hn"      	'R-object-names
+  "\C-hV"      	'ess-display-vignettes
+  "\C-hH"      	'ess-handy-commands
+  
+  ;; ---------- Frame Switching ----------
+  [(f12)]          'switch-frame-previous
+  [S-f12]		'R-process-new
+  )
+
+(define-key ess-help-mode-map	"q" 'kill-buffer-or-emacs)
+
+;; --------------------------------------------------------------------------
 ;; Functions
 ;; --------------------------------------------------------------------------
 (defun R-eval ()

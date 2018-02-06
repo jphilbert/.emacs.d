@@ -21,6 +21,32 @@
   )
 
 ;; --------------------------------------------------------------------------
+;; Keybinding
+;; --------------------------------------------------------------------------
+(define-many-keys emacs-lisp-mode-map
+  ;; ---------- Evaluation ----------
+  [(shift return)]     'elisp-eval
+  
+  ;; ---------- Indent / Tabs ----------
+  (kbd "C-<tab>")	'tab-to-tab-stop-magic
+  (kbd "<tab>")        'indent-for-tab-command   
+
+  ;; ---------- Help ----------
+  "\C-hf"      	'describe-variable-or-function
+  [(S-f1)]		'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "emacs "))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "emacs "))
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-current-message
+
+  )
+
+
+;; --------------------------------------------------------------------------
 ;; Functions
 ;; --------------------------------------------------------------------------
 (defun elisp-eval ()

@@ -28,6 +28,54 @@
         comint-prompt-read-only                 t)
   )
 
+;; --------------------------------------------------------------------------
+;; Keybinding
+;; --------------------------------------------------------------------------
+(define-many-keys ntcmd-mode-map
+  ;; ---------- Evaluation ----------
+  [(shift return)]     'shell-eval
+
+  ;; ---------- Help ----------
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "dos "))
+  (kbd "C-h W")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "dos "))
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-current-shell
+  [S-f12]              'shell-new
+  [C-f12]              'shell-buffer-choose
+  
+  ;; ---------- Auto Pairing ----------
+  (kbd "(")            'skeleton-pair-insert-maybe
+  (kbd "[")            'skeleton-pair-insert-maybe
+  (kbd "{")            'skeleton-pair-insert-maybe
+  (kbd "\"")           'skeleton-pair-insert-maybe
+  (kbd "\'")           'skeleton-pair-insert-maybe
+  (kbd "\`")           'skeleton-pair-insert-maybe)  
+
+(define-many-keys shell-mode-map
+   ;; ---------- Help ----------
+   (kbd "C-h w")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point t "dos "))
+   (kbd "C-h W")   	'(lambda ()
+			   (interactive)
+			   (google-query-at-point nil "dos "))
+   
+   ;; ---------- Frame Switching ----------
+   [(f12)]              'switch-frame-next-shell
+   [S-f12]              'shell-new
+
+   ;; ---------- Auto Pairing ----------
+   (kbd "(")            'skeleton-pair-insert-maybe
+   (kbd "[")            'skeleton-pair-insert-maybe
+   (kbd "{")            'skeleton-pair-insert-maybe
+   (kbd "\"")           'skeleton-pair-insert-maybe
+   (kbd "\'")           'skeleton-pair-insert-maybe
+   (kbd "\`")           'skeleton-pair-insert-maybe)
 
 ;; --------------------------------------------------------------------------
 ;; Functions
@@ -59,3 +107,5 @@
       (display-buffer current-shell-buffer)
     (shell))
   (end-of-buffer))
+
+

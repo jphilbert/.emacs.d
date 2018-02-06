@@ -273,6 +273,12 @@ out it knowing."
 (message "MISC PACK - Time: %.03fs" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
+;; -----------------------------------------------------------------------------
+;; Key-Binding
+;; -----------------------------------------------------------------------------
+(require 'keybinding nil t)	; General Key-binding Setup
+(require 'mouse3)			; Additional Mouse Button functions
+
 ;; ----------------------------------------------------------------------------
 ;; Modes
 ;; ----------------------------------------------------------------------------
@@ -285,16 +291,40 @@ out it knowing."
 (require 'shell-setup nil t)
 (require 'powershell-setup nil t)
 
+(require 'markdown-mode)
+(define-many-keys markdown-mode-map
+  ;; ---------- Evaluation ----------
+  [(shift return)]		'markdown-preview
+  
+  ;; ---------- Styles ----------
+  (kbd "C-i")			'markdown-insert-italic
+  (kbd "C-b")			'markdown-insert-bold
+  (kbd "C-l")			'markdown-insert-link
+  (kbd "C-j")			'markdown-insert-code
+  
+
+  ;; ---------- Hide-Show ----------
+  [(f3)]			     'markdown-hide-subtree
+  [(shift f3)]           'markdown-show-subtree
+  
+  ;; ---------- Help ----------
+  "\C-hf"      	'(lambda ()
+				   (interactive)
+				   (browse-url
+   "https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet")
+				   )
+  [(S-f1)]		'(lambda ()
+				   (interactive)
+				   (browse-url
+   "https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet")
+				   )
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "markdown "))
+  )
+
 (message "MODES - Time: %.03fs" (float-time (time-since start-time)))
 (setq start-time (current-time))
-
-;; -----------------------------------------------------------------------------
-;; Key-Binding
-;; -----------------------------------------------------------------------------
-;; TODO: move mode bindings into mode files
-(require 'keybinding nil t)	; General Key-binding Setup
-(require 'mouse3)			; Additional Mouse Button functions
-
 
 ;; -----------------------------------------------------------------------------
 ;; Aesthetics

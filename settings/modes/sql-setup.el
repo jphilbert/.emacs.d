@@ -55,6 +55,69 @@
   )
 
 ;; --------------------------------------------------------------------------
+;; Keybinding
+;; --------------------------------------------------------------------------
+(define-many-keys sql-interactive-mode-map
+  ;; ---------- Input / Prompt Scrolling ----------
+  [C-up]               'comint-previous-prompt
+  [C-down]             'comint-next-prompt
+  [up]                 'comint-previous-input
+  [down]               'comint-next-input
+  [S-C-up]			'previous-line
+  [S-C-down]			'next-line
+  
+
+  ;; ---------- Completion ----------
+  (kbd "<tab>")	'completion-at-point
+
+  ;; ---------- Help ----------
+  [(S-f1)]	  	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t (format "SQL %s "
+											 sql-product)))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil (format "SQL %s "
+											   sql-product)))
+  ;; "\C-hf"              'sql-tables
+  ;; "\C-he"              'sql-explain
+  "\C-hv"              'sql-describe
+  "\C-hs"              'sql-show-table
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-next-sql
+  [S-f12]              'sql-connect
+  )
+
+(define-many-keys sql-mode-map
+  ;; ---------- Evaluation ----------
+  [(shift return)]     'sql-eval
+
+  ;; ---------- Indent / Tabs ----------
+  (kbd "<C-tab>")		'tab-to-tab-stop-magic
+  (kbd "<tab>")		'sql-fix-indent
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]              'switch-frame-current-sql
+  [S-f12]              'sql-connect
+  [C-f12]              'sql-set-sqli-buffer
+
+  ;; ---------- Help ----------
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t (format "SQL %s "
+											 sql-product)))
+  (kbd "C-h w")   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil (format "SQL %s "
+											   sql-product)))
+  ;; "\C-hf"              'sql-tables
+  ;; "\C-he"              'sql-explain
+  "\C-hv"              'sql-describe
+  "\C-hs"              'sql-show-table
+  )
+
+;; --------------------------------------------------------------------------
 ;; Product Features
 ;; --------------------------------------------------------------------------
 (sql-set-product-feature
