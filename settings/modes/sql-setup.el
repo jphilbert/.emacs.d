@@ -160,7 +160,8 @@
     from
     all_tab_columns
     where
-    column_name like '%PATTERN%';")
+    column_name like '%PATTERN%'
+	order by table_name, column_name;")
 
 (sql-set-product-feature
  'oracle
@@ -300,7 +301,7 @@
     (when init-file
 	 (sql-eval-file init-file))))
      
-(advice-add 'sql-product-interactive :after #'sql-eval-init)
+(advice-add 'sql-product-interactive :after #'(lambda (&rest args) (sql-eval-init)))
 
 (defun sql-fix-indent ()
   "Fixes indents for a whole paragraph. Pretty much all one should need."

@@ -17,7 +17,9 @@
  ess-S-assign-key			(kbd "C-=")	; StatET-like assignment
  ;;inferior-R-program-name "C:\\Program Files\\R\\R-2.5.0\\bin\\Rterm.exe"
  ess-history-file			nil
- ess-default-style			'RStudio)
+ ess-default-style			'RStudio
+ ;; inferior-ess-r-help-command	".ess.help('%s', 'text')"
+)
 
 (ess-toggle-S-assign-key		t)	     ; enable above key definition
 (ess-toggle-underscore		nil)	     ; leave my underscore alone

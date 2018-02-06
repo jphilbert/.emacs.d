@@ -121,6 +121,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Aspell
 ;; ----------------------------------------------------------------------------
+(add-to-list 'exec-path "C:/ProgramData/Aspell/bin") ;if not in path
 (setq-default ispell-program-name "aspell.exe")
 (setq ispell-list-command "list"
       ispell-extra-args '("--sug-mode=fast"))
@@ -129,7 +130,6 @@
 
 (message "TINY TOOLS / ASPELL - Time: %.03fs" (float-time (time-since start-time)))
 (setq start-time (current-time))
-
 
 ;; ----------------------------------------------------------------------------
 ;; Completion
@@ -140,14 +140,15 @@
 
 (ac-config-default)
 (global-auto-complete-mode t)
-(setq-default ac-quick-help-delay	0.8
-	      ac-show-menu-immediately-on-auto-complete nil
-	      ac-sources (append ac-sources '(ac-source-yasnippet
-					      ac-source-filename))
-	      ;; (setq-default ac-ignore-case nil)
-	      ;; (setq-default ac-auto-show-menu nil)
-	      ac-auto-show-menu		nil
-	      ac-auto-start		2)
+(setq-default
+ ac-quick-help-delay		0.8
+ ac-show-menu-immediately-on-auto-complete nil
+ ac-sources				(append ac-sources '(ac-source-yasnippet
+										 ac-source-filename))
+ ;; (setq-default ac-ignore-case nil)
+ ;; (setq-default ac-auto-show-menu nil)
+ ac-auto-show-menu			nil
+ ac-auto-start				2)
 (ac-flyspell-workaround)
 
 (define-key ac-completing-map (kbd "<tab>")	'ac-next)
@@ -246,12 +247,6 @@ out it knowing."
 		(""		2 2 left "  ")))
 
 
-;; ----------------------------------------------------------------------------
-;; Mark Down
-;; ----------------------------------------------------------------------------
-(setq-default markdown-command "multimarkdown")
-
-
 (message "DWIM / BUFFER - Time: %.03fs" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
@@ -292,6 +287,7 @@ out it knowing."
 (require 'powershell-setup nil t)
 
 (require 'markdown-mode)
+(setq-default markdown-command "multimarkdown")
 (define-many-keys markdown-mode-map
   ;; ---------- Evaluation ----------
   [(shift return)]		'markdown-preview
@@ -322,6 +318,8 @@ out it knowing."
 				   (interactive)
 				   (google-query-at-point nil "markdown "))
   )
+
+
 
 (message "MODES - Time: %.03fs" (float-time (time-since start-time)))
 (setq start-time (current-time))

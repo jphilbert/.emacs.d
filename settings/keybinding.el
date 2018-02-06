@@ -86,6 +86,7 @@ If function is nil the key is unset."
  [(f3)]			    'fold-dwim-toggle
  [(shift f3)]           'fold-dwim-toggle-all
  [(f4)]			    'ispell-word
+ [(shift f4)]		    'flyspell-mode
  [(f5)]                 'linum-mode
  [(f6)]                 'explorer
 
