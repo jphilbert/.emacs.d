@@ -12,13 +12,19 @@
 (eval-after-load "sql" '(load-library "sql-indent")) 
 (add-to-list 'ac-modes 'sql-mode)
 
-(setq sql-ms-program		"sqlcmd"
+(setq sql-ms-program		"C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd"
       sql-oracle-program		"sqlplus"
 	 sql-oracle-scan-on		nil
 	 sql-send-terminator	nil		; since I don't put GO after
 								; (CAUSE ISSUES IN SQLPLUS if non-nil)
-	 sql-ms-options		'("-w" "80")
+	 ;; sql-ms-options		'("-w" "80")
+	 sql-ms-options		'("-w" "80" "-y" "79" "-s" "|" "-k")
 	 )
+
+(sql-set-product-feature
+ 'ms :prompt-regexp "^[0-9]*>") ;existing line
+(sql-set-product-feature
+ 'ms :prompt-cont-regexp "^[0-9]*>") ;new line
 
 
 ;; --------------------------------------------------------------------------
@@ -79,7 +85,7 @@
 				   (interactive)
 				   (google-query-at-point nil (format "SQL %s "
 											   sql-product)))
-  ;; "\C-hf"              'sql-tables
+  "\C-hf"              'sql-tables
   ;; "\C-he"              'sql-explain
   "\C-hv"              'sql-describe
   "\C-hs"              'sql-show-table
@@ -120,26 +126,34 @@
 ;; --------------------------------------------------------------------------
 ;; Product Features
 ;; --------------------------------------------------------------------------
+;; Describe 
 (sql-set-product-feature
  'postgres
  :func-desc "\\d+")
 
+(sql-set-product-feature
+ 'oracle
+ :func-desc "describe")
+
+;; Show Table
 (sql-set-product-feature
  'postgres
  :func-show-table "select * from TABLE limit 5;")
 
 (sql-set-product-feature
  'oracle
- :func-desc "describe")
-
-(sql-set-product-feature
- 'oracle
  :func-show-table "select * from TABLE where rownum <= 5;")
 
+(sql-set-product-feature
+ 'ms
+ :func-show-table "select top (5) * from TABLE;")
+
+;; Initial File
 (sql-set-product-feature
  'oracle
  :init-file "M:/sql defaults.sql")
 
+;; List Tables
 (sql-set-product-feature
  'oracle
  :func-list-tables "SELECT * FROM
@@ -152,6 +166,9 @@
 	WHERE owner LIKE '%OWNER_PATTERN%'
         AND name LIKE '%TABLE_PATTERN%';")
 
+
+
+;; Find Column
 (sql-set-product-feature
  'oracle
  :func-find-column "select
@@ -163,6 +180,18 @@
     column_name like '%PATTERN%'
 	order by table_name, column_name;")
 
+(sql-set-product-feature
+ 'ms
+ :func-find-column "select
+		TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
+	FROM
+		INFORMATION_SCHEMA.COLUMNS
+	WHERE
+		column_name like '%PATTERN%'
+	ORDER BY
+		TABLE_SCHEMA, table_name, column_name;")
+
+;; Show User Tables
 (sql-set-product-feature
  'oracle
  :func-user-tables  "SELECT
@@ -201,6 +230,7 @@
      WHERE
 	max_bytes > 0;")
 
+;; Show User Functions
 (sql-set-product-feature
  'oracle
  :func-user-functions "SELECT
@@ -214,6 +244,7 @@
 	IN ('FUNCTION','PROCEDURE') and
 	owner = user;")
 
+;; Last Error
 (sql-set-product-feature
  'oracle
  :func-last-error "set underline off;
@@ -223,6 +254,7 @@
 	ORDER BY rownum DESC;
 	set underline on;")
 
+;; Explain
 (sql-set-product-feature
  'oracle
  :func-explain  "explain plan for (REGION);

@@ -10,7 +10,7 @@
 (add-to-list 'load-path "~/.emacs.d/settings/")
 (add-to-list 'load-path "~/.emacs.d/settings/modes/")
 
-(require 'user-info)
+(require 'user)
 
 
 ;; ----------------------------------------------------------------------------
@@ -141,7 +141,7 @@
 (ac-config-default)
 (global-auto-complete-mode t)
 (setq-default
- ac-quick-help-delay		0.8
+ ac-quick-help-delay		5
  ac-show-menu-immediately-on-auto-complete nil
  ac-sources				(append ac-sources '(ac-source-yasnippet
 										 ac-source-filename))

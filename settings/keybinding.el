@@ -156,6 +156,7 @@ If function is nil the key is unset."
  
  ;; ********** Deletions **********
  (kbd   "C-h C-f")              nil
+ (kbd   "C-\\")			  nil
  )
 
 (define-key cua--cua-keys-keymap (kbd "M-v") 'cua-paste-pop) ; CUA overwrite
