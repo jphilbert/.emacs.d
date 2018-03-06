@@ -224,7 +224,7 @@
   "Get summary for object at point"
   (interactive)
   (let ((objname (current-word t)))
-    (ess-execute (concat "object.summaries(\"" objname "\")") t nil "INFO: ")
+    (ess-execute (concat "format(object.size(" objname "), units = 'MB', digits = 3)") t nil "INFO: ")
     (switch-frame-current-R)))
 
 (defun R-object-help (object &optional command)
