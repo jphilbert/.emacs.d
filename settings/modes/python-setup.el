@@ -7,13 +7,19 @@
 ;; requires ac-anaconda
 ;; requires anaconda-mode
 
-(require 'anaconda-mode)
+;; (require 'anaconda-mode)
 
 (custom-set-variables
  '(python-guess-indent nil)
  '(python-indent 4))
 
+(setq jedi:setup-keys		t
+	 jedi:complete-on-dot	t)
+
 ;; Set if not in path
+;; Best to set the PATH
+;; Python --> /Anaconda3/python.exe
+;; Conda, PIP, etc. --> /Anaconda3/scripts
 (setq python-shell-interpreter "C:/ProgramData/Anaconda3/python.exe")
 
 ;; fixes odd random error in emacs
@@ -28,9 +34,12 @@
 (add-hook 'python-mode-hook		'my-python-mode-hook)
 (defun my-python-mode-hook ()
   (interactive)
-  (anaconda-mode)
-  (ac-anaconda-setup)
+  ;; (anaconda-mode)
+  ;; (ac-anaconda-setup)
   ;; (auto-complete)
+
+  (jedi:setup)
+  (auto-complete)
   
   (hs-minor-mode t)
   ;; (auto-indent-minor-mode -1)
@@ -42,6 +51,9 @@
 
 (add-hook 'inferior-python-mode-hook	'my-inferior-python-mode-hook)
 (defun my-inferior-python-mode-hook ()
+  (jedi:setup)
+  (auto-complete)
+  
   (text-scale-set -1.1)
   )
 
@@ -50,6 +62,8 @@
 ;; --------------------------------------------------------------------------
 (define-many-keys python-mode-map
   [(return)]		'newline-and-indent
+  (kbd "<C-next>")		'python-nav-forward-defun
+  (kbd "<C-prior>")		'python-nav-backward-defun
   
   ;; ---------- Evaluation ----------
   [(shift return)]     'python-eval
@@ -65,7 +79,7 @@
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "Python "))
-  (kbd "C-h f")   	'anaconda-mode-show-doc
+  (kbd "C-h f")   	'jedi:show-doc
   
   ;; ---------- Frame Switching ----------
   [(f12)]              'python-shell-switch-to-shell

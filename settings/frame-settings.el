@@ -219,7 +219,7 @@
 
 ;; -------------------- Help Frame ---------------------
 (add-to-list 'display-buffer-alist
-		   `(".*\\*.*\\(help\\|Man\\|Anaconda\\).*\\*.*" 
+		   `(".*\\*.*\\(help\\|Man\\|Anaconda\\|jedi:doc\\).*\\*.*" 
 			(lambda (b a)
 			  (let ((return-window
 				    (cond

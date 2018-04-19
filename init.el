@@ -30,7 +30,7 @@
  )
 
 (add-hook
- 'text-mode-hook 'turn-on-auto-fill)		; Auto-Fill (Comments Only)
+ 'text-mode-hook 'turn-on-auto-fill)	; Auto-Fill (Comments Only)
 (cua-mode			t)				; CUA mode
 ;; (desktop-save-mode		t)		; Reload previous files
 (defalias 'yes-or-no-p 'y-or-n-p)		; Simplify Questions

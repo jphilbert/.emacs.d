@@ -16,3 +16,4 @@ session.*
 *.elc
 ac-comphist.dat
 frame-settings.*
+.python-*
