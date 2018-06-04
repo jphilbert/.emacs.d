@@ -20,7 +20,13 @@
 ;; Best to set the PATH
 ;; Python --> /Anaconda3/python.exe
 ;; Conda, PIP, etc. --> /Anaconda3/scripts
-(setq python-shell-interpreter "C:/ProgramData/Anaconda3/python.exe")
+
+;; (setq python-shell-interpreter		; This does not have packages
+;; 	 "C:/ProgramData/Anaconda3/python.exe")
+
+(setq python-shell-interpreter		; Use this one
+	 "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/python.exe")
+
 
 ;; fixes odd random error in emacs
 ;; (add-to-list 'process-coding-system-alist

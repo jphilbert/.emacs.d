@@ -11,7 +11,7 @@
 (setq directory-abbrev-alist
 	 (append directory-abbrev-alist
 		    '(("~/personal/".
-			  "M:/")
+			  "~/OneDrive - UPMC")
 			 ("~/dohe/".
 			  "X:/Data Analysis/Data Analysis(DeptUsers)")
 			 ("~/dev/".

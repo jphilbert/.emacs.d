@@ -6,7 +6,7 @@
 
 
 ;; SQL Servers (put in secure location)
-(require 'sql-servers "M:/sql-servers.el" t) 
+(require 'sql-servers "~/OneDrive - UPMC/sql-servers.el" t) 
 
 
 (eval-after-load "sql" '(load-library "sql-indent")) 
@@ -129,11 +129,17 @@
 ;; Describe 
 (sql-set-product-feature
  'postgres
- :func-desc "\\d+")
+ :func-desc "\\d+ PATTERN;")
 
 (sql-set-product-feature
  'oracle
- :func-desc "describe")
+ :func-desc "describe PATTERN;")
+
+(sql-set-product-feature
+ 'ms
+ :func-desc "select left(COLUMN_NAME, 40) as COL_NAME, IS_NULLABLE, left(DATA_TYPE, 20) as DATE_TYPE from INFORMATION_SCHEMA.COLUMNS where concat(TABLE_schema, '.',  TABLE_NAME)='PATTERN'
+GO
+")
 
 ;; Show Table
 (sql-set-product-feature
@@ -146,12 +152,13 @@
 
 (sql-set-product-feature
  'ms
- :func-show-table "select top (5) * from TABLE;")
+ :func-show-table "select top (5) * from TABLE
+GO")
 
 ;; Initial File
 (sql-set-product-feature
  'oracle
- :init-file "M:/sql defaults.sql")
+ :init-file "~/OneDrive - UPMC/sql defaults.sql")
 
 ;; List Tables
 (sql-set-product-feature
@@ -165,6 +172,20 @@
         ORDER BY owner, name)
 	WHERE owner LIKE '%OWNER_PATTERN%'
         AND name LIKE '%TABLE_PATTERN%';")
+
+(sql-set-product-feature
+ 'ms
+ :func-list-tables "SELECT top 100
+    left(TABLE_SCHEMA, 20) TABLE_SCHEMA,
+    left(TABLE_NAME, 45) TABLE_NAME,
+    left(TABLE_TYPE, 10) TABLE_TYPE
+FROM
+    INFORMATION_SCHEMA.TABLES
+WHERE
+    TABLE_SCHEMA LIKE '%OWNER_PATTERN%'
+    AND
+    TABLE_NAME LIKE '%TABLE_PATTERN%'
+go")
 
 
 
@@ -182,14 +203,17 @@
 
 (sql-set-product-feature
  'ms
- :func-find-column "select
-		TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
+ :func-find-column "select top 100
+		left(TABLE_SCHEMA, 10) TABLE_SCHEMA,
+		left(TABLE_NAME, 30) TABLE_NAME,
+		left(COLUMN_NAME, 30) COLUMN_NAME
 	FROM
 		INFORMATION_SCHEMA.COLUMNS
 	WHERE
 		column_name like '%PATTERN%'
 	ORDER BY
-		TABLE_SCHEMA, table_name, column_name;")
+		TABLE_SCHEMA, table_name, column_name
+go")
 
 ;; Show User Tables
 (sql-set-product-feature
@@ -361,9 +385,10 @@
 			  (buffer-substring-no-properties
 			   loc 
 			   (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
-	    (sql-send-string (concat func
-						    " "
-						    objname ";")))
+	    (sql-send-string (replace-regexp-in-string
+					  "PATTERN"
+					  (upcase objname)
+					  func)))
 	 (message "no :func-desc defined for product %s" sql-product))))
 
 (defun sql-show-table ()
