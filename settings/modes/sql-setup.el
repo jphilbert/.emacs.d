@@ -117,7 +117,7 @@
 				   (interactive)
 				   (google-query-at-point nil (format "SQL %s "
 											   sql-product)))
-  ;; "\C-hf"              'sql-tables
+  "\C-hf"              'sql-tables
   ;; "\C-he"              'sql-explain
   "\C-hv"              'sql-describe
   "\C-hs"              'sql-show-table

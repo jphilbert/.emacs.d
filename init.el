@@ -27,6 +27,7 @@
  scroll-preserve-screen-position	1	; Keeps cursor in one spot
  delete-old-versions			t	; delete backups
  delete-by-moving-to-trash		t	; use recycling bin
+ comint-use-prompt-regexp		t	; fixes the weird prompt highlighting
  )
 
 (add-hook
