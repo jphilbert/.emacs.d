@@ -86,6 +86,7 @@
 				   (interactive)
 				   (google-query-at-point nil "Python "))
   (kbd "C-h f")   	'jedi:show-doc
+  "\C-hv"      	'python-object-info
   
   ;; ---------- Frame Switching ----------
   [(f12)]              'python-shell-switch-to-shell
@@ -165,3 +166,14 @@
   (interactive)
   (python-shell-switch-to-shell)
   (end-of-buffer-all))
+
+;; -----------------------------------------------------------------------------
+;;  Help Functions
+;; -----------------------------------------------------------------------------
+(defun python-object-info ()
+  "Get info for object at point"
+  (interactive)
+  (let ((objname (current-word)))
+    (python-shell-send-string (concat "type(" objname ")"))
+    (python-shell-send-string (concat "[i for i in dir(" objname
+							   ") if i[0] != '_']"))))
