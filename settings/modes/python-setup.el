@@ -76,7 +76,9 @@
 
   ;; ---------- Indent / Tabs ----------
   (kbd "<S-tab>")		'tab-to-tab-stop-magic
-  (kbd "<tab>")		'indent-for-tab-command  
+  (kbd "<tab>")		'indent-for-tab-command
+  (kbd "C-<")			'python-indent-shift-left
+  (kbd "C->")			'python-indent-shift-right
 
   ;; ---------- Help ----------
   [(S-f1)]	   	'(lambda ()
