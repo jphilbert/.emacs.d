@@ -333,4 +333,11 @@ out it knowing."
 (require 'frame-settings)	; Setup frames
 
 (message "KEYBINDING / AESTHETICS - Time: %.03fs" (float-time (time-since start-time)))
+
+;; -----------------------------------------------------------------------------
+;; Aesthetics
+;; -----------------------------------------------------------------------------
+(desktop-save-mode 1)
+(setq-default desktop-load-locked-desktop t)
+
 (setq start-time (current-time))

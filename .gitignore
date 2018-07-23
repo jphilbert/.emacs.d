@@ -17,3 +17,5 @@ session.*
 ac-comphist.dat
 frame-settings.*
 .python-*
+*.desktop
+*.desktop.lock
