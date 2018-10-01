@@ -137,7 +137,7 @@
 
 (sql-set-product-feature
  'ms
- :func-desc "select left(COLUMN_NAME, 40) as COL_NAME, IS_NULLABLE, left(DATA_TYPE, 20) as DATE_TYPE from INFORMATION_SCHEMA.COLUMNS where concat(TABLE_schema, '.',  TABLE_NAME)='PATTERN'
+ :func-desc "select left(COLUMN_NAME, 40) as COL_NAME, IS_NULLABLE, left(DATA_TYPE, 20) as DATE_TYPE from INFORMATION_SCHEMA.COLUMNS where TABLE_schema + '.' +  TABLE_NAME='PATTERN'
 GO
 ")
 

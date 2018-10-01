@@ -24,8 +24,11 @@
 ;; (setq python-shell-interpreter		; This does not have packages
 ;; 	 "C:/ProgramData/Anaconda3/python.exe")
 
-(setq python-shell-interpreter		; Use this one
-	 "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/python.exe")
+;; (setq python-shell-interpreter		; python.exe does not support pyplot
+;; 	 "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/python.exe")
+
+(setq-default python-shell-interpreter	; USE THIS
+		    "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/Scripts/ipython.exe")
 
 
 ;; fixes odd random error in emacs
