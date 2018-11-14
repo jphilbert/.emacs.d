@@ -89,6 +89,7 @@
   ;; "\C-he"              'sql-explain
   "\C-hv"              'sql-describe
   "\C-hs"              'sql-show-table
+  "\C-ho"              'sql-inspect-table
 
   ;; ---------- Frame Switching ----------
   [(f12)]              'switch-frame-next-sql
@@ -121,6 +122,7 @@
   ;; "\C-he"              'sql-explain
   "\C-hv"              'sql-describe
   "\C-hs"              'sql-show-table
+  "\C-ho"              'sql-inspect-table
   )
 
 ;; --------------------------------------------------------------------------
@@ -154,6 +156,35 @@ GO
  'ms
  :func-show-table "select top (5) * from TABLE
 GO")
+
+;; Inspect Table
+(sql-set-product-feature
+ 'oracle
+ :func-inspect-table  "SELECT
+        round(sum(bytes)/(1024*1024),1) AS size_mb,
+	sum(NUM_ROWS) as number_rows,
+	max(created) as created,
+	cast(COMMENTS as varchar2(20)) as comments
+      FROM
+	user_extents
+	JOIN
+	all_tables
+	ON segment_name = table_name
+	join
+	all_objects
+	on table_name = object_name
+	left join
+	user_tab_comments using(table_name)
+      WHERE
+        segment_type = 'TABLE'
+	   and
+	   table_name = 'TABLE_PATTERN'
+      GROUP BY
+        table_name,
+	COMMENTS
+      order by
+        table_name;
+     ")
 
 ;; Initial File
 (sql-set-product-feature
@@ -408,7 +439,26 @@ go")
 					  "TABLE"
 					  (upcase objname)
 					  func)))
-	 (message "no :func-desc defined for product %s" sql-product))))
+	 (message "no :func-show-table defined for product %s" sql-product))))
+
+(defun sql-inspect-table ()
+  "Lists some table info"
+  (interactive)
+  (let ((func (sql-get-product-feature sql-product :func-inspect-table)))
+    (if func
+	   (save-frame-excursion 
+	    (save-excursion
+		 (setq loc (+ (search-backward-regexp "[\\( \t\n\r]") 1)))
+	    (save-excursion
+		 (setq objname
+			  (buffer-substring-no-properties
+			   loc 
+			   (- (search-forward-regexp "[\\) ,;\t\n\r]") 1))))
+	    (sql-send-string (replace-regexp-in-string
+					  "TABLE_PATTERN"
+					  (upcase objname)
+					  func)))
+	 (message "no :func-inspect-table defined for product %s" sql-product))))
 
 (defun sql-tables (table-pattern owner-pattern)
   "Lists tables (or views) that match table / schema pattern"

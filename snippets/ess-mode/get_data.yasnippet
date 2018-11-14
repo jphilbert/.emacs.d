@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: get_data
+# key: get_data
+# --
+
+con <- do.call(odbcConnect, dbLogon$EDW)
+${1:data} <- sqlFetch(con, "${2:TABLE}")
+names($1) <- names($1) %>% tolower
+close(con)
+nrow($1)
+
+$0
