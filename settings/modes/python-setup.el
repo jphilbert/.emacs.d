@@ -90,7 +90,7 @@
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "Python "))
-  (kbd "C-h f")   	'jedi:show-doc
+  (kbd "C-h f")   	'python-object-help
   "\C-hv"      	'python-object-info
   
   ;; ---------- Frame Switching ----------
@@ -110,7 +110,8 @@
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "Python "))
-  (kbd "C-h f")   	'anaconda-mode-show-doc
+  (kbd "C-h f")   	'python-object-help
+  "\C-hv"      	'python-object-info
 
   ;; ---------- Frame Switching ----------
   [(f12)]              'switch-frame-previous
@@ -178,7 +179,25 @@
 (defun python-object-info ()
   "Get info for object at point"
   (interactive)
-  (let ((objname (current-word)))
+  (let* ( (left-paren (- (save-excursion
+					 (re-search-forward "[^a-zA-Z_.]" nil t)) 1))
+	    (right-paren (+ (save-excursion
+					  (re-search-backward "[^a-zA-Z_.]" nil t)) 1))
+	    (objname (buffer-substring
+			left-paren
+			right-paren)))
     (python-shell-send-string (concat "type(" objname ")"))
     (python-shell-send-string (concat "[i for i in dir(" objname
 							   ") if i[0] != '_']"))))
+
+(defun python-object-help()
+  (interactive)
+  ;; Mark the object
+  (let* ( (left-paren (- (save-excursion
+					 (re-search-forward "[^a-zA-Z_.]" nil t)) 1))
+	    (right-paren (+ (save-excursion
+					  (re-search-backward "[^a-zA-Z_.]" nil t)) 1))
+	    (objname (buffer-substring
+			left-paren
+			right-paren)))
+    (python-shell-send-string (concat "help(" objname ")"))))

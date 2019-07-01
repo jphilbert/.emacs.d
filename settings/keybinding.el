@@ -220,5 +220,15 @@ If function is nil the key is unset."
 (define-key help-mode-map	"q" 'kill-buffer-or-emacs)
 
 
+
+;; --------------------------------------------------------------------------
+;; Markdown-Mode
+;; --------------------------------------------------------------------------
+(require 'markdown-mode)
+(define-many-keys markdown-mode-map
+  [(f3)]				'markdown-shifttab
+  (kbd "<tab>")		'tab-to-tab-stop)
+
+
 ;;; KEYBINDING.EL ends here
 

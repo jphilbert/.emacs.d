@@ -11,10 +11,12 @@
 (setq directory-abbrev-alist
 	 (append directory-abbrev-alist
 		    '(("~/personal/".
-			  "~/OneDrive - UPMC")
+			  "~/OneDrive - UPMC/")
+			 ("~/custom/".
+			  "X:/Data Analysis/Data Analysis(Custom)/")
 			 ("~/dohe/".
-			  "X:/Data Analysis/Data Analysis(DeptUsers)")
+			  "X:/Data Analysis/Data Analysis(DeptUsers)/")
 			 ("~/dev/".
-			  "X:/Data Analysis/Data Analysis(DeptUsers)/Development Team")
+			  "X:/Data Analysis/Data Analysis(DeptUsers)/Development Team/")
 			 ("~/sci/".
-			  "X:/Data Analysis/Data Analysis(DeptUsers)/Science_Team"))))
+			  "X:/Data Analysis/Data Analysis(DeptUsers)/Science_Team/"))))

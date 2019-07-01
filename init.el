@@ -341,3 +341,6 @@ out it knowing."
 (setq-default desktop-load-locked-desktop t)
 
 (setq start-time (current-time))
+
+;; Tooltip-mode has been causing lag in various modes so just disabling it
+(tooltip-mode -1)
