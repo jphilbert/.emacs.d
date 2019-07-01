@@ -176,28 +176,47 @@
 ;; -----------------------------------------------------------------------------
 ;;  Help Functions
 ;; -----------------------------------------------------------------------------
-(defun python-object-info ()
-  "Get info for object at point"
-  (interactive)
-  (let* ( (left-paren (- (save-excursion
-					 (re-search-forward "[^a-zA-Z_.]" nil t)) 1))
-	    (right-paren (+ (save-excursion
-					  (re-search-backward "[^a-zA-Z_.]" nil t)) 1))
-	    (objname (buffer-substring
-			left-paren
-			right-paren)))
-    (python-shell-send-string (concat "type(" objname ")"))
-    (python-shell-send-string (concat "[i for i in dir(" objname
-							   ") if i[0] != '_']"))))
-
 (defun python-object-help()
+  "Get Help for object at point"
   (interactive)
   ;; Mark the object
-  (let* ( (left-paren (- (save-excursion
-					 (re-search-forward "[^a-zA-Z_.]" nil t)) 1))
-	    (right-paren (+ (save-excursion
-					  (re-search-backward "[^a-zA-Z_.]" nil t)) 1))
-	    (objname (buffer-substring
-			left-paren
-			right-paren)))
-    (python-shell-send-string (concat "help(" objname ")"))))
+  (let (reg-begin reg-end objname)
+    (if (use-region-p)
+	   (setq reg-begin (region-beginning)
+		    reg-end (region-end))
+	 (setq reg-begin (- (save-excursion
+					  (re-search-forward "[^a-zA-Z_.]" nil t)) 1)
+		  reg-end (+ (save-excursion
+					  (re-search-backward "[^a-zA-Z_.]" nil t)) 1)))
+    (setq objname (buffer-substring reg-begin reg-end))
+    (with-help-window "*Help*"
+	 ;; (princ objname)
+	 ;; (princ "\n")
+	 ;; (princ (make-string (length objname) ?-))
+	 ;; (princ "\n")
+	 (princ (python-shell-send-string-no-output
+		    (concat "help(" objname ")")))
+	 )))
+
+(defun python-object-info ()
+  "Get Type & Methods for object at point"
+  (interactive)
+  ;; Mark the object
+  (let (reg-begin reg-end objname)
+    (if (use-region-p)
+	   (setq reg-begin (region-beginning)
+		    reg-end (region-end))
+	 (setq reg-begin (- (save-excursion
+					  (re-search-forward "[^a-zA-Z_.]" nil t)) 1)
+		  reg-end (+ (save-excursion
+					  (re-search-backward "[^a-zA-Z_.]" nil t)) 1)))
+    (setq objname (buffer-substring reg-begin reg-end))
+    (with-help-window "*Help*"
+	 (princ objname)
+	 (princ "\n-- TYPE --\n")
+	 (princ (python-shell-send-string-no-output
+		    (concat "type(" objname ")")))
+	 (princ "\n-- METHODS --\n")
+	 (princ (python-shell-send-string-no-output
+		    (concat "print('\\n'.join([i for i in dir(" objname
+				  ") if i[0] != '_']))"))))))
