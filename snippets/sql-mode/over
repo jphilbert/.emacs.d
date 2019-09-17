@@ -2,5 +2,5 @@
 # name: over
 # key: over
 # --
-over(
-	${1:partition by $2}${3: order by $4}) $0
+OVER	(
+	${1:PARTITION BY $2}${3: ORDER BY $4}) $0

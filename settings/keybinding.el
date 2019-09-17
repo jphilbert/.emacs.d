@@ -86,9 +86,11 @@ If function is nil the key is unset."
  [(f3)]			    'fold-dwim-toggle
  [(shift f3)]           'fold-dwim-toggle-all
  [(f7)]			    'ispell-word	; MS uses F7 for spell check
- [(shift f4)]		    'flyspell-mode
+ [(shift f7)]		    'flyspell-mode
  [(f5)]                 'linum-mode
  [(f6)]                 'explorer
+
+ [(f9)]				'menu-bar-mode
 
  (kbd "S-<tab>")	'auto-complete
  

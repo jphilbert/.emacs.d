@@ -64,7 +64,7 @@
 (setq-default tab-stop-list (number-sequence 5 120 5))
 
 
-(message "SETTING - Time: %.03fs" (float-time (time-since start-time)))
+(message "SETTING - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
 ;; -----------------------------------------------------------------------------
@@ -77,7 +77,7 @@
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize)
 
-(message "PACKAGES - Time: %.03fs" (float-time (time-since start-time)))
+(message "PACKAGES - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
 ;; -----------------------------------------------------------------------------
@@ -96,7 +96,7 @@
  '(auto-save-file-name-transforms (quote ((".*" "~/.emacs.d/autosaves/" t))))
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backups/")))))
 
-(message "DIRECTORIES / BACKUPS - Time: %.03fs" (float-time (time-since start-time)))
+(message "DIRECTORIES / BACKUPS - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
 ;; -----------------------------------------------------------------------------
@@ -106,7 +106,7 @@
 (defun server-ensure-safe-dir (dir) "Noop" t) ; Suppress common windows error
 (server-start)
 
-(message "SERVER - Time: %.03fs" (float-time (time-since start-time)))
+(message "SERVER - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
 ;; ----------------------------------------------------------------------------
@@ -129,7 +129,7 @@
 (add-hook 'text-mode-hook
 	  '(lambda() (flyspell-mode t)))
 
-(message "TINY TOOLS / ASPELL - Time: %.03fs" (float-time (time-since start-time)))
+(message "TINY TOOLS / ASPELL - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
 ;; ----------------------------------------------------------------------------
@@ -155,6 +155,9 @@
 (define-key ac-completing-map (kbd "<tab>")	'ac-next)
 (define-key ac-completing-map [(return)]	'ac-complete)
 
+(message "AC - Time: %.03fs\n" (float-time (time-since start-time)))
+(setq start-time (current-time))
+
 
 ;; Icicles
 (require 'icicles)
@@ -166,8 +169,14 @@
       icicle-region-background			"black")
 (icy-mode t)
 
-(message "AC / ICICLES - Time: %.03fs" (float-time (time-since start-time)))
+(message "ICICLES - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
+
+
+;; Abbrev-Mode
+(setq save-abbrevs nil)
+(setq abbrev-file-name				;; tell emacs where to read abbrev
+	 "~/.emacs.d/abbrev_defs")		;; definitions from...
 
 ;; ----------------------------------------------------------------------------
 ;; Dired+
@@ -202,7 +211,7 @@
 (require 'yasnippet)
 (yas-global-mode 1)
 
-(message "YAS - Time: %.03fs" (float-time (time-since start-time)))
+(message "YAS - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
 ;; ----------------------------------------------------------------------------
@@ -248,7 +257,7 @@ out it knowing."
 		(""		2 2 left "  ")))
 
 
-(message "DWIM / BUFFER - Time: %.03fs" (float-time (time-since start-time)))
+(message "DWIM / BUFFER - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
 ;; --------------------------------------------------------------------------
@@ -266,7 +275,7 @@ out it knowing."
 (require 'websearch)		; Search web functionality
 (require 'misc)			; Miscellaneous User created functions
 
-(message "MISC PACK - Time: %.03fs" (float-time (time-since start-time)))
+(message "MISC PACK - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
 ;; -----------------------------------------------------------------------------
@@ -279,11 +288,23 @@ out it knowing."
 ;; Modes
 ;; ----------------------------------------------------------------------------
 (require 'lisp-setup nil t)
+(message "LISP-SETUP - Time: %.03fs\n" (float-time (time-since start-time)))
+(setq start-time (current-time))
+
 (require 'sql-setup nil t)
+(message "SQL-SETUP - Time: %.03fs\n" (float-time (time-since start-time)))
+(setq start-time (current-time))
+
 (require 'r-setup nil t)
+(message "R-SETUP - Time: %.03fs\n" (float-time (time-since start-time)))
+(setq start-time (current-time))
+
+(require 'python-setup nil t)
+(message "PYTHON-SETUP - Time: %.03fs\n" (float-time (time-since start-time)))
+(setq start-time (current-time))
+
 ;; (require 'latex-setup nil t)
 (require 'web-setup nil t)
-(require 'python-setup nil t)
 (require 'shell-setup nil t)
 (require 'powershell-setup nil t)
 
@@ -320,10 +341,9 @@ out it knowing."
 				   (google-query-at-point nil "markdown "))
   )
 
-
-
-(message "MODES - Time: %.03fs" (float-time (time-since start-time)))
+(message "MISC MODES - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
+
 
 ;; -----------------------------------------------------------------------------
 ;; Aesthetics
@@ -332,11 +352,8 @@ out it knowing."
 						; among other things)
 (require 'frame-settings)	; Setup frames
 
-(message "KEYBINDING / AESTHETICS - Time: %.03fs" (float-time (time-since start-time)))
+(message "AESTHETICS - Time: %.03fs\n" (float-time (time-since start-time)))
 
-;; -----------------------------------------------------------------------------
-;; Aesthetics
-;; -----------------------------------------------------------------------------
 (desktop-save-mode 1)
 (setq-default desktop-load-locked-desktop t)
 
