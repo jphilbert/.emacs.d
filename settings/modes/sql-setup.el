@@ -42,6 +42,9 @@
   (flyspell-prog-mode)
   (turn-on-auto-fill)
 
+  (add-function :around (local 'abbrev-expand-function)
+			 #'sql-mode-abbrev-expand-function)
+  
   (abbrev-mode t)
   
   ;; (sql-set-product 'oracle)
@@ -540,6 +543,16 @@ go")
 					  (get-region-as-string)
 					  func)))
 	 (message "no :func-explain defined for product %s" sql-product))))
+
+
+;; Suppress Abbrev in Comments 
+(defun sql-mode-abbrev-expand-function (expand)
+  (if (not (save-excursion (forward-line 0) (eq (char-after) ?-)))
+	 ;; Performs normal expansion.
+	 (funcall expand)
+    ;; We're inside a comment: use the text-mode abbrevs.
+    (let ((local-abbrev-table text-mode-abbrev-table))
+	 (funcall expand))))
 
 
 ;; --------------------------------------------------------------------------
