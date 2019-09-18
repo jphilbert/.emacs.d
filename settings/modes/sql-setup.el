@@ -46,6 +46,8 @@
 			 #'sql-mode-abbrev-expand-function)
   
   (abbrev-mode t)
+
+  (modify-syntax-entry ?_ "w")
   
   ;; (sql-set-product 'oracle)
 
@@ -547,7 +549,15 @@ go")
 
 ;; Suppress Abbrev in Comments 
 (defun sql-mode-abbrev-expand-function (expand)
-  (if (not (save-excursion (forward-line 0) (eq (char-after) ?-)))
+  (message "%s" (eq (char-before) ?e))
+  
+  (if (and
+	  ;; Check for '-' at beginning of line
+	  (not (save-excursion (forward-line 0) (eq (char-after) ?-)))
+	  ;; Check for '_' before abbrev
+	  ;; Not needed since adding '_' to syntax table
+	  ;; (not (save-excursion (forward-word -1) (eq (char-before) ?_)))
+	  )
 	 ;; Performs normal expansion.
 	 (funcall expand)
     ;; We're inside a comment: use the text-mode abbrevs.
