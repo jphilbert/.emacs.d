@@ -33,8 +33,10 @@
 (add-hook 'sql-mode-hook 'my-sql-mode-hook)
 (defun my-sql-mode-hook ()
   (interactive)
-  (require 'ac-sql)
-  (add-to-list 'ac-sources 'ac-source-sql)
+
+  ;; Not needed since we have abbrev-mode?
+  ;; (require 'ac-sql)
+  ;; (add-to-list 'ac-sources 'ac-source-sql)
   
   (hs-minor-mode t)
   ;; (hs-hide-all)
@@ -587,7 +589,8 @@ go")
       "stats_t_test_one" "stats_t_test_paired" "stats_wsr_test" "substr2"
       "substr4" "substrb" "substrc" "timestamp_to_scn" "to_binary_double"
       "to_binary_float" "value" "xmlparse" "xmlpi" "xmlquery" "xmlroot"
-      "xmlserialize" "xmltable"))
+      "xmlserialize" "xmltable"
+	 "trunc"))
     .
     'font-lock-builtin-face)
    ;; Package Functions
