@@ -75,7 +75,9 @@
   (kbd "<C-prior>")		'python-nav-backward-defun
   
   ;; ---------- Evaluation ----------
-  [(shift return)]     'python-eval
+  [(shift return)]		'python-eval
+  [(M shift return)]	'python-eval-echo
+  [(M return)]			'python-print-last
 
   ;; ---------- Indent / Tabs ----------
   (kbd "<S-tab>")		'tab-to-tab-stop-magic
@@ -152,7 +154,8 @@
   (interactive)
   (let ((end-mark (region-end)))
     (call-interactively 'python-shell-send-region)
-    (goto-char end-mark)))
+    (goto-char end-mark)
+    (deactivate-mark)))
 
 (defun python-eval-defun ()
   "Evaluates python function."
@@ -172,6 +175,55 @@
   (interactive)
   (python-shell-switch-to-shell)
   (end-of-buffer-all))
+
+(defun python-print-last ()
+  "Prints last result"
+  (interactive)
+  (python-shell-send-string "print(_)"))
+
+(defun python-shell-send-region-echo (start end &optional send-main)
+  "Same as PYTHON-SHELL-SEND-REGION but echos the output. Does not work if the region has multiple commands."
+  (interactive "r\nP")
+  (let* ((string (python-shell-buffer-substring start end (not send-main)))
+         (process (python-shell-get-or-create-process))
+	    (buffer (current-buffer))
+         (original-string (string-trim
+					  (buffer-substring-no-properties start end)))
+         (_ (string-match "\\`\n*\\(.*\\)" original-string)))
+    (set-buffer (process-buffer process))
+    (let ((oldpoint (point)))
+      (goto-char (process-mark process))
+      (insert (concat original-string "\n"))
+      (set-marker (process-mark process) (point))
+      (goto-char oldpoint))
+    (set-buffer buffer)
+    ;; (message "Sent: %s..." (match-string 1 original-string))
+    (python-shell-send-string original-string
+    						process)))
+
+(defun python-eval-echo ()
+  "Evaluates python code based on context."
+  (interactive)
+
+  ;; Start a shell if needed
+  (unless (python-shell-get-process)
+    (run-python (python-shell-parse-command) nil))
+  
+  ;; Eval
+  (if (and transient-mark-mode mark-active)
+      (let ((end-mark (region-end)))
+	   (call-interactively 'python-shell-send-region-echo)
+	   (goto-char end-mark)
+	   (deactivate-mark))
+    (save-excursion
+	 (progn (mark-paragraph)
+		   (call-interactively 'python-shell-send-region-echo)))
+    (forward-paragraph))
+  (python-nav-forward-statement)
+  (switch-frame-current-python)
+  (switch-frame-previous))
+
+
 
 ;; -----------------------------------------------------------------------------
 ;;  Help Functions

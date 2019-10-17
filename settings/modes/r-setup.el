@@ -224,7 +224,10 @@
   "Get summary for object at point"
   (interactive)
   (let ((objname (current-word t)))
-    (ess-execute (concat "format(object.size(" objname "), units = 'MB', digits = 3)") t nil "INFO: ")
+    (ess-execute (concat "cat('\n" objname
+					" ', format(object.size(" objname
+					"), units = 'MB', digits = 3), '\n')")
+			  t nil "INFO: ")
     (switch-frame-current-R)))
 
 (defun R-object-help (object &optional command)
@@ -278,7 +281,17 @@ initially found it automatically shows the help without prompting."
     ;; (string-match "\\(XLS\\)\\|\\(STA\\)\\|\\(SAS\\)" ess-language)
     (read-string (format "%s: " p-string))))
 
-
+(defun R-object-sizes ()
+  "Get object sizes over 500kb"
+  (interactive)
+  (ess-execute "data.frame(Mb = round(sapply(ls(),
+                             function(x) {
+                               object.size(get(x))/1024^2
+                             }), 3)) %>%
+  rownames_to_column('object') %>%
+  filter(Mb > 0.5) %>%
+  arrange(-Mb)" t nil "INFO: ")
+  )
 
 
 
