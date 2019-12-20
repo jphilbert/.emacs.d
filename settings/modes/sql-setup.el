@@ -205,15 +205,18 @@ GO")
 ;; List Tables
 (sql-set-product-feature
  'oracle
- :func-list-tables "SELECT * FROM
-	(SELECT 'V' as type, owner, view_name as name
-	FROM all_views
-	UNION
-	SELECT 'T' as type, owner, table_name as name
-	FROM all_tables
-        ORDER BY owner, name)
+ :func-list-tables "SELECT
+		type, substr(owner || '.' || name, 1, 70) AS name
+	FROM
+	(
+		SELECT 'V' as type, owner, view_name as name
+		FROM all_views
+		UNION
+		SELECT 'T' as type, owner, table_name as name
+		FROM all_tables)
 	WHERE owner LIKE '%OWNER_PATTERN%'
-        AND name LIKE '%TABLE_PATTERN%';")
+        AND name LIKE '%TABLE_PATTERN%'
+     ORDER BY type, owner, name;")
 
 (sql-set-product-feature
  'ms
@@ -234,14 +237,15 @@ go")
 ;; Find Column
 (sql-set-product-feature
  'oracle
- :func-find-column "select
-    table_name,
-    column_name
+ :func-find-column "SELECT
+	   substr(owner || '.' || table_name, 1, 48) AS table_name,
+	   substr(column_name, 1, 28)
     from
-    all_tab_columns
+		all_tab_columns
     where
-    column_name like '%PATTERN%'
-	order by table_name, column_name;")
+		column_name like '%PATTERN%'
+    order by
+		owner, table_name, column_name;")
 
 (sql-set-product-feature
  'ms
