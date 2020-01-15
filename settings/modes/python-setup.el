@@ -47,7 +47,7 @@
   ;; (ac-anaconda-setup)
   ;; (auto-complete)
 
-  (jedi:setup)
+  ;; (jedi:setup)
   (auto-complete)
   
   (hs-minor-mode t)

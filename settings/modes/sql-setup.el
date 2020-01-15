@@ -26,6 +26,9 @@
 (sql-set-product-feature
  'ms :prompt-cont-regexp "^[0-9]*>") ;new line
 
+;; Adds _ as a word characters so abbrev-mode doesn't changes parts of strings
+(modify-syntax-entry ?_ "w" sql-mode-syntax-table)
+
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
@@ -49,10 +52,7 @@
   
   (abbrev-mode t)
 
-  (modify-syntax-entry ?_ "w")
-  
   ;; (sql-set-product 'oracle)
-
   ;; (setq comment-start "/*") **/
   ;; (setq comment-end "*\/") **/
   )
@@ -67,7 +67,6 @@
 
   (abbrev-mode t)
   ;; (setq ac-ignore-case nil)
-
   ;; (setq-default truncate-lines t)
   )
 
@@ -717,3 +716,6 @@ go")
   "year" "zone")
 		)
   )
+
+
+

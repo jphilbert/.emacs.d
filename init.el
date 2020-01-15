@@ -20,7 +20,6 @@
  comment-auto-fill-only-comments	t	; but only for comments
  inhibit-startup-screen			t	; No Splash Screen
  visible-bell					t	; No Beep
- skeleton-pair					t  	; Auto pair matching
  fill-column					80
  x-select-enable-clipboard		t
  redisplay-dont-pause			t
@@ -61,8 +60,7 @@
 
 ;; Change Tab Stops
 (setq-default tab-width 5)
-(setq-default tab-stop-list (number-sequence 5 120 5))
-
+;; (setq-default tab-stop-list (number-sequence 5 120 5))
 
 (message "SETTING - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
@@ -310,6 +308,12 @@ out it knowing."
 
 (require 'markdown-mode)
 (setq-default markdown-command "multimarkdown")
+(add-hook 'markdown-mode-hook
+		'(lambda()
+		   (auto-fill-mode 0)
+		   (setq tab-width 2)
+		   (push '(?`. ?`)
+                    (getf autopair-extra-pairs :everywhere))))
 (define-many-keys markdown-mode-map
   ;; ---------- Evaluation ----------
   [(shift return)]		'markdown-preview
