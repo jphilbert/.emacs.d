@@ -12,13 +12,15 @@
 (eval-after-load "sql" '(load-library "sql-indent")) 
 (add-to-list 'ac-modes 'sql-mode)
 
-(setq sql-ms-program		"C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd"
+(setq sql-ms-program		"C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd.exe"
       sql-oracle-program		"sqlplus"
 	 sql-oracle-scan-on		nil
 	 sql-send-terminator	nil		; since I don't put GO after
 								; (CAUSE ISSUES IN SQLPLUS if non-nil)
-	 ;; sql-ms-options		'("-w" "80")
-	 sql-ms-options		'("-w" "80" "-y" "79" "-s" "|" "-k")
+	 sql-ms-options		'("-w" "2000" ; Max Column Width
+						  "-y" "2000" ; Individual Char Width
+						  "-s" "|"    ; Column Separator
+						  "-k")
 	 )
 
 (sql-set-product-feature
@@ -52,7 +54,9 @@
   
   (abbrev-mode t)
 
-  ;; (sql-set-product 'oracle)
+  (make-local-variable 'sql-product)
+
+  (sql-set-product 'oracle)
   ;; (setq comment-start "/*") **/
   ;; (setq comment-end "*\/") **/
   )
@@ -149,7 +153,9 @@
 
 (sql-set-product-feature
  'ms
- :func-desc "select left(COLUMN_NAME, 40) as COL_NAME, IS_NULLABLE, left(DATA_TYPE, 20) as DATE_TYPE from INFORMATION_SCHEMA.COLUMNS where TABLE_schema + '.' +  TABLE_NAME='PATTERN'
+ :func-desc "select left(COLUMN_NAME, 40) as COL_NAME,
+left(DATA_TYPE, 20) as DATE_TYPE, CAST(CHARACTER_MAXIMUM_LENGTH AS varchar(6)) as length, IS_NULLABLE
+from INFORMATION_SCHEMA.COLUMNS where TABLE_schema + '.' +  TABLE_NAME='PATTERN'
 GO
 ")
 
@@ -220,8 +226,8 @@ GO")
 (sql-set-product-feature
  'ms
  :func-list-tables "SELECT top 100
-    left(TABLE_SCHEMA, 20) TABLE_SCHEMA,
-    left(TABLE_NAME, 45) TABLE_NAME,
+    concat(left(TABLE_SCHEMA, 20), '.',
+      left(TABLE_NAME, 45)) TABLE_NAME,
     left(TABLE_TYPE, 10) TABLE_TYPE
 FROM
     INFORMATION_SCHEMA.TABLES
@@ -229,6 +235,7 @@ WHERE
     TABLE_SCHEMA LIKE '%OWNER_PATTERN%'
     AND
     TABLE_NAME LIKE '%TABLE_PATTERN%'
+ORDER BY 1
 go")
 
 
@@ -249,8 +256,8 @@ go")
 (sql-set-product-feature
  'ms
  :func-find-column "select top 100
-		left(TABLE_SCHEMA, 10) TABLE_SCHEMA,
-		left(TABLE_NAME, 30) TABLE_NAME,
+	    concat(left(TABLE_SCHEMA, 20), '.',
+             left(TABLE_NAME, 45)) TABLE_NAME,
 		left(COLUMN_NAME, 30) COLUMN_NAME
 	FROM
 		INFORMATION_SCHEMA.COLUMNS
