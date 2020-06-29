@@ -86,7 +86,8 @@ If function is nil the key is unset."
  [(f3)]			    'fold-dwim-toggle
  [(shift f3)]           'fold-dwim-toggle-all
  [(f7)]			    'ispell-word	; MS uses F7 for spell check
- [(shift f7)]		    'flyspell-mode
+ [(shift f7)]		    'thesaurus-at-point ; MS uses S-F7 for thesaurus
+ [(ctrl shift f7)]	    'flyspell-mode
  [(f5)]                 'linum-mode
  [(f6)]                 'explorer
 
@@ -121,10 +122,12 @@ If function is nil the key is unset."
 				   (select-window (minibuffer-window))))
 
  ;; ---------- Moving Frames ----------
- (kbd   "<M-up>")               'move-frame-up
- (kbd   "<M-left>")             'move-frame-left
- (kbd   "<M-right>")            'move-frame-right
- (kbd   "<M-down>")             'move-frame-down
+ ;; Broke if main screen is on the right
+ ;; (kbd   "<M-up>")               'move-frame-up
+ ;; (kbd   "<M-left>")             'move-frame-left
+ ;; (kbd   "<M-right>")            'move-frame-right
+ ;; (kbd   "<M-down>")             'move-frame-down
+
  
  ;; ---------- Killing / Yanking ----------
  (kbd   "M-z")                  'tinyeat-kill-buffer-lines-main

@@ -251,7 +251,7 @@
  '(("\\<[0-9]*\\.?[0-9]+"
     .
     'font-lock-number-face)
-   ("[!\\^<>]=\\|[<>]\\|\\(\\b\\(all\\|and\\|any\\|between\\|
+   ("[!\\^<>]*=\\|[<>]\\|\\(\\b\\(all\\|and\\|any\\|between\\|
 exists\\|in\\|like\\|not\\|or\\|some\\)\\b\\)"
      .
      'font-lock-relation-operator-face)))

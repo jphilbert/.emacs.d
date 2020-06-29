@@ -144,7 +144,7 @@
  ac-show-menu-immediately-on-auto-complete nil
  ac-sources				(append ac-sources '(ac-source-yasnippet
 										 ac-source-filename))
- ;; (setq-default ac-ignore-case nil)
+ ac-ignore-case			nil
  ;; (setq-default ac-auto-show-menu nil)
  ac-auto-show-menu			nil
  ac-auto-start				2)
@@ -312,6 +312,7 @@ out it knowing."
 		'(lambda()
 		   (auto-fill-mode 0)
 		   (setq tab-width 2)
+		   (setq fill-column 99999999)
 		   (push '(?`. ?`)
                     (getf autopair-extra-pairs :everywhere))))
 (define-many-keys markdown-mode-map

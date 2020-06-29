@@ -4,6 +4,23 @@
   (interactive)                 ; permit invocation in minibuffer
   (insert (format-time-string "%Y-%m-%d")))
 
+(defun thesaurus-at-point ()
+  "Automatically queries thesaurus.com for word (using expand-region)
+at point."
+  (interactive)
+  (let ((url "https://www.thesaurus.com/misspelling?term=")
+	(encoding 'utf-8)
+	(minibuffer-string "Thesaurus: ")
+	query)
+    (save-excursion
+      (unless (region-active-p)
+	(er/mark-word))
+      (setq query (buffer-substring-no-properties
+			    (region-beginning) (region-end)))) 
+    (funcall websearch-browse-url-function
+		   (format "%s%s" url (websearch-url-encode query encoding)))
+    ))
+
 (defun google-query-at-point (&optional lucky prefix)
   "Automatically queries Google for object (using expand-region)
 at point. Additionally can use 'feeling lucky' and append a

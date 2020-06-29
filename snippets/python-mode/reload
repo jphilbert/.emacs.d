@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: reload
+# key: reload
+# --
+import importlib
+importlib.reload($0)
