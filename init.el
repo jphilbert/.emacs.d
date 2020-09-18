@@ -139,15 +139,18 @@
 
 (ac-config-default)
 (global-auto-complete-mode t)
+
+(defun ac-common-setup ()
+  (setq ac-sources (append ac-sources '(ac-source-yasnippet
+								ac-source-filename))))
 (setq-default
  ac-quick-help-delay		5
  ac-show-menu-immediately-on-auto-complete nil
- ac-sources				(append ac-sources '(ac-source-yasnippet
-										 ac-source-filename))
  ac-ignore-case			nil
  ;; (setq-default ac-auto-show-menu nil)
  ac-auto-show-menu			nil
  ac-auto-start				2)
+
 (ac-flyspell-workaround)
 
 (define-key ac-completing-map (kbd "<tab>")	'ac-next)
@@ -310,6 +313,7 @@ out it knowing."
 (setq-default markdown-command "multimarkdown")
 (add-hook 'markdown-mode-hook
 		'(lambda()
+		   (auto-complete-mode)
 		   (auto-fill-mode 0)
 		   (setq tab-width 2)
 		   (setq fill-column 99999999)

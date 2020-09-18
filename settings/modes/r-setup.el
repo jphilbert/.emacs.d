@@ -15,7 +15,7 @@
  ess-eval-visibly-p			nil
  ess-help-own-frame			1
  ess-S-assign-key			(kbd "C-=")	; StatET-like assignment
- ;;inferior-R-program-name "C:\\Program Files\\R\\R-2.5.0\\bin\\Rterm.exe"
+ inferior-R-program-name "~\\R\\R-4.0.2\\bin\\x64\\Rterm.exe"
  ess-history-file			nil
  ess-default-style			'RStudio
  ;; inferior-ess-r-help-command	".ess.help('%s', 'text')"
@@ -210,7 +210,7 @@
   "Get info for object at point"
   (interactive)
   (let ((objname (current-word)))
-    (ess-execute (concat "str(" objname ", max.level = 1)") t nil "INFO: ")
+    (ess-execute (concat "str(" objname ", max.level = 2)") t nil "INFO: ")
     (switch-frame-current-R)))
 
 (defun R-object-names ()

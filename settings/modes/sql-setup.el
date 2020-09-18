@@ -561,20 +561,17 @@ go")
 
 ;; Suppress Abbrev in Comments 
 (defun sql-mode-abbrev-expand-function (expand)
-  (message "%s" (eq (char-before) ?e))
-  
-  (if (and
-	  ;; Check for '-' at beginning of line
-	  (not (save-excursion (forward-line 0) (eq (char-after) ?-)))
-	  ;; Check for '_' before abbrev
-	  ;; Not needed since adding '_' to syntax table
-	  ;; (not (save-excursion (forward-word -1) (eq (char-before) ?_)))
+  (if (or
+	  (nth 3 (syntax-ppss))		; inside string.
+	  (nth 4 (syntax-ppss))		; inside comment
 	  )
-	 ;; Performs normal expansion.
-	 (funcall expand)
-    ;; We're inside a comment: use the text-mode abbrevs.
-    (let ((local-abbrev-table text-mode-abbrev-table))
-	 (funcall expand))))
+	 ;; Use the text-mode abbrevs.
+	 (let ((local-abbrev-table text-mode-abbrev-table))
+	   (funcall expand))
+    ;; Else performs normal expansion.
+    (funcall expand)
+    )
+  )
 
 
 ;; --------------------------------------------------------------------------

@@ -15,9 +15,9 @@
   (hs-hide-all)
   (flyspell-prog-mode)
   (turn-on-auto-fill)
-  
-  (add-to-list 'ac-sources 'ac-source-functions)
-  (add-to-list 'ac-sources 'ac-source-variables)
+
+  ;; (add-to-list 'ac-sources 'ac-source-functions)
+  ;; (add-to-list 'ac-sources 'ac-source-variables)
   )
 
 ;; --------------------------------------------------------------------------

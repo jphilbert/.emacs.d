@@ -523,7 +523,7 @@
 ;;;; Default settings
 
 (defun ac-common-setup ()
-  ;(add-to-list 'ac-sources 'ac-source-filename)
+  (add-to-list 'ac-sources 'ac-source-filename)
   )
 
 (defun ac-emacs-lisp-mode-setup ()
