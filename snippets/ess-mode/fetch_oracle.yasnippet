@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: fetch_oracle
+# key: fetch_oracle
+# --
+con <- do.call(dbConnect, c(dbDriver("Oracle"), settings$db$oracle${1:_edw}))
+${2:data} <- dbReadTable(con, "${3:TABLE$(upcase yas-text)}")
+dbDisconnect(con)
+$2 <- $2 %>%
+  rename_all(tolower) %>%
+  mutate_if(is.POSIXct, as.Date)
+nrow($2)
+
+$0

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: fixme
+# key: fixme
+# --
+`(when (eq
+	  (count-matches "[^[:space:]]"
+				  (line-beginning-position) (point)) 0)
+  comment-start)``comment-start` FIX-ME: $0`comment-end`

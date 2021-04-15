@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: horizontal_line
+# key: hline
+# --
+`(let* ((field-len (- 79 (current-column) (* 4 (length comment-start)) 2))
+	  (field-char (string-to-char
+				(replace-regexp-in-string
+				 ";" "-"
+				 (substring comment-start -1)))))
+  (concat
+   comment-start comment-start " "
+   (make-string field-len field-char)
+   " " comment-start comment-start))`
+$0

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: getwd
+# key: getwd
+# --
+os.getcwd()
+$0

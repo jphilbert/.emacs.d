@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: fetch_odbc
+# key: fetch_odbc
+# --
+con <- odbcConnect(settings$db$${1:edw})
+${2:data} <- sqlFetch(con, "${3:TABLE$(upcase yas-text)}")
+close(con)
+$2 <- $2 %>%
+  rename_all(tolower) %>%
+  mutate_if(is.POSIXct, as.Date)
+nrow($2)
+
+$0

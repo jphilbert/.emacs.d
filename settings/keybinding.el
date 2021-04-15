@@ -24,7 +24,8 @@
 ;; -----------------------------------------------------------------------------
 ;; Auto Pairing
 ;; -----------------------------------------------------------------------------
-(autopair-global-mode)				; Better than electric-pair
+;; (autopair-global-mode)				; Better than electric-pair
+(electric-pair-mode)
 
 ;; -----------------------------------------------------------------------------
 ;; Functions
@@ -81,16 +82,21 @@ If function is nil the key is unset."
  (kbd "C-S-r")                  'replace-regexp
  
  ;; ---------- Miscellaneous ----------
- [(f1)]                 'ac-show-quick-help
- [(f2)]                 'occur
- [(f3)]			    'fold-dwim-toggle
- [(shift f3)]           'fold-dwim-toggle-all
- [(f7)]			    'ispell-word	; MS uses F7 for spell check
- [(shift f7)]		    'thesaurus-at-point ; MS uses S-F7 for thesaurus
- [(ctrl shift f7)]	    'flyspell-mode
- [(f5)]                 'linum-mode
- [(f6)]                 'explorer
+ [(f1)]                  'ac-show-quick-help
+ [(f2)]                  'occur
+ [(f3)]			     'fold-dwim-toggle
+ [(shift f3)]            'fold-dwim-toggle-all
 
+ [(f5)]                  'linum-mode
+ [(f6)]                  'explorer
+ 
+ [(f7)]				'ispell-word	; MS uses F7 for spell check
+ [(shift f7)]			'thesaurus-at-point ; MS uses S-F7 for thesaurus
+ [(ctrl shift f7)]		'flyspell-mode
+
+ [(f8)]				(ti::definteractive
+					 (shell-command
+					  (read-shell-command "Shell command: ") 1))
  [(f9)]				'menu-bar-mode
 
  (kbd "S-<tab>")	'auto-complete

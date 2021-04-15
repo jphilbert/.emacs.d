@@ -45,6 +45,42 @@
 ;; ----------------------------------------------------------------------------
 (defalias 'kill-frame 'delete-frame)
 
+(defun kill-duplicate-frames ()
+  (interactive)
+  (let* ((frame-list (frame-list))
+	    (current-frame (selected-frame))
+	    (result
+		(delq nil
+			 (mapcar
+			  (lambda (frame)
+			    (with-selected-frame frame
+				 (when (one-window-p)
+				   (with-current-buffer (car (buffer-list frame))
+					;; (message (buffer-name))
+					(list frame (buffer-name))))))
+			  frame-list)))
+	    (destructable-result (copy-list result)))
+    
+    (mapc
+    	(lambda (x)
+    	  (setq destructable-result (delq x destructable-result))
+    	  (mapc
+    	   (lambda (y)
+    		(when (equal (cdr x) (cdr y))
+    		  (if (eq (car x) current-frame)
+                (when (frame-live-p (car y))
+                  (delete-frame (car y))
+			   ;; (message "%s" y)
+                  (setq destructable-result (delq y destructable-result)))
+    		    (when (frame-live-p (car x))
+    			 (delete-frame (car x))
+			 ;; (message "%s" x)
+			 ))))
+    	   destructable-result))
+    	result)
+    )
+  )
+
 (defun get-frame (&optional name-buffer-window)
   "Gets the frame from a string, buffer, or window."
   (unless (framep name-buffer-window)

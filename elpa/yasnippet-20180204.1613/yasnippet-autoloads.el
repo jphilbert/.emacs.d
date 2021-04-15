@@ -52,3 +52,4 @@ See `yas-minor-mode' for more information on Yas minor mode.
 ;; no-update-autoloads: t
 ;; End:
 ;;; yasnippet-autoloads.el ends here
+

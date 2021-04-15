@@ -297,6 +297,20 @@
 			  (top . 20)
 			  (left . 40)))))
 
+;; --------------- DIFF -----------
+(add-to-list 'display-buffer-alist
+		   `("\\*Diff.*\\*"
+			(display-buffer-reuse-window display-buffer-pop-up-frame)
+			(reusable-frames . 0)
+			(pop-up-frame-parameters
+			 .
+			 ((unsplittable . t)
+			  (horizontal-scroll-bars . nil)
+			  (vertical-scroll-bars . nil)
+			  (height . ,Frame-Default-Height)
+			  (width . ,Frame-Default-Width)
+			  (top . ,(+ 0 Frame-Terminal-Top))
+			  (left . ,(- Frame-Terminal-Left 20))))))
 
 ;; --------------- Shell / Power Shell Frame -----------
 (add-to-list 'display-buffer-alist

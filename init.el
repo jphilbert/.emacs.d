@@ -32,7 +32,6 @@
 (add-hook
  'text-mode-hook 'turn-on-auto-fill)	; Auto-Fill (Comments Only)
 (cua-mode			t)				; CUA mode
-;; (desktop-save-mode		t)		; Reload previous files
 (defalias 'yes-or-no-p 'y-or-n-p)		; Simplify Questions
 
 
@@ -65,12 +64,13 @@
 (message "SETTING - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
+
 ;; -----------------------------------------------------------------------------
 ;; Packages
 ;; -----------------------------------------------------------------------------
 (require 'package)
 (add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("melpa" . "https://melpa.org/packages/") t)
 (when (< emacs-major-version 24)
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize)
@@ -143,6 +143,9 @@
 (defun ac-common-setup ()
   (setq ac-sources (append ac-sources '(ac-source-yasnippet
 								ac-source-filename))))
+
+(delete 'font-lock-string-face ac-disable-faces)
+
 (setq-default
  ac-quick-help-delay		5
  ac-show-menu-immediately-on-auto-complete nil
@@ -152,6 +155,24 @@
  ac-auto-start				2)
 
 (ac-flyspell-workaround)
+
+(defun ac-prefix-valid-file ()
+  "Existed (or to be existed) file prefix."
+  (let* ((line-beg (line-beginning-position))
+         (end (point))
+         (start (or (let ((point (re-search-backward
+						    ;; Added additional characters
+						    "[\"\(\[`<>'= \t\r\n]"
+						    line-beg t)))
+                      (if point (1+ point)))
+                    line-beg))
+         (file (buffer-substring start end)))
+    (if (and file (or (string-match "^/" file)
+				  (and (setq file (and (string-match "^[^/]*/" file)
+								   (match-string 0 file)))
+					  (file-directory-p file))))
+	   (unless (ac-windows-remote-file-p file)
+		start))))
 
 (define-key ac-completing-map (kbd "<tab>")	'ac-next)
 (define-key ac-completing-map [(return)]	'ac-complete)
@@ -215,12 +236,12 @@
 (message "YAS - Time: %.03fs\n" (float-time (time-since start-time)))
 (setq start-time (current-time))
 
-;; ----------------------------------------------------------------------------
+;; ------------------------------------------------------------------------- ;;
 ;; Folding
-;; ----------------------------------------------------------------------------
+;; ------------------------------------------------------------------------- ;;
 (require 'fold-dwim)
 (setq-default hs-hide-comments-when-hiding-all	nil
-	      hs-allow-nesting			t)
+		    hs-allow-nesting			t)
 
 ;; (add-to-list 'hs-special-modes-alist '(css-mode "{" "}" "/[*/]" nil nil))
 
@@ -240,22 +261,22 @@ out it knowing."
       (fold-dwim-show-all)
     (fold-dwim-hide-all))
   (setq fold-dwim-toggle-all-state
-	(not fold-dwim-toggle-all-state)))
+	   (not fold-dwim-toggle-all-state)))
 
 
 ;; ----------------------------------------------------------------------------
 ;; Buffer Window
 ;; ----------------------------------------------------------------------------
 (setq-default bs-attributes-list
-	      '((""		1 1 left bs--get-marked-string)
-		("M"		1 1 left bs--get-modified-string)
-		("R"		2 2 left bs--get-readonly-string)
-		("Buffer"	bs--get-name-length 10 left bs--get-name)
-		(""		2 2 left "  ")
-		("Size"		8 8 right bs--get-size-string)
-		(""		2 2 left "  ")
-		("Mode"		16 16 middle bs--get-mode-name)
-		(""		2 2 left "  ")))
+		    '((""		1 1 left bs--get-marked-string)
+			 ("M"		1 1 left bs--get-modified-string)
+			 ("R"		2 2 left bs--get-readonly-string)
+			 ("Buffer"	bs--get-name-length 10 left bs--get-name)
+			 (""		2 2 left "  ")
+			 ("Size"		8 8 right bs--get-size-string)
+			 (""		2 2 left "  ")
+			 ("Mode"		16 16 middle bs--get-mode-name)
+			 (""		2 2 left "  ")))
 
 
 (message "DWIM / BUFFER - Time: %.03fs\n" (float-time (time-since start-time)))
@@ -317,8 +338,9 @@ out it knowing."
 		   (auto-fill-mode 0)
 		   (setq tab-width 2)
 		   (setq fill-column 99999999)
-		   (push '(?`. ?`)
-                    (getf autopair-extra-pairs :everywhere))))
+		   (setq electric-pair-pairs
+			    '((?`. ?`)))))
+
 (define-many-keys markdown-mode-map
   ;; ---------- Evaluation ----------
   [(shift return)]		'markdown-preview
@@ -361,12 +383,17 @@ out it knowing."
 						; among other things)
 (require 'frame-settings)	; Setup frames
 
-(message "AESTHETICS - Time: %.03fs\n" (float-time (time-since start-time)))
-
-(desktop-save-mode 1)
-(setq-default desktop-load-locked-desktop t)
-
-(setq start-time (current-time))
-
 ;; Tooltip-mode has been causing lag in various modes so just disabling it
 (tooltip-mode -1)
+
+(message "AESTHETICS - Time: %.03fs\n" (float-time (time-since start-time)))
+(setq start-time (current-time))
+
+;; -----------------------------------------------------------------------------
+;; Desktop Load
+;; -----------------------------------------------------------------------------
+(desktop-save-mode 1)  
+(setq-default desktop-load-locked-desktop t)
+(add-hook 'desktop-after-read-hook 'kill-duplicate-frames)
+
+

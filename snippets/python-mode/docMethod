@@ -5,8 +5,8 @@
 """${1:The summary of the method.}
 
 Args:
-    ${2:_arg}$0
+    _arg$0
 
 Returns:
-    ${3:info on the return value}
+    ${2:info on the return value}
 """
