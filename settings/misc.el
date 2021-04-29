@@ -28,7 +28,7 @@ prefix (useful for major programming modes to filter results)"
   (interactive)
   (let ((url
 	 (if lucky
-	     "http://www.google.com/search?btnI=I%27m+Feeling+Lucky&q="
+	     "https://google.com/search?btnI=1&q="
 	   "http://www.google.com/search?q="))
 	(encoding 'utf-8)
 	(minibuffer-string "Google: ")

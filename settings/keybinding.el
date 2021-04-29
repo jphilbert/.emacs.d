@@ -82,7 +82,9 @@ If function is nil the key is unset."
  (kbd "C-S-r")                  'replace-regexp
  
  ;; ---------- Miscellaneous ----------
- [(f1)]                  'ac-show-quick-help
+ [(f1)]				'(lambda ()
+					   (interactive)
+					   (google-query-at-point t)) 
  [(f2)]                  'occur
  [(f3)]			     'fold-dwim-toggle
  [(shift f3)]            'fold-dwim-toggle-all
@@ -188,7 +190,7 @@ If function is nil the key is unset."
   
   ;; ---------- Help ----------
   (kbd "C-h f")   	'man-at-point 
-  [(S-f1)]	   	'(lambda ()
+  [(f1)]		   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "bash "))
   (kbd "C-h w")   	'(lambda ()

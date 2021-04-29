@@ -33,9 +33,12 @@
 
   ;; ---------- Help ----------
   "\C-hf"      	'describe-variable-or-function
-  [(S-f1)]		'(lambda ()
+  [(f1)]			'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "emacs "))
+  [(S-f1)]		'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "emacs "))
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "emacs "))

@@ -91,9 +91,13 @@
   (kbd "<tab>")	'completion-at-point
 
   ;; ---------- Help ----------
-  [(S-f1)]	  	'(lambda ()
+  [(f1)]		  	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t (format "SQL %s "
+											 sql-product)))
+  [(S-f1)]	  	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil (format "SQL %s "
 											 sql-product)))
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
@@ -121,12 +125,17 @@
   ;; ---------- Frame Switching ----------
   [(f12)]              'switch-frame-current-sql
   [S-f12]              'sql-connect
-  [C-f12]              'sql-set-sqli-buffer
+  [C-f12]              'sql-set-product
+  [C-S-f12]            'sql-set-sqli-buffer
 
   ;; ---------- Help ----------
-  [(S-f1)]	   	'(lambda ()
+  [(f1)]		  	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t (format "SQL %s "
+											 sql-product)))
+  [(S-f1)]	  	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil (format "SQL %s "
 											 sql-product)))
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
@@ -205,7 +214,12 @@ GO")
 ;; Initial File
 (sql-set-product-feature
  'oracle
- :init-file "~/OneDrive - UPMC/sql defaults.sql")
+ :init-file "~/OneDrive - UPMC/sql_oracle_init.sql")
+
+(sql-set-product-feature
+ 'ms
+ :init-file "~/OneDrive - UPMC/sql_ms_init.sql")
+
 
 ;; List Tables
 (sql-set-product-feature
@@ -346,22 +360,48 @@ go")
 
 
 
-
 ;; --------------------------------------------------------------------------
 ;; Functions
 ;; --------------------------------------------------------------------------
+;; Original 
+(defun sql-read-connection (prompt &optional initial default)
+  "Read a connection name."
+  (let ((completion-ignore-case t))
+    (completing-read prompt
+                     (mapcar #'(lambda (c) (car c))
+                             sql-connection-alist)
+                     nil t initial 'sql-connection-history default)))
+
+;; New - filters connections by product
+(defun sql-read-connection (prompt &optional initial default)
+  "Read a connection name."
+  (let ((completion-ignore-case t)
+	   (sql-connections
+	    (remove
+		nil
+		(mapcar
+		 #'(lambda (c) (when
+				    (eq (cadadr (assoc `sql-product
+								   (cdr c))) sql-product)
+				  (car c)))
+		 sql-connection-alist))))
+    (completing-read
+	prompt
+	sql-connections
+	nil t initial 'sql-connection-history default)))
+
 (defun sql-eval ()
   "Evaluates SQL code."
   (interactive)
   ;; Pre Eval
-  (when (eq (length (switch-frame-buffer-list '("\\*SQL.*") '("^ "))) 0)
-    (call-interactively 'sql-connect)
-    ;; Possible loop until process is found?
-    )
-
   (unless sql-buffer
-    (sql-set-sqli-buffer))
-
+    (if (null (sql-find-sqli-buffer))
+	   ;; Connect
+	   (call-interactively 'sql-connect)
+	 ;; else Set
+	 (sql-set-sqli-buffer)))
+  
+  ;; Evaluate depending on mark mode
   (if (and transient-mark-mode mark-active)
       (sql-eval-region)
     (sql-eval-paragraph))

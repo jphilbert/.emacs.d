@@ -74,6 +74,9 @@
   
   
   ;; ---------- Help ----------
+  [(f1)]		   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "R "))
   [(S-f1)]	   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "R "))
@@ -109,6 +112,9 @@
 
 
   ;; ---------- Help ----------
+  [(f1)]		   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point t "R "))
   [(S-f1)]	   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "R "))

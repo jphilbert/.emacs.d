@@ -70,7 +70,7 @@
 ;; Keybinding
 ;; --------------------------------------------------------------------------
 (define-many-keys python-mode-map
-  [(return)]		'newline-and-indent
+  [(return)]			'newline-and-indent
   (kbd "<C-next>")		'python-nav-forward-defun
   (kbd "<C-prior>")		'python-nav-backward-defun
   
@@ -86,9 +86,12 @@
   (kbd "C->")			'python-indent-shift-right
 
   ;; ---------- Help ----------
-  [(S-f1)]	   	'(lambda ()
+  [(f1)]		   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "Python "))
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "Python "))
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "Python "))
@@ -106,9 +109,12 @@
   [S-C-down]		'next-line
   
   ;; ---------- Help ----------
-  [(S-f1)]	   	'(lambda ()
+  [(f1)]		   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "Python "))
+  [(S-f1)]	   	'(lambda ()
+				   (interactive)
+				   (google-query-at-point nil "Python "))
   (kbd "C-h w")   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "Python "))
