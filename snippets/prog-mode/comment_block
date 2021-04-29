@@ -2,23 +2,25 @@
 # name: comment_block
 # key: cblock
 # --
-`(let* ((field-len (- 79 (current-column) (* 4 (length comment-start)) 2))
-	  (field-char (string-to-char
+`(let* ((comment (string-trim comment-start))
+	   (field-len (- 79 (current-column) (* 4 (length comment)) 2))
+	   (field-char (string-to-char
 				(replace-regexp-in-string
 				 ";" "-"
-				 (substring comment-start -1)))))
+				 (substring comment -1)))))
   (concat
-   comment-start comment-start " "
+   comment comment " "
    (make-string field-len field-char)
-   " " comment-start comment-start))`
-`comment-start``comment-start`  ${1:comment}
-`(let* ((field-len (- 79 (current-column) (* 4 (length comment-start)) 2))
-	  (field-char (string-to-char
+   " " comment comment))`
+`(let ((comment (string-trim comment-start)))(concat comment comment))`  ${1:comment}
+${1:$(let* ((comment (string-trim comment-start))
+	   (field-len (- 79 (current-column) (* 4 (length comment)) 2))
+	   (field-char (string-to-char
 				(replace-regexp-in-string
 				 ";" "-"
-				 (substring comment-start -1)))))
+				 (substring comment -1)))))
   (concat
-   comment-start comment-start " "
+   comment comment " "
    (make-string field-len field-char)
-   " " comment-start comment-start))`
+   " " comment comment))}
 $0

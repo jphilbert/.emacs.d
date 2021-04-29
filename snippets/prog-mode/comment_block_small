@@ -1,0 +1,20 @@
+# -*- mode: snippet -*-
+# name: comment_block_small
+# key: cblock_small
+# --
+${1:$(let* ((comment (string-trim comment-start))
+	   (field-len (+ (string-width yas-text) (* 2 (length comment)) 2))
+	   (field-char (string-to-char
+				(replace-regexp-in-string
+				 ";" "-"
+				 (substring comment -1)))))
+  (make-string field-len field-char))}
+`(string-trim comment-start)` ${1:comment} `(string-trim comment-start)`
+${1:$(let* ((comment (string-trim comment-start))
+	   (field-len (+ (string-width yas-text) (* 2 (length comment)) 2))
+	   (field-char (string-to-char
+				(replace-regexp-in-string
+				 ";" "-"
+				 (substring comment -1)))))
+  (make-string field-len field-char))}
+$0

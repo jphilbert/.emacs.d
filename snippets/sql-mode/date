@@ -2,4 +2,4 @@
 # name: date
 # key: date
 # --
-DATE '${1:YYYY}-${2:MM}-${3:DD}'$0
+DATE '${1:`(format-time-string "%Y")`}-${2:`(format-time-string "%m")`}-${3:`(format-time-string "%d")`}'$0

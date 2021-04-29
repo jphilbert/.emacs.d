@@ -2,4 +2,4 @@
 # name: to_date
 # key: to_date
 # --
-to_date('$1', '${2:MM/DD/YYYY}')$0
+TO_DATE('${1:`(format-time-string "%Y")`}-${2:`(format-time-string "%m")`}-${3:`(format-time-string "%d")`} ${4:`(format-time-string "%H")`}:${5:`(format-time-string "%M")`}', 'YYYY-MM-DD HH24:MI')$0
