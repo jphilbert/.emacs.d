@@ -85,7 +85,7 @@ If function is nil the key is unset."
  [(f2)]                 'occur
  [(f3)]			    'fold-dwim-toggle
  [(shift f3)]           'fold-dwim-toggle-all
- [(f4)]			    'ispell-word
+ [(f7)]			    'ispell-word	; MS uses F7
  [(f5)]                 'linum-mode
  [(f6)]                 'explorer
 

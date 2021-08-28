@@ -23,7 +23,7 @@
 (add-hook 'python-mode-hook		'my-python-mode-hook)
 (defun my-python-mode-hook ()
   (interactive)
-  (ac-anaconda-setup)  
+  ;; (ac-anaconda-setup)  
   ;; (auto-complete)
   
   (hs-minor-mode t)
