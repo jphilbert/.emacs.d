@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: fixme
+# key: fixme
+# --
+`(let*
+    ((comment (string-trim comment-start))
+	(comment
+	 (concat comment
+		    (when (and (eq (length comment) 1)
+					(eq (count-matches "[^[:space:]]"
+								    (line-beginning-position)
+								    (point)) 0))
+			 comment))))
+  comment)` FIX-ME: $0`comment-end`

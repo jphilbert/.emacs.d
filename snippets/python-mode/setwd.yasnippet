@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: setwd
+# key: setwd
+# --
+os.chdir(
+    os.path.expanduser(
+        "${1:`(abbreviate-file-name (file-name-directory (buffer-file-name)))`}"))
+$0

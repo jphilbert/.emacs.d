@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: todo
-# key: todo
-# --
-`(when (eq
-	  (count-matches "[^[:space:]]"
-				  (line-beginning-position) (point)) 0)
-  comment-start)``comment-start` TO-DO: $0`comment-end`
