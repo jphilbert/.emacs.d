@@ -1,399 +1,555 @@
-;; ----------------------------------------------------------------------------
-;; init.el (Global Options)
-;; ----------------------------------------------------------------------------
-(require 'cl)
-(setq start-time (current-time))
+;; ------------------------------------------------------------------------- ;;
+;; Package Setup
+;; ------------------------------------------------------------------------- ;;
+;; Add Packages in ~/.emacs.d/lisp Directory
+(defconst user-package-dir
+  (expand-file-name (concat user-emacs-directory "lisp/"))
+  "Location to place file backups, auto-saves, and recovery file list")
+(normal-top-level-add-to-load-path
+ (directory-files
+  user-package-dir t
+  ;; Folders (basically anything with out a . (except _this_ directory))
+  "\\`[[:alnum:]_-]+\\'\\|\\`\\.\\'"))
 
-;; maps path of emacs files
-(let ((default-directory "~/.emacs.d/elpa/user/"))
-      (normal-top-level-add-subdirs-to-load-path))
-(add-to-list 'load-path "~/.emacs.d/settings/")
-(add-to-list 'load-path "~/.emacs.d/settings/modes/")
+;; Load USE-PACKAGE
+(eval-when-compile
+  (require 'use-package))
 
-(require 'user)
+(use-package package
+  :config
+  (add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
+  (package-initialize))
+
+
+ 
+;; ------------------------------------------------------------------------- ;;
+;; Directories / Backups
+;; ------------------------------------------------------------------------- ;;
+;; Put autosave files (ie #foo#) and backup files (ie foo~) in ~/.emacs.d/
+(defconst emacs-backup-dir
+  (let* ((dir "backups/")
+	    (dir (concat user-emacs-directory dir)))
+    (make-directory dir t)
+    dir)
+  "Location to place file backups, auto-saves, and recovery file list")
+
+(setq-default
+ ;; ---------- Backups Directory and Naming ---------- ;;
+ ;; [!] Backups (i.e. versions)
+ backup-directory-alist			`((".*" . ,emacs-backup-dir))
+ ;; [#] Auto-saves are done after altering but before saving
+ auto-save-file-name-transforms    `((".*"  ,emacs-backup-dir t))
+ ;; Auto-save List (for recover-session)
+ auto-save-list-file-name		(concat emacs-backup-dir
+								   "auto-save-list "
+								   (format-time-string "%Y%m%d-%H%M%S")
+								   ".txt")
+ ;; [.#] Locks are done in the same path (not to be confused with Auto-saves)
+ create-lockfiles				nil
+
+ ;; ---------- Backup Settings ---------- ;;
+ version-control			t	; Use version numbers for backups.
+ kept-new-versions			2	; Number of newest versions to keep.
+ kept-old-versions			0	; Number of oldest versions to keep.
+ delete-old-versions		t	; Don't ask to delete excess backup versions.
+ backup-by-copying			t	; Copy all files, don't rename them.
+
+ ;; ---------- Desktop Saving ---------- ;;
+ desktop-path				 `(,emacs-backup-dir "~")
+ ;; desktop-base-file-name
+ desktop-load-locked-desktop	t
+ desktop-restore-eager		5
+ desktop-restore-frames		nil
+ )
+
+;; ---------- Create Backup After Each Save ---------- ;;
+(advice-add 'backup-buffer :before #'(lambda () (setq buffer-backed-up nil)))
+(add-hook 'before-save-hook  'backup-buffer)
+
+;; ---------- Turn On Desktop Saving ---------- ;;
+(desktop-save-mode)  
+
+;; ---------- Opens Files with Emacs ---------- ;;
+(use-package server
+  :config
+  (defun server-ensure-safe-dir (dir) t) ; Suppresses common windows error
+  
+  (setq server-auth-dir emacs-backup-dir) ; change the server directory
+  ;; !!! if changed, batch file needs option "-f %path/server_file%"
+
+  (server-force-delete)				; just in case delete
+  (server-start)					; start the server
+  )
 
 
 ;; ----------------------------------------------------------------------------
 ;; General Settings
 ;; ----------------------------------------------------------------------------
 (setq-default
- comment-auto-fill-only-comments	t	; but only for comments
+ user-full-name				"John P. Hilbert"
+ user-mail-address				"jphilbert@gmail.com"
+ 
+ fill-column					80
+ tab-width					5
+ comment-auto-fill-only-comments	t	; Don't fill except for comments
  inhibit-startup-screen			t	; No Splash Screen
  visible-bell					t	; No Beep
- fill-column					80
- x-select-enable-clipboard		t
- redisplay-dont-pause			t
+ x-select-enable-clipboard		t	; yank to MS clipboard
+ ;; redisplay-dont-pause			t	; > obsolete <
  scroll-preserve-screen-position	1	; Keeps cursor in one spot
- delete-old-versions			t	; delete backups
  delete-by-moving-to-trash		t	; use recycling bin
+ ediff-split-window-function		'split-window-horizontally
+ 
+ completion-ignore-case			t
+ 
+ ;; ---------- Scratch ---------- ;;
+ initial-scratch-message		";; ---------- Scratch Buffer ---------- ;;\n"
+ initial-major-mode				'emacs-lisp-mode
+ 
+ ;; ---------- Command Interpreter ---------- ;;
+ ansi-color-for-comint-mode        t
  comint-use-prompt-regexp		t	; fixes the weird prompt highlighting
+ comint-scroll-to-bottom-on-input	t
+ comint-scroll-to-bottom-on-output	t
+ comint-move-point-for-output		t
+ comint-prompt-read-only			nil
+
+ ;; ---------- Abbreviations ---------- ;;
+ save-abbrevs					nil
+ abbrev-file-name				(concat user-emacs-directory "abbrev_defs")
+ directory-abbrev-alist
+(append
+  directory-abbrev-alist
+  '(("~/desktop/"
+	.	 "~/OneDrive - UPMC/desktop/")
+    ("~/custom/"
+	.	"X:/Data Analysis/Data Analysis(Custom)/")
+    ("~/dohe/"
+	.	"X:/Data Analysis/Data Analysis(DeptUsers)/")
+    ("~/dev/"
+	.	"X:/Data Analysis/Data Analysis(DeptUsers)/Development Team/")
+    ("~/sci/"
+	.	"X:/Data Analysis/Data Analysis(DeptUsers)/Science_Team/")))
+ 
  )
 
-(add-hook
- 'text-mode-hook 'turn-on-auto-fill)	; Auto-Fill (Comments Only)
-(cua-mode			t)				; CUA mode
-(defalias 'yes-or-no-p 'y-or-n-p)		; Simplify Questions
-
+;; Substitute y/n for yes/no
+(defalias 'yes-or-no-p 'y-or-n-p)
 
 ;; Prevent annoying "Active processes exist" query when you quit
 (defadvice save-buffers-kill-emacs (around no-query-kill-emacs activate)
   "Prevent annoying \"Active processes exist\" query when you quit Emacs."
   (flet ((process-list ())) ad-do-it))
 
-(setq-default ediff-split-window-function 'split-window-horizontally)
 
-;; Scratch Buffer
-(setq-default
- initial-scratch-message
- ";; --------------- Scratch Buffer ---------------
-"
- initial-major-mode 'emacs-lisp-mode)
+;; Auto-Fill text modes
+(add-hook	'text-mode-hook	'turn-on-auto-fill)	
 
-;; Common terminal defaults
-(setq-default
- ansi-color-for-comint-mode             t
- comint-scroll-to-bottom-on-input	t
- comint-scroll-to-bottom-on-output	t
- comint-move-point-for-output           t
- comint-prompt-read-only                nil)
+;; enable PRETTY-LAMBDA-MODE
+(add-to-list 'pretty-lambda-auto-modes 'python-mode)
+(pretty-lambda-for-modes)		
 
-;; Change Tab Stops
-(setq-default tab-width 5)
-;; (setq-default tab-stop-list (number-sequence 5 120 5))
-
-(message "SETTING - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
+;; Various Minor Modes
+(tooltip-mode				0)		; been causing lag in various modes  
+(cua-mode					t)	
+(fringe-mode                  0)	     ; Removes fringes
+(global-visual-line-mode		t)	     ; Word Wrapping
+(global-font-lock-mode		t)	     ; Syntax Coloring
+(delete-selection-mode		t)	     ; Entry deletes marked text
+(show-paren-mode			t)	     ; Highlight pairs
+(mouse-avoidance-mode		'jump)    ; Moves cursor out of way
+(tool-bar-mode				0)	     ; No Tool Bar
+(menu-bar-mode				0)	     ; No Menu Bar
+(toggle-scroll-bar			nil)	     ; no scroll bars
+(electric-pair-mode)				; turn on auto pairing
 
 
-;; -----------------------------------------------------------------------------
-;; Packages
-;; -----------------------------------------------------------------------------
-(require 'package)
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
-(when (< emacs-major-version 24)
-  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
-(package-initialize)
-
-(message "PACKAGES - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-;; -----------------------------------------------------------------------------
-;; Directories / Backups
-;; -----------------------------------------------------------------------------
-(make-directory "~/.emacs.d/server/" t)
-(make-directory "~/.emacs.d/backups/" t)
-(make-directory "~/.emacs.d/autosaves/" t)
-
-;; Put autosave files (ie #foo#) and backup files (ie foo~) in ~/.emacs.d/.
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(auto-save-file-name-transforms (quote ((".*" "~/.emacs.d/autosaves/" t))))
- '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backups/")))))
-
-(message "DIRECTORIES / BACKUPS - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-;; -----------------------------------------------------------------------------
-;; Opens Files with Emacs (if Emacs is running)
-;; -----------------------------------------------------------------------------
-(require 'server)
-(defun server-ensure-safe-dir (dir) "Noop" t) ; Suppress common windows error
-(server-start)
-
-(message "SERVER - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-;; ----------------------------------------------------------------------------
-;; Tiny Tools
-;; ----------------------------------------------------------------------------
-;; (require 'tinybuffer nil t)		
-(require 'tinyef)
-(require 'tinyeat)
-(add-hook 'tinyef-load-hook 'tinyef-minibuffer-define-key-extras)
-(setq tinyeat--load-hook '(tinyeat-install))
 
 
-;; ----------------------------------------------------------------------------
-;; Aspell
-;; ----------------------------------------------------------------------------
-(add-to-list 'exec-path "C:/ProgramData/Aspell/bin") ;if not in path
-(setq-default ispell-program-name "aspell.exe")
-(setq ispell-list-command "list"
-      ispell-extra-args '("--sug-mode=fast"))
-(add-hook 'text-mode-hook
-	  '(lambda() (flyspell-mode t)))
-
-(message "TINY TOOLS / ASPELL - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-;; ----------------------------------------------------------------------------
-;; Completion
-;; ----------------------------------------------------------------------------
-;; Auto Complete
-(require 'auto-complete-config)
-(require 'my-pos-tip)			; For better Tool Tips
-
-(ac-config-default)
-(global-auto-complete-mode t)
-
-(defun ac-common-setup ()
-  (setq ac-sources (append ac-sources '(ac-source-yasnippet
-								ac-source-filename))))
-
-(delete 'font-lock-string-face ac-disable-faces)
-
-(setq-default
- ac-quick-help-delay		5
- ac-show-menu-immediately-on-auto-complete nil
- ac-ignore-case			nil
- ;; (setq-default ac-auto-show-menu nil)
- ac-auto-show-menu			nil
- ac-auto-start				2)
-
-(ac-flyspell-workaround)
-
-(defun ac-prefix-valid-file ()
-  "Existed (or to be existed) file prefix."
-  (let* ((line-beg (line-beginning-position))
-         (end (point))
-         (start (or (let ((point (re-search-backward
-						    ;; Added additional characters
-						    "[\"\(\[`<>'= \t\r\n]"
-						    line-beg t)))
-                      (if point (1+ point)))
-                    line-beg))
-         (file (buffer-substring start end)))
-    (if (and file (or (string-match "^/" file)
-				  (and (setq file (and (string-match "^[^/]*/" file)
-								   (match-string 0 file)))
-					  (file-directory-p file))))
-	   (unless (ac-windows-remote-file-p file)
-		start))))
-
-(define-key ac-completing-map (kbd "<tab>")	'ac-next)
-(define-key ac-completing-map [(return)]	'ac-complete)
-
-(message "AC - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-
-;; Icicles
-(require 'icicles)
-(setq icicle-show-Completions-help-flag		nil
-      icicle-candidate-width-factor		100
-      icicle-Completions-display-min-input-chars 2
-      completion-ignore-case			t
-      icicle-change-region-background-flag	t
-      icicle-region-background			"black")
-(icy-mode t)
-
-(message "ICICLES - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-
-;; Abbrev-Mode
-(setq save-abbrevs nil)
-(setq abbrev-file-name				;; tell emacs where to read abbrev
-	 "~/.emacs.d/abbrev_defs")		;; definitions from...
-
-;; ----------------------------------------------------------------------------
-;; Dired+
-;; ----------------------------------------------------------------------------
-(require 'dired+)
-(toggle-diredp-find-file-reuse-dir 1)
-(diredp-make-find-file-keys-reuse-dirs)
-
-;; ----------------------------------------------------------------------------
-;; Buffer Control
-;; ----------------------------------------------------------------------------
-;; Remove Needless Buffers
-;;	Removes all *--* buffers after 5s of idle and others every 1d
-;;	Active process / unsaved work / etc is safe
-(require 'midnight)
-(setq clean-buffer-list-kill-regexps	'("^\\*.*\\*$")
-      clean-buffer-list-delay-special	0
-      clean-buffer-list-delay-general	1)
-(run-with-idle-timer 5 5 'clean-buffer-list)
-
-;; advise to remove messages
-(defun my-clean-buffer-list (orig-fun &rest args)
-  (cl-letf (((symbol-function 'message) #'format))
-    (apply orig-fun args)))
-
-(advice-add 'clean-buffer-list :around #'my-clean-buffer-list)
-
-
-;; ----------------------------------------------------------------------------
-;; Snippets
-;; ----------------------------------------------------------------------------
-(require 'yasnippet)
-(yas-global-mode 1)
-
-(message "YAS - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-;; ------------------------------------------------------------------------- ;;
-;; Folding
-;; ------------------------------------------------------------------------- ;;
-(require 'fold-dwim)
-(setq-default hs-hide-comments-when-hiding-all	nil
-		    hs-allow-nesting			t)
-
-;; (add-to-list 'hs-special-modes-alist '(css-mode "{" "}" "/[*/]" nil nil))
-
-;; Toggle Folding on Whole Buffer
-(defvar fold-dwim-toggle-all-state nil
-  "Saves the state of the folding of the document.")
-
-(make-variable-buffer-local 'fold-dwim-toggle-all-state)
-
-(defun fold-dwim-toggle-all ()
-  "Toggles the document's folding.  This is not smart in that it
-does the opposite of what it did last so it may be wrong if
-`fold-dwim-show-all' or `fold-dwim-hide-all' was executed with
-out it knowing."
-  (interactive)
-  (if fold-dwim-toggle-all-state
-      (fold-dwim-show-all)
-    (fold-dwim-hide-all))
-  (setq fold-dwim-toggle-all-state
-	   (not fold-dwim-toggle-all-state)))
-
-
-;; ----------------------------------------------------------------------------
-;; Buffer Window
-;; ----------------------------------------------------------------------------
-(setq-default bs-attributes-list
-		    '((""		1 1 left bs--get-marked-string)
-			 ("M"		1 1 left bs--get-modified-string)
-			 ("R"		2 2 left bs--get-readonly-string)
-			 ("Buffer"	bs--get-name-length 10 left bs--get-name)
-			 (""		2 2 left "  ")
-			 ("Size"		8 8 right bs--get-size-string)
-			 (""		2 2 left "  ")
-			 ("Mode"		16 16 middle bs--get-mode-name)
-			 (""		2 2 left "  ")))
-
-
-(message "DWIM / BUFFER - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-;; --------------------------------------------------------------------------
-;; GIT
-;; --------------------------------------------------------------------------
-;; just don't know how to use this yet...
-;; (require 'egg nil t)
-;; (require 'gist nil t)
-
-
-;; -----------------------------------------------------------------------------
-;; Miscellaneous Packages
-;; -----------------------------------------------------------------------------
-(require 'expand-region)		; Expand regions
-(require 'websearch)		; Search web functionality
-(require 'misc)			; Miscellaneous User created functions
-
-(message "MISC PACK - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-;; -----------------------------------------------------------------------------
-;; Key-Binding
-;; -----------------------------------------------------------------------------
-(require 'keybinding nil t)	; General Key-binding Setup
-(require 'mouse3)			; Additional Mouse Button functions
-
-;; ----------------------------------------------------------------------------
-;; Modes
-;; ----------------------------------------------------------------------------
-(require 'lisp-setup nil t)
-(message "LISP-SETUP - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-(require 'sql-setup nil t)
-(message "SQL-SETUP - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-(require 'r-setup nil t)
-(message "R-SETUP - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-(require 'python-setup nil t)
-(message "PYTHON-SETUP - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
-
-;; (require 'latex-setup nil t)
-(require 'web-setup nil t)
-(require 'shell-setup nil t)
-(require 'powershell-setup nil t)
-
-(require 'markdown-mode)
-(setq-default markdown-command "multimarkdown")
-(add-hook 'markdown-mode-hook
-		'(lambda()
-		   (auto-complete-mode)
-		   (auto-fill-mode 0)
-		   (setq tab-width 2)
-		   (setq fill-column 99999999)
-		   (setq electric-pair-pairs
-			    '((?`. ?`)))))
-
-(define-many-keys markdown-mode-map
-  ;; ---------- Evaluation ----------
-  [(shift return)]		'markdown-preview
-  
-  ;; ---------- Styles ----------
-  (kbd "C-i")			'markdown-insert-italic
-  (kbd "C-b")			'markdown-insert-bold
-  (kbd "C-l")			'markdown-insert-link
-  (kbd "C-j")			'markdown-insert-code
-  
-
-  ;; ---------- Hide-Show ----------
-  [(f3)]			     'markdown-hide-subtree
-  [(shift f3)]           'markdown-show-subtree
-  
-  ;; ---------- Help ----------
-  "\C-hf"      	'(lambda ()
-				   (interactive)
-				   (browse-url
-   "https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet")
-				   )
-  [(S-f1)]		'(lambda ()
-				   (interactive)
-				   (browse-url
-   "https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet")
-				   )
-  (kbd "C-h w")   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point nil "markdown "))
-  )
-
-(message "MISC MODES - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
 
 
 ;; -----------------------------------------------------------------------------
 ;; Aesthetics
 ;; -----------------------------------------------------------------------------
-(require 'aesthetics)		; Near the end of file (due to mode dependencies
-						; among other things)
-(require 'frame-settings)	; Setup frames
+(use-package aesthetics)	
+(use-package frame-settings)	; Setup frames
 
-;; Tooltip-mode has been causing lag in various modes so just disabling it
-(tooltip-mode -1)
 
-(message "AESTHETICS - Time: %.03fs\n" (float-time (time-since start-time)))
-(setq start-time (current-time))
+
+
+
+
+;; ------------------------------------------------------------------------- ;;
+;; Miscellaneous user created functions
+(use-package misc-user-functions) 		    
+
+(use-package fold-dwim
+  :commands
+  (fold-dwim-toggle   
+   fold-dwim-show
+   fold-dwim-hide
+   fold-dwim-toggle-all
+   fold-dwim-show-all
+   fold-dwim-hide-all)
+
+  :init
+  ;; Toggle Folding on Whole Buffer
+  (defvar fold-dwim-toggle-all-state
+    nil
+    "Saves the state of the folding of the document.")
+  (make-variable-buffer-local 'fold-dwim-toggle-all-state)
+
+  (defun fold-dwim-toggle-all ()
+    "Toggles the document's folding.  This is not smart in that it does the
+opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
+`fold-dwim-hide-all' was executed with out it knowing."
+    (interactive)
+    (if fold-dwim-toggle-all-state
+	   (fold-dwim-show-all)
+      (fold-dwim-hide-all))
+    (setq fold-dwim-toggle-all-state
+		(not fold-dwim-toggle-all-state)))
+  
+  :custom
+  (hs-hide-comments-when-hiding-all	nil)
+  (hs-allow-nesting					t)
+  )
+
+(use-package subr-x
+  :commands string-trim)
+
+(use-package tinylibm
+  :commands ti::definteractive)
+
+;; Expand Regions via S-SPC
+(use-package expand-region)
+
+;; (E)lectric (F)ile minor mode for mini-buffer
+(use-package tinyef
+  :hook (minibuffer-setup . turn-on-tinyef-mode))
+
+;; Killing / Moving / Joining text in buffers
+(use-package tinyeat
+  :commands
+  (tinyeat-kill-line
+   tinyeat-kill-line-backward
+   tinyeat-kill-buffer-lines-point-max
+   tinyeat-kill-buffer-lines-point-min
+   tinyeat-forward-preserve
+   tinyeat-backward-preserve
+   tinyeat-delete-paragraph
+   tinyeat-zap-line
+   tinyeat-join-lines))
+
+
+
+
+
+
+
+;; ------------------------------------------------------------------------- ;;
+;; Spelling / Auto Complete / Snippets / Web Search
+;; ------------------------------------------------------------------------- ;;
+;; Spell Check
+(use-package ispell
+  :commands ispell-mode
+  :init
+  ;; Add to path if not already there   
+  (add-to-list 'exec-path		"C:/ProgramData/Aspell/bin")
+  
+  :custom
+  (ispell-program-name			"aspell.exe")
+  (ispell-list-command			"list")
+  (ispell-extra-args			'("--sug-mode=fast")))
+
+(use-package flyspell
+  :commands (flyspell-prog-mode flyspell-mode)
+  :hook (text-mode . flyspell-mode))
+
+;; Auto Complete
+(use-package auto-complete-config
+  :config
+  (ac-config-default)
+
+  (setq-default
+   ac-quick-help-delay					5
+   ac-show-menu-immediately-on-auto-complete	nil
+   ac-ignore-case						nil
+   ;; ac-auto-show-menu						nil
+   ac-auto-show-menu					nil
+   ac-auto-start						2)
+
+  (ac-flyspell-workaround)				; :after flyspell
+  
+  (delete 'font-lock-string-face ac-disable-faces)
+
+  ;; (defun ac-common-setup ()
+  ;;   (setq ac-sources (append ac-sources '(ac-source-yasnippet
+  ;; 								ac-source-filename))))
+
+  (defun ac-prefix-valid-file ()
+    "Existed (or to be existed) file prefix."
+    (let* ((line-beg (line-beginning-position))
+		 (end (point))
+		 (start (or (let ((point (re-search-backward
+							 ;; Added additional characters
+							 "[\"\(\[`<>'= \t\r\n]"
+							 line-beg t)))
+				    (if point (1+ point)))
+				  line-beg))
+		 (file (buffer-substring start end)))
+	 (if (and file (or (string-match "^/" file)
+				    (and (setq file (and (string-match "^[^/]*/" file)
+									(match-string 0 file)))
+					    (file-directory-p file))))
+		(unless (ac-windows-remote-file-p file)
+		  start))))
+
+  ;; ---------- Keys ---------- ;;
+  (define-keys		ac-completing-map
+    (kbd "<tab>")		'ac-next
+    [(return)]			'ac-complete)
+
+  ;; ---------- Faces ---------- ;;
+  (set-face-attribute 'ac-candidate-face nil
+				  :font "envy code r"
+				  :height 100
+				  :background "#00222c"
+				  :foreground "light gray")
+  (set-face-attribute 'ac-selection-face nil
+				  :inherit 'ac-candidate-face
+				  :background "SteelBlue4"
+				  :foreground "white")
+
+  (set-face-attribute 'ac-yasnippet-candidate-face nil
+				  :inherit 'ac-candidate-face
+				  :slant 'italic				
+				  :foreground "sandybrown")
+  (set-face-attribute 'ac-yasnippet-selection-face nil
+				  :inherit 'ac-selection-face
+				  :slant 'italic)
+  )
+
+;; Icicles
+(use-package icicles
+  :custom
+  (icicle-show-Completions-help-flag			nil)
+  (icicle-candidate-width-factor				100)
+  (icicle-Completions-display-min-input-chars	2)
+  (icicle-change-region-background-flag			t)
+  (icicle-region-background					"black")
+  
+  :config
+  (icy-mode t))
+
+;; Snippets
+(use-package yasnippet
+  :after keybinding
+  :config
+  (yas-global-mode 1)
+  (define-keys			yas-keymap
+    (kbd "<delete>")		(yas-filtered-definition
+						 yas-maybe-clear-field)
+    (kbd "<C-delete>")		(yas-filtered-definition
+						 yas-maybe-skip-and-clear-field)))
+
+;; Tool Tip Formatting
+(use-package my-pos-tip
+  :commands pos-tip-show
+  :config
+  (set-face-attribute 'popup-tip-face nil
+				  :font		"envy code r"
+				  :height		90
+				  :background	"#00222c"
+				  :foreground	"light gray"))			
+
+;; Provide web searching functionality
+(use-package websearch)
+
+;; ------------------------------------------------------------------------- ;;
+;; Buffer Stuff
+;; ------------------------------------------------------------------------- ;;
+;; Cleanup 
+;;	Removes all *--* buffers after 5s of idle and others every 1d
+;;	Active process / unsaved work / etc is safe
+(use-package midnight
+  :config
+  (setq
+   clean-buffer-list-kill-regexps		'("^\\*.*\\*$")
+   clean-buffer-list-delay-special		0
+   clean-buffer-list-delay-general		1
+   ;; Create a timer
+   timer-midnight
+   (run-with-idle-timer
+    10 t							; idle for 10s every time (t)
+    '(lambda ()
+       "Wrapper to for `clean-buffer-list' to remove messages.
+		Use (cancel-timer timer-midnight) to cancel."
+       (cl-letf
+	   (((symbol-function 'message) #'format))
+	 (clean-buffer-list))))))
+
+;; Buffer Window
+(use-package bs
+  :commands bs-show
+  :custom
+  (bs-attributes-list   
+   '((""		1 1 left bs--get-marked-string)
+     ("M"	1 1 left bs--get-modified-string)
+     ("R"	2 2 left bs--get-readonly-string)
+     ("Buffer"	bs--get-name-length 10 left bs--get-name)
+     (""		2 2 left "  ")
+     ("Size"	8 8 right bs--get-size-string)
+     (""		2 2 left "  ")
+     ("Mode"	16 16 middle bs--get-mode-name)
+     (""		2 2 left "  "))))
+
+;; DIR Window
+(use-package dired+
+  :commands dired
+  :config
+  (toggle-diredp-find-file-reuse-dir 1)
+  (diredp-make-find-file-keys-reuse-dirs))
+
 
 ;; -----------------------------------------------------------------------------
-;; Desktop Load
+;; Key-Binding
 ;; -----------------------------------------------------------------------------
-(desktop-save-mode 1)  
-(setq-default desktop-load-locked-desktop t)
-(add-hook 'desktop-after-read-hook 'kill-duplicate-frames)
+(use-package keybinding)			; General Key-binding Setup
+(use-package mouse3)			; Additional Mouse Button functions
 
 
+;; ----------------------------------------------------------------------------
+;; Modes
+;; ----------------------------------------------------------------------------
+(use-package lisp-setup
+  :hook ((emacs-lisp-mode		. my-lisp-mode-hook)
+	    (lisp-mode				. my-lisp-mode-hook)
+	    (lisp-interaction-mode	. my-lisp-mode-hook))
+  :init
+  (message ">>> :init lisp-setup")
+
+  :config
+  (message ">>> :config lisp-setup"))
+
+(use-package comint
+  :commands comint-mode
+  :config
+  (define-keys		comint-mode-map
+    [C-down]			'comint-next-prompt
+    [C-up]			'comint-previous-prompt
+    ;; These are nice (forget about previous/next-input)
+    [down]			'comint-next-matching-input-from-input
+    [up]				'comint-previous-matching-input-from-input
+    [S-C-up]			'previous-line
+    [S-C-down]			'next-line
+    
+    ;; ---------- Help ----------
+    (kbd "C-h f")   	'man-at-point 
+    [(f1)]			'(lambda ()
+					   (interactive)
+					   (google-query-at-point t "bash "))
+    (kbd "C-h w")   	'(lambda ()
+					   (interactive)
+					   (google-query-at-point nil "bash "))
+
+    ;; ---------- Frame Switching ----------
+    [(f12)]			'switch-frame-previous
+    [S-f12]              'shell-new)
+  )
+
+(use-package r-setup
+  ;; :mode ("\\.r\\'"			. ess-mode)
+  )
+
+(use-package sql-setup
+  ;; :mode ("\\.sql\\'"		. sql-mode)
+  )
+
+(use-package python-setup
+  :mode ("\\.py\\'"			. python-mode)
+  )
+
+(use-package markdown-mode
+  :commands markdown-mode
+  :init
+  (message "init run")
+
+  :hook
+  (markdown-mode-hook
+   . (lambda ()
+	  (message "hook run")
+	  (auto-complete-mode)
+	  (auto-fill-mode 0)
+	  (setq
+	   tab-width				2
+	   fill-column				99999999
+	   electric-pair-pairs		'((?`. ?`)))
+
+	  (define-keys
+	    markdown-mode-map
+	    ;; ---------- Evaluation ----------
+	    [(shift return)]		markdown-preview
+
+	    (kbd "<tab>")			tab-to-tab-stop
+	    ;; ---------- Styles ----------
+	    (kbd "C-i")	          markdown-insert-italic
+	    (kbd "C-b")	          markdown-insert-bold 
+	    (kbd "C-l")	          markdown-insert-link 
+	    (kbd "C-j")	          markdown-insert-code 
+	    
+	    ;; [(f3)]				markdown-shifttab
+	    
+	    ;; ---------- Hide-Show ----------
+	    [(f3)]				markdown-hide-subtree
+	    [(shift f3)]			markdown-show-subtree
+	    
+	    ;; ---------- Help ----------
+	    "\C-hf"		(lambda ()
+					  (interactive)
+					  (browse-url
+					   (concat "https://github.com/adam-p/markdown-here"
+							 "/wiki/Markdown-Cheatsheet")))
+	    [(S-f1)]	     (lambda ()
+					  (interactive)
+					  (browse-url
+					   (concat "https://github.com/adam-p/markdown-here"
+							 "/wiki/Markdown-Cheatsheet")))
+	    (kbd "C-h w")	(lambda ()
+					  (interactive)
+					  (google-query-at-point nil "markdown ")))
+	  ))
+
+  :custom
+  (markdown-command			"multimarkdown")
+
+  :config
+  (message "config run")
+  (message "%s" markdown-command)
+
+  )
+
+(use-package yaml-mode
+  :mode ("\\.ya?ml\\'"		. yaml-mode)
+  :bind (:map yaml-mode-map
+		    ("\C-m"		. newline-and-indent)))
+
+
+
+;; (autoload 'python-mode "python-setup")
+;; (autoloadp (symbol-function 'python-mode))
+
+;; (require 'sql-setup nil t)
+;; (require 'r-setup nil t)
+;; (require 'python-setup nil t)
+
+;; (require 'latex-setup nil t)
+;; (require 'web-setup nil t)
+;; (require 'shell-setup nil t)
+;; (require 'powershell-setup nil t)
+
+;; (require 'ehelp nil t)
+;; (global-set-key "\C-h" 'ehelp-command)
+
+(message "tooltip mode is %s" tooltip-mode)
