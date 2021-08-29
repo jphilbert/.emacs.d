@@ -2,7 +2,7 @@
 ;; Python Mode Setup
 ;; ----------------------------------------------------------------------------
 (provide 'python-setup)
-(require 'python)
+;; (require 'python)
 
 ;; requires ac-anaconda
 ;; requires anaconda-mode
@@ -27,7 +27,8 @@
 ;; (setq python-shell-interpreter		; python.exe does not support pyplot
 ;; 	 "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/python.exe")
 
-(setq-default python-shell-interpreter	; USE THIS
+; USE THIS
+(setq-default python-shell-interpreter
 		    "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/Scripts/ipython.exe")
 
 
@@ -40,7 +41,6 @@
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(add-hook 'python-mode-hook		'my-python-mode-hook)
 (defun my-python-mode-hook ()
   (interactive)
   ;; (anaconda-mode)
@@ -58,7 +58,6 @@
   (turn-on-auto-fill)
   )
 
-(add-hook 'inferior-python-mode-hook	'my-inferior-python-mode-hook)
 (defun my-inferior-python-mode-hook ()
   ;; (jedi:setup)
   (auto-complete)

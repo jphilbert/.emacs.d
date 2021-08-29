@@ -3,20 +3,16 @@
 ;; ----------------------------------------------------------------------------
 (provide 'shell-setup)
 
-(require 'interactive-shell nil t)
-(require 'ntcmd nil t) 
-
+(require 'interactive-shell)
+(require 'ntcmd) 
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(add-to-list 'auto-mode-alist '("\\.bat\\'" . ntcmd-mode))
-(add-hook 'ntcmd-mode-hook 'my-bat-mode-hook)
 (defun my-bat-mode-hook ()
   (auto-fill-mode nil)
    )
 
-(add-hook 'shell-mode-hook 'my-shell-mode-hook)
 (defun my-shell-mode-hook ()
   (auto-fill-mode nil)
   (text-scale-set -1.1)

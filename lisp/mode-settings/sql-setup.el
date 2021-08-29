@@ -2,14 +2,14 @@
 ;; SQL MODE
 ;; ----------------------------------------------------------------------------
 (provide 'sql-setup)
-(require 'sql)
+;; (require 'sql)
 
 
 ;; SQL Servers (put in secure location)
 (require 'sql-servers "~/OneDrive - UPMC/sql-servers.el" t) 
 
 
-(eval-after-load "sql" '(load-library "sql-indent")) 
+(require 'sql-indent) 
 (add-to-list 'ac-modes 'sql-mode)
 
 (setq sql-ms-program		"C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd.exe"
@@ -34,7 +34,6 @@
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(add-hook 'sql-mode-hook 'my-sql-mode-hook)
 (defun my-sql-mode-hook ()
   (interactive)
 
@@ -60,7 +59,6 @@
   ;; (setq comment-end "*\/") **/
   )
 
-(add-hook 'sql-interactive-mode-hook 'my-sql-interactive-mode-hook)
 (defun my-sql-interactive-mode-hook ()
   (interactive)
   (setq comint-preoutput-filter-functions nil)

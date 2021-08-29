@@ -2,9 +2,10 @@
 ;; R Mode Setup
 ;; ----------------------------------------------------------------------------
 (provide 'r-setup)
-(require 'ess-site)
+;; (require 'ess-site)
 
 (setq-default
+ inferior-R-program-name "~\\R\\R-4.0.2\\bin\\x64\\Rterm.exe"
  inferior-R-args			"--no-restore-history --no-save"
  ess-ask-for-ess-directory     nil			; Suppress ask for directory
  ess-local-process-name		"R"			; Set Process Name
@@ -15,7 +16,6 @@
  ess-eval-visibly-p			nil
  ess-help-own-frame			1
  ess-S-assign-key			(kbd "C-=")	; StatET-like assignment
- inferior-R-program-name "~\\R\\R-4.0.2\\bin\\x64\\Rterm.exe"
  ess-history-file			nil
  ess-default-style			'RStudio
  ;; inferior-ess-r-help-command	".ess.help('%s', 'text')"
@@ -28,8 +28,6 @@
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(add-hook 'ess-mode-hook		'my-r-mode-hook)
-
 (defun my-r-mode-hook ()  
   (interactive)  
 
@@ -46,17 +44,12 @@
   (flyspell-prog-mode)
   )
 
-(add-hook 'inferior-ess-mode-hook	'my-inferior-r-mode-hook)
 (defun my-inferior-r-mode-hook ()
   (text-scale-set -1.1)
 
   (add-to-list 'ac-sources 'ac-source-R-objects)
   (add-to-list 'ac-sources 'ac-source-R-args)
   )
-
-(add-hook
- 'ess-help-mode-hook
- '(lambda () (font-lock-mode t)))
 
 ;; --------------------------------------------------------------------------
 ;; Keybinding

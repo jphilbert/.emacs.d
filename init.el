@@ -11,14 +11,15 @@
   ;; Folders (basically anything with out a . (except _this_ directory))
   "\\`[[:alnum:]_-]+\\'\\|\\`\\.\\'"))
 
-;; Load USE-PACKAGE
+;; Load USE-PACKAGE - Time: 4%
 (eval-when-compile
   (require 'use-package))
 
+;; Time: 10%
 (use-package package
   :config
   (add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
+             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
   (package-initialize))
 
 
@@ -172,13 +173,8 @@
 ;; -----------------------------------------------------------------------------
 ;; Aesthetics
 ;; -----------------------------------------------------------------------------
-(use-package aesthetics)	
-(use-package frame-settings)	; Setup frames
-
-
-
-
-
+(use-package aesthetics)				; Time: 9%
+(use-package frame-settings)			; Setup frames
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Miscellaneous user created functions
@@ -242,12 +238,6 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
    tinyeat-zap-line
    tinyeat-join-lines))
 
-
-
-
-
-
-
 ;; ------------------------------------------------------------------------- ;;
 ;; Spelling / Auto Complete / Snippets / Web Search
 ;; ------------------------------------------------------------------------- ;;
@@ -267,7 +257,7 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
   :commands (flyspell-prog-mode flyspell-mode)
   :hook (text-mode . flyspell-mode))
 
-;; Auto Complete
+;; Auto Complete - Time: 9%
 (use-package auto-complete-config
   :config
   (ac-config-default)
@@ -331,7 +321,7 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
 				  :slant 'italic)
   )
 
-;; Icicles
+;; Icicles - Time: 54%
 (use-package icicles
   :custom
   (icicle-show-Completions-help-flag			nil)
@@ -416,7 +406,7 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
 ;; -----------------------------------------------------------------------------
 ;; Key-Binding
 ;; -----------------------------------------------------------------------------
-(use-package keybinding)			; General Key-binding Setup
+(use-package keybinding)			; General Key-binding Setup - 9%
 (use-package mouse3)			; Additional Mouse Button functions
 
 
@@ -460,26 +450,30 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
   )
 
 (use-package r-setup
-  ;; :mode ("\\.r\\'"			. ess-mode)
+  :hook ((ess-mode				. my-r-mode-hook)
+	    (inferior-ess-mode		. my-inferior-r-mode-hook)
+	    (ess-help-mode			. (lambda () (font-lock-mode t))))
   )
 
 (use-package sql-setup
-  ;; :mode ("\\.sql\\'"		. sql-mode)
+  :hook ((sql-mode				. my-sql-mode-hook)
+	    (sql-interactive-mode	. my-sql-interactive-mode-hook))
   )
 
 (use-package python-setup
-  :mode ("\\.py\\'"			. python-mode)
+  :hook ((python-mode			. my-python-mode-hook)
+	    (inferior-python-mode	. my-inferior-python-mode-hook))
   )
 
 (use-package markdown-mode
   :commands markdown-mode
   :init
-  (message "init run")
+  (message ">>> markdown-mode: init run")
 
   :hook
   (markdown-mode-hook
    . (lambda ()
-	  (message "hook run")
+	  (message ">>> markdown-mode: hook run")
 	  (auto-complete-mode)
 	  (auto-fill-mode 0)
 	  (setq
@@ -525,31 +519,39 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
   (markdown-command			"multimarkdown")
 
   :config
-  (message "config run")
+  (message ">>> markdown-mode: config run")
   (message "%s" markdown-command)
 
   )
 
 (use-package yaml-mode
-  :mode ("\\.ya?ml\\'"		. yaml-mode)
+  :mode "\\.ya?ml\\'"
   :bind (:map yaml-mode-map
-		    ("\C-m"		. newline-and-indent)))
+		    ("\C-m"			. newline-and-indent)))
 
+(use-package shell-setup
+  :mode ("\\.bat\\'"			. ntcmd-mode)
+  :hook ((ntcmd-mode			. my-bat-mode-hook)
+	    (shell-mode			. my-shell-mode-hook)))
 
+(use-package powershell-setup
+  :hook ((powershell-launch		. my-powershell-hook)
+	    (powershell-mode		. my-powershell-mode-hook)))
 
-;; (autoload 'python-mode "python-setup")
-;; (autoloadp (symbol-function 'python-mode))
+;; (use-package json-mode :ensure t
+;;   :mode "\\.json\\'"
+;;   )
 
-;; (require 'sql-setup nil t)
-;; (require 'r-setup nil t)
-;; (require 'python-setup nil t)
+;; (use-package css-mode
+;;   :ensure t
+;;   :defer t
+;;   :mode ("\\.scss\\'" "\\.sass\\'")
+;;   )
 
-;; (require 'latex-setup nil t)
 ;; (require 'web-setup nil t)
-;; (require 'shell-setup nil t)
-;; (require 'powershell-setup nil t)
+;; (require 'latex-setup nil t)
 
+;; https://www.emacswiki.org/emacs/ElectricHelp
 ;; (require 'ehelp nil t)
 ;; (global-set-key "\C-h" 'ehelp-command)
 
-(message "tooltip mode is %s" tooltip-mode)

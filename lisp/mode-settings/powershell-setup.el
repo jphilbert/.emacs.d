@@ -2,19 +2,12 @@
 ;; SHELL Mode Setup
 ;; ----------------------------------------------------------------------------
 (provide 'powershell-setup)
-
-(require 'interactive-shell nil t)
-(autoload 'powershell "powershell"
-  "Start a interactive shell of PowerShell." t)
-(autoload 'powershell-mode "powershell-mode"
-  "A editing mode for Microsoft PowerShell." t)
-(add-to-list 'auto-mode-alist '("\\.ps1\\'" . powershell-mode))
+(require 'interactive-shell)
 
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(add-hook 'powershell-mode-hook 'my-powershell-mode-hook)
 (defun my-powershell-mode-hook ()
   (auto-fill-mode nil)
   (setq shell-buffer-search-string "*PowerShell")
@@ -47,7 +40,6 @@
    (kbd "\'")           'skeleton-pair-insert-maybe
    (kbd "\`")           'skeleton-pair-insert-maybe))
 
-(add-hook 'powershell-launch-hook 'my-powershell-hook)
 (defun my-powershell-hook ()
   (auto-fill-mode nil)
   (text-scale-set -1.1)
@@ -84,7 +76,6 @@
    (kbd "\"")           'skeleton-pair-insert-maybe
    (kbd "\'")           'skeleton-pair-insert-maybe
    (kbd "\`")           'skeleton-pair-insert-maybe))
-
 
 
 ;; --------------------------------------------------------------------------
