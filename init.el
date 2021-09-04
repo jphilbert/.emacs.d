@@ -42,6 +42,8 @@
  ;; [#] Auto-saves are done after altering but before saving
  auto-save-file-name-transforms    `((".*"  ,emacs-backup-dir t))
  ;; Auto-save List (for recover-session)
+ auto-save-list-file-prefix		(concat emacs-backup-dir
+								   "auto-save-list ")
  auto-save-list-file-name		(concat emacs-backup-dir
 								   "auto-save-list "
 								   (format-time-string "%Y%m%d-%H%M%S")
@@ -450,10 +452,10 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
   )
 
 (use-package r-setup
+  :init (require 'ess-site)
   :hook ((ess-mode				. my-r-mode-hook)
 	    (inferior-ess-mode		. my-inferior-r-mode-hook)
-	    (ess-help-mode			. (lambda () (font-lock-mode t))))
-  )
+	    (ess-help-mode			. (lambda () (font-lock-mode t)))))
 
 (use-package sql-setup
   :hook ((sql-mode				. my-sql-mode-hook)
