@@ -60,6 +60,37 @@
 	 (setq mode-line-format nil)
     (setq mode-line-format (default-value 'mode-line-format))))
 
+(defun kill-buffer-smart ()
+  (interactive)
+  (cond
+   ;; 1 frame + 1 window --> save buffer + kill emacs
+   ((= (length (frame-list)) 1)
+    (kill-emacs))
+   
+   ;; N frame
+   ;;		+ 1 window 
+   ((one-window-p)
+    ;;				+ 1 buffer-window --> kill buffer (kill frame)
+    (if (= (length (get-buffer-window-list nil nil t)) 1)
+	   (kill-buffer)
+	 ;;				+ N buffer-window --> kill frame
+	 (kill-frame)))
+   
+   ;;		 + N windows
+   ;;				 + active buffer in N windows --> kill window
+   ((> (length (get-buffer-window-list nil nil t)) 1)
+    (delete-window))
+   ;; ;;				 + active buffer not in upper left --> kill window
+   ;; ((equal (frame-first-window) (selected-window))
+   ;;  (delete-window))
+   
+   ;; OTHERWISE --> kill other windows
+   (t
+    (delete-other-windows))
+   )
+  )
+
+
 ;; ------------------------------------------------------------------------- ;;
 ;; Web Searching
 ;; - require expand-region and websearch
@@ -311,3 +342,5 @@ See also `global-set-keys' and `local-set-keys'"
   'local-set-many-keys #'local-set-keys "2021-8-19")
 (define-obsolete-function-alias
   'define-many-keys #'define-keys "2021-8-19")
+
+

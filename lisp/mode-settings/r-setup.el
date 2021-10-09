@@ -5,20 +5,8 @@
 ;; (require 'ess-site)
 
 (setq-default
- inferior-R-program-name "~\\R\\R-4.0.2\\bin\\x64\\Rterm.exe"
- inferior-R-args			"--no-restore-history --no-save"
- ess-ask-for-ess-directory     nil			; Suppress ask for directory
  ess-local-process-name		"R"			; Set Process Name
- ess-r-args-show-as			'tooltip		; R ARGS as tool tip
- ess-r-args-show-prefix		""			; Remove ARG Prefix
- ess-r-args-noargsmsg		"No Args"
- ess-help-kill-bogus-buffers	t			; Kill silly buffers
- ess-eval-visibly-p			nil
- ess-help-own-frame			1
- ess-S-assign-key			(kbd "C-=")	; StatET-like assignment
- ess-history-file			nil
- ess-default-style			'RStudio
- ;; inferior-ess-r-help-command	".ess.help('%s', 'text')"
+ ess-S-assign-key			(kbd "C-=")	; StatET-like assignment 
 )
 
 (ess-toggle-S-assign-key		t)	     ; enable above key definition
@@ -33,22 +21,25 @@
 
   (hs-minor-mode t)
   (add-to-list 'hs-special-modes-alist
-	       '(ess-mode "{" "}" "/[*/]" nil
-			  hs-c-like-adjust-block-beginning))
+			'(ess-mode "{" "}" "/[*/]" nil
+					 hs-c-like-adjust-block-beginning))
   (hs-hide-all)
-  (turn-on-auto-fill)
-
-  (add-to-list 'ac-sources 'ac-source-R-objects)
-  (add-to-list 'ac-sources 'ac-source-R-args)
-  
+  (setq ac-sources
+	   (append '(ac-source-R-objects
+			   ac-source-R-args
+			   ac-source-yasnippet) ac-sources))
   (flyspell-prog-mode)
+  (turn-on-auto-fill)  
+  (rainbow-delimiters-mode 1)
   )
 
 (defun my-inferior-r-mode-hook ()
   (text-scale-set -1.1)
 
-  (add-to-list 'ac-sources 'ac-source-R-objects)
-  (add-to-list 'ac-sources 'ac-source-R-args)
+  (setq ac-sources
+	   (append '(ac-source-R-objects
+			   ac-source-R-args
+			   ac-source-yasnippet) ac-sources))
   )
 
 ;; --------------------------------------------------------------------------
@@ -87,9 +78,9 @@
   "\C-hH"      	'ess-handy-commands
 
   ;; ---------- Frame Switching ----------
-  [(f12)]              'switch-frame-current-R
-  [S-f12]              'R-process-new
-  [C-f12]              'ess-switch-process
+  [(f12)]			'R-switch-frame-process
+  [S-f12]			'R-process-new
+  [C-f12]			'ess-switch-process
   )
 
 (define-many-keys inferior-ess-mode-map
@@ -125,15 +116,17 @@
   "\C-hH"      	'ess-handy-commands
   
   ;; ---------- Frame Switching ----------
-  [(f12)]          'switch-frame-previous
-  [S-f12]		'R-process-new
-  )
+  [(f12)]			'R-switch-frame-script
+  [S-f12]			'R-process-new
+  ) 
 
 (define-key ess-help-mode-map	"q" 'kill-buffer-or-emacs)
 
 ;; --------------------------------------------------------------------------
 ;; Functions
 ;; --------------------------------------------------------------------------
+
+;; ---------- Evaluation ---------- ;;
 (defun R-eval ()
   "Evaluates R code."
   (interactive)
@@ -150,47 +143,24 @@
 (defun R-eval-region ()
   "Evaluates R region and returns back to current frame."
   (interactive)
-  (save-frame-excursion
-   (call-interactively 'ess-eval-region)
-   (switch-frame-current-R))
+  (call-interactively 'ess-eval-region)
+  (R-raise-frame-process)
   (deactivate-mark))
 
 (defun R-eval-paragraph ()
   "Evaluates R region and returns back to current frame."
   (interactive)
-  (save-frame-excursion
-   (call-interactively 'ess-eval-function-or-paragraph-and-step)
-   (switch-frame-current-R)))
+  (call-interactively 'ess-eval-function-or-paragraph-and-step)
+  (R-raise-frame-process))
 
+
+;; ---------- Process Commands ---------- ;;
 (defun R-process-new ()
   "Creates a new R-process."
   (interactive)
   (save-window-excursion (R))
   (save-frame-excursion
    (switch-frame-previous-R)))
-
-(defun switch-frame-next-R ()
-  "Cycle through the R buffers."
-  (interactive)
-  (switch-frame-next-buffer '("\\*R.*") '("^ ")))
-
-(defun switch-frame-current-R ()
-  "Switch to current R process buffer."
-  (interactive)
-  (let (b)
-  (if (>= (length (switch-frame-buffer-list '("\\*R.*") '("^ "))) 1)
-      (progn
-	(setq b (process-buffer (get-process
-				 ess-current-process-name)))
-	(raise-frame (get-frame b))
-	(set-buffer b)
-	(end-of-buffer-all))
-    (R-process-new))))
-
-(defun switch-frame-previous-R ()
-  "Switch to previous R buffer."
-  (interactive)
-  (switch-frame-previous-buffer '("\\*R") '("^ ")))
 
 (defun R-kill-all-processes ()
   "Kills all R processes and clears the name-list."
@@ -203,7 +173,47 @@
   (mapcar 'kill-buffer (switch-frame-buffer-list '("\\*R.*") '("^ ")))
   (setq ess-process-name-list nil))
 
-;; Pander
+
+;; ---------- Frame Commands ---------- ;;
+(defun R-switch-frame-process ()
+  "Switch to associated process, associate with one, or create one."
+  (interactive)
+  ;; Does current buffer have an associated process?
+  ;; Yes -> raise and select
+  ;; No -> are there processes running?
+  ;; Yes -> associate -> raise
+  ;; No -> create one -> associate -> raise 
+  (ess-switch-to-ESS t))
+
+(defun R-raise-frame-process ()
+  (save-frame-excursion
+   (raise-frame
+    (get-frame (ess-get-process-buffer)))))
+
+(defun R-switch-frame-script ()
+  "Switch to most recent script buffer."
+  (interactive)
+  (let ((dialect ess-dialect)
+	   (loc-proc-name ess-local-process-name)
+	   (blist (cdr (buffer-list))))
+    (while (and blist
+			 (with-current-buffer (car blist)
+			   (not (or (and
+					   (memq major-mode '(ess-mode ess-julia-mode))
+					   (equal dialect ess-dialect)
+					   (null ess-local-process-name))
+					  (and 
+					   (memq major-mode '(ess-mode ess-julia-mode))
+					   (equal loc-proc-name ess-local-process-name))
+					  ))))
+	 (pop blist))
+    (if blist
+	   (ess-show-buffer (car blist) t)
+	 (message "Found no buffers for ess-dialect %s associated with process %s"
+			dialect loc-proc-name))))
+
+
+;; ---------- Echo Results / Pander ---------- ;;
 (defun R-pander-wrap (string)
   (format "pander:::panderOptions('table.alignment.default', 'right')\n
 pander:::pander({%s}, style = \"%s\")\n"
@@ -221,33 +231,53 @@ pander:::pander({%s}, style = \"%s\")\n"
   (interactive)
   (let
 	 ((pt-beg 0)
-	  (pt-end 0))
+	  (pt-end 0)
+	  (comment-str (concat comment-start comment-start " ")))
+    
+    ;; Get the begin and end point of code
     (save-excursion
 	 (unless (region-active-p)
 	   (ess-mark-function-or-para)
 	   (setq pt-end -1))
-		(setq pt-beg (region-beginning))
-		(setq pt-end (+ pt-end (region-end))))
+	 (setq pt-beg (region-beginning))
+	 (setq pt-end (+ pt-end (region-end))))
+    
     (goto-char pt-end)
     (newline)
+    
+    
     ;; (message "%s" (R-pander-wrap (buffer-substring pt-beg pt-end)))
     (ess-command (R-pander-wrap (buffer-substring pt-beg pt-end))
 			  nil nil nil nil (get-process "R"))
+    
     (save-excursion
     	 (set-buffer (get-buffer-create " *ess-command-output*"))
-	 (goto-line 1)
-	 (kill-line 1)
-	 (insert "## ")
+    	 (goto-char (point-min))
+	 
+	 ;; Trim junk lines at the start
+	 (cl-loop
+	  until (or (eobp)
+			  (looking-at "^\\([ ]+\\)\\([[:alnum:]_]+\\)"))
+	  do (kill-line))
+
+	 ;; Insert comments on line
+    	 (insert comment-str)
     	 (cl-loop repeat
-    			(- (count-lines (point-min) (point-max)) 2)
+    			(count-lines (point-min) (point-max))
     			do
     			(forward-line 1)
-    			(insert "## "))
-	 (end-of-line)
-	 (kill-line 2))
+    			(insert comment-str))
+
+	 ;; Trim empty lines at the end (usually 2)
+	 (beginning-of-line)
+	 (cl-loop while
+			(and (not (bobp))
+			    (looking-at (concat "^" comment-str "[[:space:]]*$")))
+			do
+			(forward-line -1))
+	 (kill-region (- (point) 1) (point-max)))
     (insert-buffer-substring " *ess-command-output*"))
-  (ess-next-code-line 1)
-  )
+  (ess-next-code-line 1))
 
 (defun R-pander-style (style)
   "Sets the Pander style for `R-eval-pander'"
@@ -256,41 +286,38 @@ pander:::pander({%s}, style = \"%s\")\n"
 				  '("multiline" "grid" "simple"
 				    "rmarkdown" "jira"))))
   (fset 'R-pander-wrap
-		`(lambda (string)
-		   (format
-		    "pander:::panderOptions('table.alignment.default', 'right')\n
+	   `(lambda (string)
+		 (format
+		  "pander:::panderOptions('table.alignment.default', 'right')\n
 pander:::pander({%s}, style = \"%s\")\n"
-				 string ,style)))
+		  string ,style)))
   )
 
 
-
-;; -----------------------------------------------------------------------------
-;;  Help Functions
-;; -----------------------------------------------------------------------------
+;; ---------- Help Commands ---------- ;;
 (defun R-object-str ()
   "Get info for object at point"
   (interactive)
-  (let ((objname (current-word)))
+  (let ((objname (current-word)))    
     (ess-execute (concat "str(" objname ", max.level = 2)") t nil "INFO: ")
-    (switch-frame-current-R)))
+    (R-raise-frame-process)))
 
 (defun R-object-names ()
   "Get names for object at point"
   (interactive)
-  (let ((objname (current-word)))
+  (let ((objname (current-word)))    
     (ess-execute (concat "names(" objname ")") t nil "INFO: ")
-    (switch-frame-current-R)))
-
+    (R-raise-frame-process)))
+  
 (defun R-object-summaries ()
   "Get summary for object at point"
   (interactive)
-  (let ((objname (current-word t)))
+  (let ((objname (current-word t)))    
     (ess-execute (concat "cat('\n" objname
 					" ', format(object.size(" objname
 					"), units = 'MB', digits = 3), '\n')")
 			  t nil "INFO: ")
-    (switch-frame-current-R)))
+    (R-raise-frame-process)))
 
 (defun R-object-help (object &optional command)
   "This function makes several changes to `ess-display-help-on-object', however
@@ -353,7 +380,7 @@ initially found it automatically shows the help without prompting."
   rownames_to_column('object') %>%
   filter(Mb > 0.5) %>%
   arrange(-Mb)" t nil "INFO: ")
-  )
+  (R-raise-frame-process))
 
 
 
@@ -362,34 +389,12 @@ initially found it automatically shows the help without prompting."
 ;; ------------------------------------------------------------------------- ;;
 (font-lock-add-keywords
  'ess-mode
- '(("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*("
-    1                               ; Signifies which group
-    'font-lock-ess-functions-face)
-   ("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*\\["
-    1                               ; Signifies which group
-    'font-lock-ess-dataframe-face)
-   ("[\\<-][0-9]*\\.?[0-9]+"
-    .
-    'font-lock-number-face)
-   ("\\([<=>]=\\|[!<>&|]\\)[^-]"
-    1
+ '(
+   ;;    ("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*\\["
+   ;;     1                               ; Signifies which group
+   ;;     'font-lock-ess-dataframe-face)
+   ("\\(\\sw\\|\\s\"\\|\\s-\\)\
+\\([<=>]=\\|[!<>]\\|[&|]\\{1,2\\}\\)\
+\\(\\sw\\|\\s\"\\|\\s-\\)"
+    2
     'font-lock-relation-operator-face)))
-
-(font-lock-add-keywords
- 'inferior-ess-mode
- '(("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*("
-    1                               ; Signifies which group
-    'font-lock-ess-functions-face)
-   ("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*\\["
-    1                               ; Signifies which group
-    'font-lock-ess-dataframe-face)
-   ("[\\<-][0-9]*\\.?[0-9]+"
-    .
-    'font-lock-number-face)))
-
-(font-lock-add-keywords
- 'ess-help-mode
- '(("\\(?:Description\\|Usage\\|Arguments\\|Details\\|Value\\|S4 methods\\|References\\|See Also\\|Examples\\):"
-    .
-    'font-lock-ess-help-heading-2-face)))
-

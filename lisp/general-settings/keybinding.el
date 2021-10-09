@@ -74,7 +74,7 @@
  [(f11)]                 'switch-frame-previous
  [(f10)]                 'get-scratch-buffer
  
- (kbd   "C-x k")         'kill-buffer-or-emacs
+ (kbd   "C-x k")         'kill-buffer-smart
  (kbd   "C-S-b")		'bs-show
  (kbd   "C-b")           'display-buffer-other-frame
 
@@ -158,8 +158,8 @@
   "\C-f"				'isearch-repeat-forward
   (kbd "C-S-f")		'isearch-repeat-backward
   (kbd "C-s")			'save-buffer
-  (kbd "C-S-s")		'write-file)
-
+  (kbd "C-S-s")		'write-file
+  "\C-v"				'isearch-yank-pop)
 
 ;; --------------------------------------------------------------------------
 ;; Help

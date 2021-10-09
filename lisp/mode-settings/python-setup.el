@@ -2,73 +2,27 @@
 ;; Python Mode Setup
 ;; ----------------------------------------------------------------------------
 (provide 'python-setup)
-;; (require 'python)
-
-;; requires ac-anaconda
-;; requires anaconda-mode
-
-;; (require 'anaconda-mode)
-
-(custom-set-variables
- '(python-guess-indent nil)
- '(python-indent 4))
-
-(setq jedi:setup-keys		t
-	 jedi:complete-on-dot	t)
-
-;; Set if not in path
-;; Best to set the PATH
-;; Python --> /Anaconda3/python.exe
-;; Conda, PIP, etc. --> /Anaconda3/scripts
-
-;; (setq python-shell-interpreter		; This does not have packages
-;; 	 "C:/ProgramData/Anaconda3/python.exe")
-
-;; (setq python-shell-interpreter		; python.exe does not support pyplot
-;; 	 "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/python.exe")
-
-; USE THIS
-(setq-default python-shell-interpreter
-		    "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/Scripts/ipython.exe")
-
-
-;; fixes odd random error in emacs
-;; (add-to-list 'process-coding-system-alist
-;;		   '("python" cp1251-unix . cp1251-unix))
-
-;; (setq-default python-shell-prompt-detect-failure-warning nil)
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
 (defun my-python-mode-hook ()
   (interactive)
-  ;; (anaconda-mode)
-  ;; (ac-anaconda-setup)
-  ;; (auto-complete)
-
-  ;; (jedi:setup)
-  (auto-complete)
   
   (hs-minor-mode t)
-  ;; (auto-indent-minor-mode -1)
-  
-  ;; (hs-hide-all)				; Breaks if bad code
+  (setq ac-sources
+	   (append '(ac-source-yasnippet) ac-sources))
   (flyspell-prog-mode)
-  (turn-on-auto-fill)
-  )
+  (turn-on-auto-fill)  
+  (rainbow-delimiters-mode 1))
 
-(defun my-inferior-python-mode-hook ()
-  ;; (jedi:setup)
-  (auto-complete)
-  
-  (text-scale-set -1.1)
-  )
+(defun my-inferior-python-mode-hook () 
+  (text-scale-set -1.1))
 
 ;; --------------------------------------------------------------------------
 ;; Keybinding
 ;; --------------------------------------------------------------------------
-(define-many-keys python-mode-map
+(define-keys python-mode-map
   [(return)]			'newline-and-indent
   (kbd "<C-next>")		'python-nav-forward-defun
   (kbd "<C-prior>")		'python-nav-backward-defun
@@ -85,48 +39,50 @@
   (kbd "C->")			'python-indent-shift-right
 
   ;; ---------- Help ----------
-  [(f1)]		   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point t "Python "))
-  [(S-f1)]	   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point nil "Python "))
-  (kbd "C-h w")   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point nil "Python "))
-  (kbd "C-h f")   	'python-object-help
-  "\C-hv"      	'python-object-info
+  [(f1)]				'(lambda ()
+					   (interactive)
+					   (google-query-at-point t "Python "))
+  [(S-f1)]			'(lambda ()
+					   (interactive)
+					   (google-query-at-point nil "Python "))
+  (kbd "C-h w")		'(lambda ()
+					   (interactive)
+					   (google-query-at-point nil "Python "))
+  (kbd "C-h f")		'python-object-help
+  "\C-hv"				'python-object-info
   
   ;; ---------- Frame Switching ----------
-  [(f12)]              'python-shell-switch-to-shell
-  [S-f12]              'python-process-new
-  [C-f12]              'python-process-set 
+  [(f12)]				'python-switch-frame-process
+  [S-f12]				'python-process-new
+  [C-f12]				'python-process-set 
   )
 
-(define-many-keys inferior-python-mode-map
-  [S-C-up]		'previous-line
-  [S-C-down]		'next-line
+(define-keys inferior-python-mode-map
+  [S-C-up]			'previous-line
+  [S-C-down]			'next-line
   
   ;; ---------- Help ----------
-  [(f1)]		   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point t "Python "))
-  [(S-f1)]	   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point nil "Python "))
-  (kbd "C-h w")   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point nil "Python "))
-  (kbd "C-h f")   	'python-object-help
-  "\C-hv"      	'python-object-info
+  [(f1)]				'(lambda ()
+					   (interactive)
+					   (google-query-at-point t "Python "))
+  [(S-f1)]			'(lambda ()
+					   (interactive)
+					   (google-query-at-point nil "Python "))
+  (kbd "C-h w")		'(lambda ()
+					   (interactive)
+					   (google-query-at-point nil "Python "))
+  (kbd "C-h f")		'python-object-help
+  "\C-hv"				'python-object-info
 
   ;; ---------- Frame Switching ----------
-  [(f12)]              'switch-frame-previous
+  [(f12)]				'python-switch-frame-script
   )
 
 ;; --------------------------------------------------------------------------
 ;; Functions
 ;; --------------------------------------------------------------------------
+
+;; ---------- Evaluation ---------- ;;
 (defun python-eval ()
   "Evaluates python code based on context."
   (interactive)
@@ -136,22 +92,23 @@
     (run-python (python-shell-parse-command) nil))
   
   ;; Eval
-  (if (and transient-mark-mode mark-active)
-      (python-eval-region)
-    (if (or (> (current-indentation) 0)
-	    (python-info-looking-at-beginning-of-defun))
-	(python-eval-defun)
-	(python-eval-paragraph)))
+  (cond
+   ((and transient-mark-mode mark-active)
+    (python-eval-region))
+   ((or (> (current-indentation) 0)
+	   (python-info-looking-at-beginning-of-defun))
+    (python-eval-defun))
+   (t
+    (python-eval-paragraph)))
   (python-nav-forward-statement)
-  (switch-frame-current-python)
-  (switch-frame-previous))
+  (python-raise-frame-process))
 
 (defun python-eval-paragraph ()
   "Evaluates python region"
   (interactive)
   (save-excursion
     (progn (mark-paragraph)
-	   (call-interactively 'python-shell-send-region)))
+		 (call-interactively 'python-shell-send-region)))
   (forward-paragraph))
 
 (defun python-eval-region ()
@@ -163,11 +120,12 @@
     (deactivate-mark)))
 
 (defun python-eval-defun ()
-  "Evaluates python function."
+  "Evaluates python function"
   (interactive)
   (call-interactively 'python-shell-send-defun)
   (end-of-defun))
 
+;; ---------- Process Commands ---------- ;;
 (make-variable-buffer-local 'python-shell-buffer-name)
 (defun python-process-new ()
   "Creates a new python-process."
@@ -192,11 +150,9 @@
 
   ;; Run
   (run-python (python-shell-parse-command))
-  (python-shell-switch-to-shell)		; pop the frame
-  (switch-frame-previous)			; switch back
+  (python-raise-frame-process)		; raise but not select
   )
 
-;; Switch / Set Python Shell
 (defun python-process-set ()
   (interactive)
   ;; Get the list of python-shell buffers
@@ -217,64 +173,80 @@
 	  (concat "*" python-shell-buffer-name "*")
 	  t)))))
 
-(defun switch-frame-current-python ()
-  "Switch to current python process buffer."
+
+;; ---------- Frame Commands ---------- ;;
+(defun python-switch-frame-process ()
+  "Switch to associated process, associate with one, or create one."
   (interactive)
+  ;; Does current buffer have an associated process?
+  ;; Yes -> raise and select
+  ;; No -> are there processes running?
+  ;; Yes -> associate -> raise
+  ;; No -> create one -> associate -> raise 
   (python-shell-switch-to-shell)
   (end-of-buffer-all))
 
+(defun python-raise-frame-process ()
+  (save-frame-excursion
+   (raise-frame
+    (get-frame (concat "*" python-shell-buffer-name "*")))))
+
+(defun python-switch-frame-script ()
+  "Switch to most recent script buffer."
+  (interactive)
+  (let ((loc-proc-name python-shell-buffer-name)
+	   (blist (cdr (buffer-list))))
+    (while (and blist
+			 (with-current-buffer (car blist)
+			   (not (and
+				    (equal major-mode 'python-mode)
+				    (equal loc-proc-name python-shell-buffer-name)))))
+	 (pop blist))
+    (if blist
+	   (display-buffer (car blist) t)
+	 (message "Found no python buffers for process %s"
+			loc-proc-name))))
+
+
+;; ---------- Echo Results ---------- ;;
 (defun python-print-last ()
   "Prints last result"
   (interactive)
   (python-shell-send-string "print(_)"))
 
 (defun python-shell-send-region-echo (start end &optional send-main)
-  "Same as PYTHON-SHELL-SEND-REGION but echos the output. Does not work if the region has multiple commands."
+  "Same as PYTHON-SHELL-SEND-REGION but echos the output in the process buffer. Does not work if the region has multiple commands."
   (interactive "r\nP")
-  (let* ((string (python-shell-buffer-substring start end (not send-main)))
-         (process (python-shell-get-or-create-process))
-	    (buffer (current-buffer))
-         (original-string (string-trim
-					  (buffer-substring-no-properties start end)))
+  (let* ((string
+		(python-shell-buffer-substring start end (not send-main)))
+         (process
+		(python-shell-get-or-create-process))
+	    (buffer
+		(current-buffer))
+         (original-string
+		(string-trim (buffer-substring-no-properties start end)))
          (_ (string-match "\\`\n*\\(.*\\)" original-string)))
+    
     (set-buffer (process-buffer process))
     (let ((oldpoint (point)))
       (goto-char (process-mark process))
       (insert (concat original-string "\n"))
       (set-marker (process-mark process) (point))
       (goto-char oldpoint))
+    
     (set-buffer buffer)
-    ;; (message "Sent: %s..." (match-string 1 original-string))
     (python-shell-send-string original-string
     						process)))
 
 (defun python-eval-echo ()
-  "Evaluates python code based on context."
+  "Evaluates python code based on context and echo."
   (interactive)
-
-  ;; Start a shell if needed
-  (unless (python-shell-get-process)
-    (run-python (python-shell-parse-command) nil))
-  
-  ;; Eval
-  (if (and transient-mark-mode mark-active)
-      (let ((end-mark (region-end)))
-	   (call-interactively 'python-shell-send-region-echo)
-	   (goto-char end-mark)
-	   (deactivate-mark))
-    (save-excursion
-	 (progn (mark-paragraph)
-		   (call-interactively 'python-shell-send-region-echo)))
-    (forward-paragraph))
-  (python-nav-forward-statement)
-  (switch-frame-current-python)
-  (switch-frame-previous))
+  (cl-letf (((symbol-function 'python-shell-send-region)
+		   #'python-shell-send-region-echo))
+    (call-interactively 'python-eval))) 
 
 
-
-;; -----------------------------------------------------------------------------
-;;  Help Functions
-;; -----------------------------------------------------------------------------
+;; ---------- Help Commands ---------- ;;
 (defun python-object-help()
   "Get Help for object at point"
   (interactive)
@@ -327,16 +299,25 @@
 ;; ------------------------------------------------------------------------- ;;
 (font-lock-add-keywords
  'python-mode        
- '(("[\\<-][0-9]*\\.?[0-9]+"
+ '(
+   ;; Numbers
+   ("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b"
     .
     'font-lock-number-face)
-   ("[!<=>]=\\|[<>]\\|\\(\\b\\(and\\|or\\|not\\|in\\|is\\)\\b\\)"
-     .
-     'font-lock-relation-operator-face)))
+   
+   ;; Relational Operators
+   ;;  - These we don't require a space
+   ("\\(\\sw\\|\\s\"\\|\\s-\\)\\([<=>]=\\|[!<>]\\)\\(\\sw\\|\\s\"\\|\\s-\\)"
+    2
+    'font-lock-relation-operator-face)
+   ;;  - These must have a white space before and after
+   ("\\s-\\([<=>]=\\|[!<>]\\|and\\|or\\|not\\|in\\|is\\)\\s-"
+    .
+    'font-lock-relation-operator-face)))
 
 (font-lock-add-keywords
  'inferior-python-mode
- '(("[\\<-][0-9]*\\.?[0-9]+"
+ '(("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b"
     .
     'font-lock-number-face)))
 

@@ -2,31 +2,22 @@
 ;; SQL MODE
 ;; ----------------------------------------------------------------------------
 (provide 'sql-setup)
-;; (require 'sql)
-
 
 ;; SQL Servers (put in secure location)
 (require 'sql-servers "~/OneDrive - UPMC/sql-servers.el" t) 
-
-
 (require 'sql-indent) 
 (add-to-list 'ac-modes 'sql-mode)
 
-(setq sql-ms-program		"C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd.exe"
-      sql-oracle-program		"sqlplus"
-	 sql-oracle-scan-on		nil
-	 sql-send-terminator	nil		; since I don't put GO after
-								; (CAUSE ISSUES IN SQLPLUS if non-nil)
-	 sql-ms-options		'("-w" "2000" ; Max Column Width
-						  "-y" "2000" ; Individual Char Width
-						  "-s" "|"    ; Column Separator
-						  "-k")
-	 )
-
-(sql-set-product-feature
- 'ms :prompt-regexp "^[0-9]*>") ;existing line
-(sql-set-product-feature
- 'ms :prompt-cont-regexp "^[0-9]*>") ;new line
+;; (setq sql-ms-program		"C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd.exe"
+;;       sql-oracle-program		"sqlplus"
+;; 	 sql-oracle-scan-on		nil
+;; 	 sql-send-terminator	nil		; since I don't put GO after
+;; 								; (CAUSE ISSUES IN SQLPLUS if non-nil)
+;; 	 sql-ms-options		'("-w" "2000" ; Max Column Width
+;; 						  "-y" "2000" ; Individual Char Width
+;; 						  "-s" "|"    ; Column Separator
+;; 						  "-k")
+;; 	 )
 
 ;; Adds _ as a word characters so abbrev-mode doesn't changes parts of strings
 (modify-syntax-entry ?_ "w" sql-mode-syntax-table)
@@ -42,10 +33,12 @@
   ;; (add-to-list 'ac-sources 'ac-source-sql)
   
   (hs-minor-mode t)
-  ;; (hs-hide-all)
-  
+  (setq ac-sources
+	   (append '(ac-source-yasnippet) ac-sources))
   (flyspell-prog-mode)
-  (turn-on-auto-fill)
+  (turn-on-auto-fill)  
+  (rainbow-delimiters-mode 1)
+
 
   (add-function :around (local 'abbrev-expand-function)
 			 #'sql-mode-abbrev-expand-function)
@@ -61,17 +54,17 @@
 
 (defun my-sql-interactive-mode-hook ()
   (interactive)
+  (text-scale-set -1.1)
+  
   (setq comint-preoutput-filter-functions nil)
   ;; (add-hook 'comint-preoutput-filter-functions
   ;;           'sql-interactive-remove-continuation-prompt nil t)
   (add-hook 'comint-preoutput-filter-functions
   		  'sql-add-newline-first t t)
-  (text-scale-set -1.1)
-  (sql-rename-buffer)
-  
-  (add-to-list 'ac-sources 'ac-source-sql)
-  (auto-complete-mode t)
 
+  (sql-rename-buffer)
+
+  (auto-complete-mode t)
   (abbrev-mode t)
   ;; (setq ac-ignore-case nil)
   ;; (setq-default truncate-lines t)
@@ -91,7 +84,7 @@
   (kbd "<tab>")	'sql-fix-indent
 
   ;; ---------- Frame Switching ----------
-  [(f12)]			'switch-frame-current-sql
+  [(f12)]			'sql-switch-frame-process
   [S-f12]           'sql-connect
   [C-f12]			'sql-set-sqli-buffer
   [M-f12]           'sql-set-product
@@ -121,13 +114,17 @@
 
 (define-many-keys sql-interactive-mode-map
   ;; ---------- Input / Prompt Scrolling ----------
-  [C-up]               'comint-previous-prompt
-  [C-down]             'comint-next-prompt
-  [up]                 'comint-previous-input
-  [down]               'comint-next-input
-  [S-C-up]			'previous-line
-  [S-C-down]			'next-line
-  
+  [C-up]			'comint-previous-prompt
+  [C-down]          'comint-next-prompt
+  [up]              'comint-previous-input
+  [down]			'comint-next-input
+  [S-C-up]		'previous-line
+  [S-C-down]		'next-line
+
+  ;; ---------- Frame Switching ----------
+  [(f12)]           'sql-switch-frame-script
+  [S-f12]           'sql-reconnect
+
 
   ;; ---------- Completion ----------
   (kbd "<tab>")	'completion-at-point
@@ -151,16 +148,19 @@
   "\C-hv"           'sql-describe
   "\C-hs"           'sql-show-table
   "\C-ho"           'sql-inspect-table
-
-  ;; ---------- Frame Switching ----------
-  [(f12)]              'switch-frame-next-sql
-  [S-f12]              'sql-reconnect
   )
 
 
 ;; --------------------------------------------------------------------------
 ;; Product Features
 ;; --------------------------------------------------------------------------
+
+(sql-set-product-feature
+ 'ms :prompt-regexp "^[0-9]*>") ;existing line
+
+(sql-set-product-feature
+ 'ms :prompt-cont-regexp "^[0-9]*>") ;new line
+
 ;; Describe 
 (sql-set-product-feature
  'postgres
@@ -168,7 +168,8 @@
 
 (sql-set-product-feature
  'oracle
- :func-desc "describe PATTERN;")
+ :func-desc "
+describe PATTERN;")
 
 (sql-set-product-feature
  'ms
@@ -185,7 +186,8 @@ GO
 
 (sql-set-product-feature
  'oracle
- :func-show-table "select * from TABLE where rownum <= 5;")
+ :func-show-table "
+select * from TABLE where rownum <= 5;")
 
 (sql-set-product-feature
  'ms
@@ -195,7 +197,8 @@ GO")
 ;; Inspect Table
 (sql-set-product-feature
  'oracle
- :func-inspect-table  "SELECT
+ :func-inspect-table  "
+     SELECT
         round(sum(bytes)/(1024*1024),1) AS size_mb,
 	sum(NUM_ROWS) as number_rows,
 	max(created) as created,
@@ -234,7 +237,8 @@ GO")
 ;; List Tables
 (sql-set-product-feature
  'oracle
- :func-list-tables "SELECT
+ :func-list-tables "
+     SELECT
 		type, substr(owner || '.' || name, 1, 70) AS name
 	FROM
 	(
@@ -432,8 +436,6 @@ go")
   ;; (concat "\n" output)
   (sql-interactive-remove-continuation-prompt output))
 
-
-
 (defun test-sql-interactive-remove-continuation-prompt (oline)
   (when comint-prompt-regexp
     (save-match-data
@@ -511,64 +513,88 @@ go")
 
 (defun sql-output-here (func)
   (interactive)
-  (advice-add 'sql-send-string :around
-  		  #'(lambda (orig-fun &rest args)
+  (cl-letf (((symbol-function 'sql-send-string)
+		   #'(lambda (str)
   			 (sql-redirect
   			  (sql-find-sqli-buffer)
-  			  args
-  			  " *SQL Echo Area*")))
-  (funcall func)
-  (advice-remove 'sql-send-string 
-  		  #'(lambda (orig-fun &rest args)
-  			 (sql-redirect
-  			  (sql-find-sqli-buffer)
-  			  args			  
-  			  " *SQL Echo Area*")))
+  			  str
+  			  " *SQL Echo Area*"))))
+    ;; (advice-add 'sql-send-string :around
+    ;; 			 #'(lambda (orig-fun &rest args)
+    ;; 				(sql-redirect
+    ;; 				 (sql-find-sqli-buffer)
+    ;; 				 args
+    ;; 				 " *SQL Echo Area*")))
+    ;; (let ((comint-preoutput-filter-functions
+    ;; 		 '(sql-interactive-remove-continuation-prompt)))
+	 (funcall func)
+	 ;; )
+    ;; (advice-remove 'sql-send-string 
+    ;; 			    #'(lambda (orig-fun &rest args)
+    ;; 				   (sql-redirect
+    ;; 				    (sql-find-sqli-buffer)
+    ;; 				    args			  
+    ;; 				    " *SQL Echo Area*")))
+    ))
 
-  (save-excursion
-    ;; switch to SQLi buffer to get the prompt regex
-    (set-buffer (sql-find-sqli-buffer))
-    (let ((start-re (sql-starts-with-prompt-re))
-		echo-size)
+;; sql-prompt-regexp
+
+;; (let ((comint-preoutput-filter-functions
+;; 	  '(sql-interactive-remove-continuation-prompt)))
+;;   (sql-redirect
+;;    (sql-find-sqli-buffer)
+;;    "
+;; describe ADL_DEV3.NCRE_RULES;"
+;;    " *SQL Echo Area*"))
+
+
+;; (get-buffer "*SQL: <edwrpt.world-SCI>*")
+
+
+  ;; (save-excursion
+  ;;   ;; switch to SQLi buffer to get the prompt regex
+  ;;   (set-buffer (sql-find-sqli-buffer))
+  ;;   (let ((start-re (sql-starts-with-prompt-re))
+  ;; 		echo-size)
 	 
-	 ;; switch to the echo to replace
-	 (set-buffer (get-buffer-create " *SQL Echo Area*"))
-	 (setq echo-size (1+ (buffer-size)))
-	 (beginning-of-buffer)
-	 (while (and (re-search-forward start-re nil t)
-			   (> echo-size
-				 (setq echo-size (buffer-size))))
-	   (replace-match ""))
+  ;; 	 ;; switch to the echo to replace
+  ;; 	 (set-buffer (get-buffer-create " *SQL Echo Area*"))
+  ;; 	 (setq echo-size (1+ (buffer-size)))
+  ;; 	 (beginning-of-buffer)
+  ;; 	 (while (and (re-search-forward start-re nil t)
+  ;; 			   (> echo-size
+  ;; 				 (setq echo-size (buffer-size))))
+  ;; 	   (replace-match ""))
 
-	 ;; delete leading empty lines
-	 (beginning-of-buffer)
-	 (while (re-search-forward "^[[:space:]]*$" (line-end-position) t)
-	   (kill-whole-line))
+  ;; 	 ;; delete leading empty lines
+  ;; 	 (beginning-of-buffer)
+  ;; 	 (while (re-search-forward "^[[:space:]]*$" (line-end-position) t)
+  ;; 	   (kill-whole-line))
 
-	 ;; delete trailing empty lines
-	 (delete-trailing-whitespace)
+  ;; 	 ;; delete trailing empty lines
+  ;; 	 (delete-trailing-whitespace)
 
 
-	 ;; delete end of buffer line
-	 (end-of-buffer)
-	 (beginning-of-line)
-	 (when (= (point) (point-max))
-	   (delete-char -1))
+  ;; 	 ;; delete end of buffer line
+  ;; 	 (end-of-buffer)
+  ;; 	 (beginning-of-line)
+  ;; 	 (when (= (point) (point-max))
+  ;; 	   (delete-char -1))
 
-	 ;; append comment string to each line
-	 (beginning-of-buffer)
-      (cl-loop repeat
-    	 	   (count-lines (point-min) (point-max))
-    	 	   do
-    	 	   (insert "-- ")
-    	 	   (forward-line 1))
-	 )
-    )
+  ;; 	 ;; append comment string to each line
+  ;; 	 (beginning-of-buffer)
+  ;;     (cl-loop repeat
+  ;;   	 	   (count-lines (point-min) (point-max))
+  ;;   	 	   do
+  ;;   	 	   (insert "-- ")
+  ;;   	 	   (forward-line 1))
+  ;; 	 )
+  ;;   )
   
-  ;; copy buffer over to SQL file
-  (insert-buffer-substring " *SQL Echo Area*")
-  (next-non-blank-line)
-  )
+  ;; ;; copy buffer over to SQL file
+  ;; (insert-buffer-substring " *SQL Echo Area*")
+  ;; (next-non-blank-line)
+  ;; )
 
 (defun sql-eval-here ()
   (interactive)
@@ -585,7 +611,7 @@ go")
   (interactive)
   ;; Pre Eval
   (unless sql-buffer
-    (if (null (sql-find-sqli-buffer))
+    (if (null (sql-find-sqli-buffer sql-product))
 	   ;; Connect
 	   (call-interactively 'sql-connect)
 	 ;; else Set
@@ -652,23 +678,47 @@ go")
       (mark-paragraph)
       (call-interactively 'indent-region))))
 
-(defun switch-frame-next-sql ()
-  "thisandthat."
-  (interactive)
-  (switch-frame-next-buffer '("\\*SQL") '("^ ")))
 
-(defun switch-frame-previous-sql ()
-  "Switch to previous SQL buffer."
+;; ---------- Frame Commands ---------- ;;
+(defun sql-switch-frame-process ()
+  "Switch to associated process, associate with one, or create one."
   (interactive)
-  (switch-frame-previous-buffer '("\\*SQL") '("^ ")))
+  (cond
+   ;; Does current buffer have an associated process?
+   (sql-buffer
+    ;; Yes -> raise and select
+    (display-buffer sql-buffer))
+   ;; No -> are there processes running?
+   ((sql-find-sqli-buffer sql-product)
+    ;; Yes -> associate -> raise 
+    (sql-set-sqli-buffer))
+   (t
+    ;; No -> create one -> associate -> raise 
+    (call-interactively 'sql-connect)))
+  
+  (switch-to-buffer-other-frame sql-buffer)
+  (end-of-buffer-all))
 
-(defun switch-frame-current-sql ()
-  "thisandthat."
+(defun sql-raise-frame-process ()
+  (save-frame-excursion
+   (raise-frame
+    (get-frame sql-buffer))))
+
+(defun sql-switch-frame-script ()
+  "Switch to most recent script buffer."
   (interactive)
-  (unless sql-buffer
-	 (sql-set-sqli-buffer))
-  (display-buffer sql-buffer))
-
+  (let ((loc-proc-name (buffer-name))
+	   (blist (cdr (buffer-list))))
+    (while (and blist
+			 (with-current-buffer (car blist)
+			   (not (and
+				    (equal major-mode 'sql-mode)
+				    (equal loc-proc-name sql-buffer)))))
+	 (pop blist))
+    (if blist
+	   (display-buffer (car blist) t)
+	 (message "Found no SQL associated with process %s"
+			loc-proc-name))))
 
 
 ;; -----------------------------------------------------------------------------
@@ -838,16 +888,14 @@ go")
       "insertchildxml" "insertxmlbefore" "instr2" "instr4" "instrb" "instrc"
       "iteration_number" "length2" "length4" "lengthb" "lengthc" "lnnvl" "log"
       "median" "nanvl" "nchr" "ora_hash" "powermultiset_by_cardinality"
-      "prediction" "prediction_cost" "prediction_details"
-      "prediction_probability" "prediction_set" "presentnnv" "presentv"
-      "previous" "ref" "remainder" "stats_binomial_test" "stats_crosstab"
-      "stats_f_test" "stats_ks_test" "stats_mode" "stats_mw_test"
-      "stats_one_way_anova" "stats_t_test_indep" "stats_t_test_indepu"
-      "stats_t_test_one" "stats_t_test_paired" "stats_wsr_test" "substr2"
-      "substr4" "substrb" "substrc" "timestamp_to_scn" "to_binary_double"
-      "to_binary_float" "value" "xmlparse" "xmlpi" "xmlquery" "xmlroot"
-      "xmlserialize" "xmltable"
-	 "trunc"))
+      "prediction_cost" "prediction_details" "prediction_probability"
+      "prediction_set" "presentnnv" "presentv" "previous" "ref" "remainder"
+      "stats_binomial_test" "stats_crosstab" "stats_f_test" "stats_ks_test"
+      "stats_mode" "stats_mw_test" "stats_one_way_anova" "stats_t_test_indep"
+      "stats_t_test_indepu" "stats_t_test_one" "stats_t_test_paired"
+      "stats_wsr_test" "substr2" "substr4" "substrb" "substrc"
+      "timestamp_to_scn" "to_binary_double" "to_binary_float" "value" "xmlparse"
+      "xmlpi" "xmlquery" "xmlroot" "xmlserialize" "xmltable" "trunc"))
     .
     'font-lock-builtin-face)
    ;; Package Functions
@@ -972,6 +1020,8 @@ go")
   )
 
 
+
+
 ;; ------------------------------------------------------------------------- ;;
 ;; Syntax Highlighting
 ;; ------------------------------------------------------------------------- ;;
@@ -979,7 +1029,7 @@ go")
  'sql-mode
  '(
    ;; ---------- Numbers ---------- ;;
-   ("[\\<-][0-9]*\\.?[0-9]+"
+   ("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b"
     .
     'font-lock-number-face)
    
@@ -989,7 +1039,7 @@ exists\\|in\\|like\\|not\\|or\\|some\\)\\b\\)"
      .
      'font-lock-relation-operator-face)
    
-   ;; ---------- Define Variables ---------- ;;
+   ;; ---------- Defined Variables ---------- ;;
    ("&?&\\(?:\\sw\\|\\s_\\)+[.]?"
     0
     'font-lock-variable-name-face t)))
@@ -998,6 +1048,7 @@ exists\\|in\\|like\\|not\\|or\\|some\\)\\b\\)"
  'sql-interactive-mode
  '(
    ;; ---------- Numbers ---------- ;;
-   ("[\\<-][0-9]*\\.?[0-9]+"
+   ("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b"
     .
     'font-lock-number-face)))
+

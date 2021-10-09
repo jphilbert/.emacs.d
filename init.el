@@ -154,6 +154,7 @@
 (pretty-lambda-for-modes)		
 
 ;; Various Minor Modes
+;; TO-DO: convert to customized variables
 (tooltip-mode				0)		; been causing lag in various modes  
 (cua-mode					t)	
 (fringe-mode                  0)	     ; Removes fringes
@@ -265,10 +266,10 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
   (ac-config-default)
 
   (setq-default
+   ac-use-quick-help					nil
    ac-quick-help-delay					5
    ac-show-menu-immediately-on-auto-complete	nil
    ac-ignore-case						nil
-   ;; ac-auto-show-menu						nil
    ac-auto-show-menu					nil
    ac-auto-start						2)
 
@@ -302,25 +303,6 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
   (define-keys		ac-completing-map
     (kbd "<tab>")		'ac-next
     [(return)]			'ac-complete)
-
-  ;; ---------- Faces ---------- ;;
-  (set-face-attribute 'ac-candidate-face nil
-				  :font "envy code r"
-				  :height 100
-				  :background "#00222c"
-				  :foreground "light gray")
-  (set-face-attribute 'ac-selection-face nil
-				  :inherit 'ac-candidate-face
-				  :background "SteelBlue4"
-				  :foreground "white")
-
-  (set-face-attribute 'ac-yasnippet-candidate-face nil
-				  :inherit 'ac-candidate-face
-				  :slant 'italic				
-				  :foreground "sandybrown")
-  (set-face-attribute 'ac-yasnippet-selection-face nil
-				  :inherit 'ac-selection-face
-				  :slant 'italic)
   )
 
 ;; Icicles - Time: 54%
@@ -379,8 +361,8 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
        "Wrapper to for `clean-buffer-list' to remove messages.
 		Use (cancel-timer timer-midnight) to cancel."
        (cl-letf
-	   (((symbol-function 'message) #'format))
-	 (clean-buffer-list))))))
+		 (((symbol-function 'message) #'format))
+	    (clean-buffer-list))))))
 
 ;; Buffer Window
 (use-package bs
@@ -557,3 +539,59 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
 ;; (require 'ehelp nil t)
 ;; (global-set-key "\C-h" 'ehelp-command)
 
+(custom-set-variables
+ '(ac-use-quick-help nil)
+ 
+ ;; ESS
+ '(ess-R-font-lock-keywords
+   (quote
+    ((ess-R-fl-keyword:modifiers . t)
+	(ess-R-fl-keyword:fun-defs . t)
+	(ess-R-fl-keyword:keywords . t)
+	(ess-R-fl-keyword:assign-ops . t)
+	(ess-R-fl-keyword:constants . t)
+	(ess-fl-keyword:fun-calls . t)
+	(ess-fl-keyword:numbers . t)
+	(ess-fl-keyword:operators)
+	(ess-fl-keyword:delimiters)
+	(ess-fl-keyword:= . t)
+	(ess-R-fl-keyword:F&T . t)
+	(ess-R-fl-keyword:%op% . t))))
+ '(ess-ask-for-ess-directory		nil)	; Suppress ask for directory
+ '(ess-default-style			(quote RStudio))
+ '(ess-eval-visibly				nil)
+ '(ess-help-kill-bogus-buffers	t)	; Kill silly buffers
+ '(ess-help-own-frame			1)
+ '(ess-history-file				nil)
+ '(ess-keep-dump-files			nil)
+ '(ess-r-args-electric-paren		nil)
+ '(ess-r-args-noargsmsg			"No Args")
+ '(ess-r-args-show-as			(quote tooltip)) ; R ARGS as tool tip
+ '(ess-r-args-show-prefix		"")			  ; Remove ARG Prefix
+ '(inferior-R-args
+   "--no-restore-history --no-save")
+ '(inferior-R-program-name
+   "~\\R\\R-4.0.2\\bin\\x64\\Rterm.exe")
+ 
+ ;; Python
+ '(python-guess-indent			nil)
+ '(python-indent				4)
+ '(python-indent-guess-indent-offset nil)
+ '(python-indent-offset			4)
+ '(python-shell-interpreter
+   "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/Scripts/ipython.exe")
+
+ ;; SQL
+  '(sql-ms-program
+    "C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd.exe")
+  '(sql-oracle-program			"sqlplus")
+  '(sql-oracle-scan-on			nil)
+  '(sql-send-terminator			nil)	; since I don't put GO after
+								; (CAUSE ISSUES IN SQLPLUS if non-nil)
+  '(sql-ms-options
+    '("-w" "2000"					; Max Column Width
+	 "-y" "2000"					; Individual Char Width
+	 "-s" "|"						; Column Separator
+	 "-k"))
+  '(sql-product				(quote oracle)) ; Default
+  )

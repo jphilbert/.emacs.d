@@ -40,46 +40,195 @@
 ;; -----------------------------------------------------------------------------
 (provide 'aesthetics)
 
+;; Set Default Size and Font
 (set-face-attribute 'default nil
 				:font "envy code r"
-				:height 110
-				;; :underline nil
-				:weight 'normal
-				;; :slant 'normal
-				;; :overline nil
-				:background "#233b5a")
+				:height 110		; 11pt
+				:weight 'normal)
 
-(color-theme-initialize)
-(color-theme-dark-blue2)
+(setq custom-theme-directory
+	 (expand-file-name (concat user-emacs-directory "themes/")))
+(dolist (f (directory-files custom-theme-directory))
+  (if (and (not (or (equal f ".") (equal f "..")))
+		 (file-directory-p (concat custom-theme-directory f)))
+	 (add-to-list 'custom-theme-load-path (concat custom-theme-directory f))))
+
+(load-theme 'zenburn t)
+
+(setq zenburn-override-colors-alist
+	 '(("zenburn-orange-1"   . "#D28E60")
+	   ("zenburn-orange-2"   . "#C77138")))
+
+
+;; This one takes exp arguments
+(defun zenburn-color-hex (color)
+  "Returns the HEX of COLOR defined in `zenburn-colors-alist'"  
+  (cadr (assq color
+		    (mapcar (lambda (cons)
+				    (list (intern (car cons)) (cdr cons)))
+				  (append zenburn-default-colors-alist
+						zenburn-override-colors-alist)))))
+
+;; This one takes strings arguments
+(defun zenburn-color-hex (color)
+  "Returns the HEX of COLOR defined in `zenburn-colors-alist'"  
+  (cdr (assoc color
+		    (append zenburn-default-colors-alist
+				  zenburn-override-colors-alist))))
+
+;; (color-theme-initialize)
+;; (color-theme-dark-blue2)
+
+(zenburn-with-color-variables
+  (custom-set-faces
+   `(lazy-highlight
+	((t
+	  (:foreground		,zenburn-orange-2
+	   :weight		bold
+	   :background		,zenburn-bg+05))))
+
+   ;; ---------- Mode Line Faces ---------- ;;
+   `(mode-line
+     ((,class
+	  (:foreground		,zenburn-green+1
+	   :background		,zenburn-bg-1
+	   :height		80
+	   :box
+	   (:line-width	-1
+	    :style		released-button)))
+      (t
+	  :inverse-video t)))
+   `(mode-line-inactive
+	((t
+	  (:foreground		,zenburn-green-2
+	   :background		,zenburn-bg+05
+	   :height		80
+	   :box
+	   (:line-width	-1
+	    :style		released-button)))))
+   `(mode-line-modified-face
+	((t 
+	  (:foreground		,zenburn-red
+	   :background		nil
+	   :height		80
+	   :weight		bold
+	   :box
+	   (:line-width	2
+	    :color		,zenburn-red)))))
+   `(mode-line-read-only-face
+	((,class
+	  (:foreground		,zenburn-red-2
+	   :box
+	   (:line-width	2
+	    :color		,zenburn-red-2)))))
+   `(mode-line-mode-face
+	((,class
+	  (:foreground		,zenburn-blue+1
+	   :weight		bold))))
+   `(mode-line-80col-face
+	((,class
+	  (:inherit		'mode-line-position-face
+	   :inverse-video	t
+	   :weight		bold))))
+   `(mode-line-process-face
+	((,class
+	  (:foreground		,zenburn-yellow))))
+   
+   ;; ---------- Auto Complete ---------- ;;
+   `(ac-candidate-face
+	((t
+	  (:height		100
+	   :slant			normal
+	   :weight		normal))))
+   `(ac-selection-face
+	((t
+	  (:height		100
+	   :slant			normal
+	   :weight		normal))))
+   `(ac-yasnippet-candidate-face
+	((t
+	  (:inherit		'ac-candidate-face
+	   :foreground		,zenburn-red-6))))
+   `(ac-yasnippet-selection-face
+	((t
+	  (:inherit		'ac-selection-face
+	   :foreground		,zenburn-yellow-2))))
+
+  ;; ---------- Comments ---------- ;;
+  `(font-lock-comment-face
+    ((t
+	 (:foreground		,zenburn-green-1))))
+  `(font-lock-comment-delimiter-face
+    ((t
+	 (:foreground		,zenburn-green-1))))
+
+  ;; ---------- Relational Operators ---------- ;;
+  `(font-lock-relation-operator-face
+    ((t
+	 (:foreground		,zenburn-orange
+	  :weight			bold))))
+
+  ;; ---------- Numbers ---------- ;;
+  `(font-lock-number-face 
+    ((t
+	 (:foreground		,zenburn-blue-3))))
+  ))
+
+
+;; TO-DO:
+;;   - add modeline-posn to modeline
+;;	- add button to process --> go to process buffer
+;;	- make simpler modeline for process --> row - mode
+
+;; (setq-default
+;;  mode-line-format
+;;  (list "%e"
+;; 	  'mode-line-client
+;; 	  'mode-line-modified
+;; 	  'mode-line-remote
+;; 	  "   "
+;; 	  'mode-line-position
+;; 	  "  "
+;; 	  'mode-line-modes
+;;    ;; 'mode-line-misc-info
+;;    ;; 'mode-line-end-spaces
+;;    )
+;;  )
+
+;; (require 'modeline-posn)
+(column-number-mode 1)
+(size-indication-mode 1)
 
 ;; --------------------------------------------------------------------------
 ;; Mode-Line Setup
 ;; --------------------------------------------------------------------------
 (setq-default
  mode-line-format
- '(;; Position, including warning for 80 columns
+ '(;; Position, including warning for 80 columns (0-8)
    (:propertize "%4l:" face mode-line-position-face)
    (:eval (propertize "%3c" 'face
-                      (if (>= (current-column) 80)
+                      (if (> (current-column) 80)
                           'mode-line-80col-face
                         'mode-line-position-face)))
+   ;; [+5] (9-13) 
+   "     "
    
-   mode-line-client                     ; emacsclient [default -- keep?]
-   "\t"
-   
-   ;; read-only or modified status
+   ;; read-only or modified status (14-17)
    (:eval
     (cond (buffer-read-only
-           (propertize " RO " 'face 'mode-line-read-only-face))
-          ;; (mode-line-process
-          ;;  (propertize " -- " 'face 'mode-line-read-only-face))
+           (propertize " XX " 'face 'mode-line-read-only-face))		
           ((buffer-modified-p)
            (propertize " !! " 'face 'mode-line-modified-face))
           (t "    ")))
-   "  "
-   
-   (:propertize "%p / %I" face mode-line-position-face) ; Percent / Size
-   "\t\t"
+
+   ;; [+5] (18-22)
+   "     "   
+
+   ;; Percent / Size
+   (:propertize "%p / %I" face mode-line-position-face) 
+
+   ;; [+15]
+   "               "
    
    ;; (:propertize "%b" face mode-line-filename-face)
    
@@ -87,7 +236,11 @@
    "- "
    (:propertize mode-name
                 face mode-line-mode-face)
-   " -\t"
+   " -"
+
+   ;; [+15]
+   "               "
+   
    ;; (:eval (propertize (format-mode-line minor-mode-alist)
    ;;                    'face 'mode-line-minor-mode-face))
    
@@ -96,54 +249,12 @@
                 face mode-line-process-face)
    ))
 
-;; Extra mode line faces
-(set-face-attribute 'mode-line nil
-                    :foreground "gray60" :background "gray20"
-                    :inverse-video nil
-                    :height 80
-                    :box '(:line-width 2 :color "grey15" :style nil))
-(set-face-attribute 'mode-line-inactive nil
-                    :foreground "gray80" :background "gray30"
-                    :inverse-video nil
-                    :height 80
-                    :box '(:line-width 2 :color "gray25" :style nil))
-
 (make-face		'mode-line-read-only-face)
-(set-face-attribute 'mode-line-read-only-face nil
-                    :inherit 'mode-line-face
-                    :foreground "DodgerBlue3"
-                    :box '(:line-width 2 :color "DodgerBlue3"))
-
 (make-face		'mode-line-modified-face)
-(set-face-attribute 'mode-line-modified-face nil
-                    :inherit 'mode-line-face
-                    :foreground "firebrick1"
-                    :background "OldLace"
-                    :weight 'bold
-                    :box '(:line-width 2 :color "firebrick1"))
-
 (make-face		'mode-line-position-face)
-(set-face-attribute 'mode-line-position-face nil
-                    :inherit 'mode-line-face
-                    ;; :family "Menlo"
-                    :height 80)
-
 (make-face		'mode-line-mode-face)
-(set-face-attribute 'mode-line-mode-face nil
-                    :inherit 'mode-line-face
-                    :foreground "SteelBlue1"
-                    :weight 'bold)
-
 (make-face		'mode-line-process-face)
-(set-face-attribute 'mode-line-process-face nil
-                    :inherit 'mode-line-face
-                    :foreground "PaleGreen3")
-
 (make-face		'mode-line-80col-face)
-(set-face-attribute 'mode-line-80col-face nil
-                    :inherit 'mode-line-position-face
-                    :foreground "firebrick1"
-                    :background "grey20")
 
 
 
@@ -152,35 +263,29 @@
 ;; Additional Faces
 ;; -----------------------------------------------------------------------------
 (make-face		'font-lock-number-face)
-(set-face-attribute 'font-lock-number-face nil
-				:foreground "DarkSlateGray3")
-
 (make-face		'font-lock-relation-operator-face)
-(set-face-attribute 'font-lock-relation-operator-face nil
-				:foreground "salmon1"
-				:weight 'bold)
 
 (set-face-attribute font-lock-function-name-face nil
 				:weight 'bold)
 
-;; -------------------- R Faces --------------------
-(make-face		'font-lock-ess-functions-face)
-(set-face-attribute 'font-lock-ess-functions-face nil
-				 :foreground "DodgerBlue1")
-;; (set-face-attribute 'font-lock-ess-functions-face nil :weight 'bold)
+;; ;; -------------------- R Faces --------------------
+;; (make-face		'font-lock-ess-functions-face)
+;; (set-face-attribute 'font-lock-ess-functions-face nil
+;; 				 :foreground "DodgerBlue1")
+;; ;; (set-face-attribute 'font-lock-ess-functions-face nil :weight 'bold)
 
-(make-face		'font-lock-ess-dataframe-face)
-(set-face-attribute 'font-lock-ess-dataframe-face nil
-				:foreground "khaki1"
-				:weight 'normal)
+;; (make-face		'font-lock-ess-dataframe-face)
+;; (set-face-attribute 'font-lock-ess-dataframe-face nil
+;; 				:foreground "khaki1"
+;; 				:weight 'normal)
 
-(make-face		'font-lock-ess-help-heading-2-face)
-(set-face-attribute 'font-lock-ess-help-heading-2-face nil
-				:height 1.5)
+;; (make-face		'font-lock-ess-help-heading-2-face)
+;; (set-face-attribute 'font-lock-ess-help-heading-2-face nil
+;; 				:height 1.5)
 
-(make-face		'font-lock-ess-help-heading-1-face)
-(set-face-attribute 'font-lock-ess-help-heading-1-face nil
-				:height 2.0)
+;; (make-face		'font-lock-ess-help-heading-1-face)
+;; (set-face-attribute 'font-lock-ess-help-heading-1-face nil
+;; 				:height 2.0)
 
 
 ;; -------------------- Web Faces --------------------
