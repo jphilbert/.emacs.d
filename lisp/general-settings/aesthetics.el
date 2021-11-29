@@ -1,43 +1,6 @@
 ;; -----------------------------------------------------------------------------
 ;; AESTHETICS.EL --- My General Buffer Aesthetics
 ;; -----------------------------------------------------------------------------
-;; Filename:		AESTETICS.EL
-;; Description:		My General Buffer Aesthetics
-;; Author:		John P. Hilbert <jphilbert@gmail.com>
-;; Created:		2012-02-13 19:54:33
-;; Version:		0.1
-;; Last-Updated:	2014-09-04 
-;; Compatibility:	GNU Emacs 23.2.1
-;;
-;; Features that might be required by this library:
-;;	- Font: Envy Code R (11pt)
-;;	- color-theme
-
-;; !!!This file is NOT part of GNU Emacs!!! 
-
-;; -----------------------------------------------------------------------------
-;; Commentary:
-;; -----------------------------------------------------------------------------
-;; My General Buffer Aesthetics
-
-;; Latest Windows Font is Envy Code R (11pt) from:
-;;      http://damieng.com/blog/2008/05/26/envy-code-r-preview-7-coding-font-released 
-;;
-
-;; -----------------------------------------------------------------------------
-;; Acknowledgments:
-;; -----------------------------------------------------------------------------
-;; Thanks to Amit Patel (http://amitp.blogspot.com/2011/08/
-;; emacs-custom-mode-line.html) and Dirk-Jan C. Binnema
-;; (http://emacs-fu.blogspot.com/2011/08/customizing-mode-line.html) for the
-;; tips on mode-line modifications.
-
-;; Thanks to Juri Linkov <juri@jurta.org> + Drew Adams for the cursor changing
-;;  code. 
-
-;; -----------------------------------------------------------------------------
-;; General Settings
-;; -----------------------------------------------------------------------------
 (provide 'aesthetics)
 
 ;; Set Default Size and Font
@@ -45,6 +8,11 @@
 				:font "envy code r"
 				:height 110		; 11pt
 				:weight 'normal)
+
+(require 'octicons)
+(set-face-attribute 'octicons nil
+				:font "github-octicons")
+
 
 (setq custom-theme-directory
 	 (expand-file-name (concat user-emacs-directory "themes/")))
@@ -76,8 +44,6 @@
 		    (append zenburn-default-colors-alist
 				  zenburn-override-colors-alist))))
 
-;; (color-theme-initialize)
-;; (color-theme-dark-blue2)
 
 (zenburn-with-color-variables
   (custom-set-faces
@@ -87,52 +53,6 @@
 	   :weight		bold
 	   :background		,zenburn-bg+05))))
 
-   ;; ---------- Mode Line Faces ---------- ;;
-   `(mode-line
-     ((,class
-	  (:foreground		,zenburn-green+1
-	   :background		,zenburn-bg-1
-	   :height		80
-	   :box
-	   (:line-width	-1
-	    :style		released-button)))
-      (t
-	  :inverse-video t)))
-   `(mode-line-inactive
-	((t
-	  (:foreground		,zenburn-green-2
-	   :background		,zenburn-bg+05
-	   :height		80
-	   :box
-	   (:line-width	-1
-	    :style		released-button)))))
-   `(mode-line-modified-face
-	((t 
-	  (:foreground		,zenburn-red
-	   :background		nil
-	   :height		80
-	   :weight		bold
-	   :box
-	   (:line-width	2
-	    :color		,zenburn-red)))))
-   `(mode-line-read-only-face
-	((,class
-	  (:foreground		,zenburn-red-2
-	   :box
-	   (:line-width	2
-	    :color		,zenburn-red-2)))))
-   `(mode-line-mode-face
-	((,class
-	  (:foreground		,zenburn-blue+1
-	   :weight		bold))))
-   `(mode-line-80col-face
-	((,class
-	  (:inherit		'mode-line-position-face
-	   :inverse-video	t
-	   :weight		bold))))
-   `(mode-line-process-face
-	((,class
-	  (:foreground		,zenburn-yellow))))
    
    ;; ---------- Auto Complete ---------- ;;
    `(ac-candidate-face
@@ -174,87 +94,385 @@
 	 (:foreground		,zenburn-blue-3))))
   ))
 
-
 ;; TO-DO:
 ;;   - add modeline-posn to modeline
 ;;	- add button to process --> go to process buffer
 ;;	- make simpler modeline for process --> row - mode
+;;		- add clear buffer
 
-;; (setq-default
-;;  mode-line-format
-;;  (list "%e"
-;; 	  'mode-line-client
-;; 	  'mode-line-modified
-;; 	  'mode-line-remote
-;; 	  "   "
-;; 	  'mode-line-position
-;; 	  "  "
-;; 	  'mode-line-modes
-;;    ;; 'mode-line-misc-info
-;;    ;; 'mode-line-end-spaces
-;;    )
-;;  )
+;; ------------------------------------------------------------------------- ;;
+;; Mode Lines
+;; ------------------------------------------------------------------------- ;;
+(require 'modeline-posn)
+(require 'powerline)
 
-;; (require 'modeline-posn)
+(defface mode-line-1
+  '((t (:inherit		mode-line)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-2
+  '((t (:inherit		mode-line)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-1-inactive
+  '((t (:inherit		mode-line-inactive)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-2-inactive
+  '((t (:inherit		mode-line-inactive)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-modified-face
+  '((t (:inherit		mode-line
+	   :background		nil)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-read-only-face
+  '((t (:inherit		mode-line
+	   :background		nil)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-column-warn-face
+  '((t (:inherit		mode-line
+	   :background		nil)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-mode-face
+  '((t (:inherit		mode-line
+	   :background		nil)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-mode-inactive-face
+  '((t (:inherit		mode-line-inactive
+	   :background		nil)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-process-face
+  '((t (:inherit		mode-line
+	   :background		nil)))
+  ""
+  :group 'mode-line-faces)
+
+(defface mode-line-process-inactive-face
+  '((t (:inherit		mode-line-inactive
+	   :background		nil)))
+  ""
+  :group 'mode-line-faces)
+
+;; ---------- Mode Line Faces ---------- ;;
+(zenburn-with-color-variables
+  (custom-set-faces
+   `(mode-line
+     ((t (:foreground		,zenburn-green+1
+		:background		,zenburn-bg-2
+		:height			80
+		:box
+		(:line-width		-1
+		 :style			released-button)))))
+   `(mode-line-1
+	((t (:inherit			mode-line
+		:background		,zenburn-bg-1))))
+   `(mode-line-2
+	((t (:inherit			mode-line
+		:background		,zenburn-bg))))
+
+   `(mode-line-inactive
+	((t (:inherit			mode-line
+		:foreground		,zenburn-green+3
+		:background		,zenburn-bg-1))))
+   `(mode-line-1-inactive
+	((t (:inherit			mode-line-inactive
+		:background		,zenburn-bg))))
+   `(mode-line-2-inactive
+	((t (:inherit			mode-line-inactive
+		:background		,zenburn-bg+1))))
+
+   `(mode-line-modified-face
+	((t (:inherit			mode-line
+		:foreground		,zenburn-red
+		:background		nil
+		:weight			bold
+		:box
+		(:line-width		2
+		 :color			,zenburn-red)))))
+   `(mode-line-read-only-face
+	((t (:foreground		,zenburn-red-2
+		))))
+   
+   `(mode-line-column-warn-face
+	((t (:inherit			mode-line-position-face
+		:inverse-video		t
+		:weight			bold))))
+   
+   `(mode-line-mode-face
+	((t (:inherit			mode-line-2
+		:foreground		,zenburn-blue+1
+		:background		nil		
+		:weight			bold))))
+   `(mode-line-mode-inactive-face
+	((t (:inherit			mode-line-2-inactive
+		:foreground		,zenburn-blue))))
+
+   `(mode-line-process-face
+	((t (:inherit			mode-line-2
+		:foreground		,zenburn-yellow
+		:background		nil		
+		:weight			bold))))
+   `(mode-line-process-inactive-face
+	((t (:inherit			mode-line-2-inactive
+		:foreground		,zenburn-yellow-1))))))
+
+;; Mode Line - Region Section
+(setq-default
+ modeline-region 
+ '(:eval
+   (propertize
+    ;; Text
+    (if (or modelinepos-region-acting-on
+		  (condition-case nil
+			 (modelinepos-show-region-p)
+		    (error nil)))
+	   (condition-case nil
+		  (let ((rows (if modelinepos-rect-p
+					   ;; Rows (rectangle)
+					   (count-lines (region-beginning) (region-end))
+					 ;; Lines
+					 (count-lines (mark t) (point))))
+			   (chars (abs (- (mark t) (point))))
+			   (cols (when modelinepos-rect-p        ; Columns (rectangle)
+					 (if (fboundp 'rectangle--pos-cols) ; Emacs 25+
+						(let ((rpc  (save-excursion
+								    (rectangle--pos-cols (region-beginning)
+													(region-end)))))
+						  (abs (- (car rpc) (cdr rpc))))
+					   (let ((start  (region-beginning))
+						    (end    (region-end))
+						    startcol endcol)
+						(save-excursion
+						  (goto-char start)
+						  (setq startcol   (current-column))
+						  (beginning-of-line)
+						  (goto-char end)
+						  (setq endcol  (current-column))
+								; Ensure start column is the left one.
+						  (when (< endcol startcol) 
+						    (let ((col  startcol))
+							 (setq startcol  endcol
+								  endcol    col)))
+						  (abs (- startcol endcol))))))))
+		    (if modelinepos-rect-p
+					 (format " %d cols, %d rows" cols rows)
+				    (format " %d chars, %d lines" chars rows)))
+		(error ""))
+	 " ")
+    'local-map		mode-line-column-line-number-mode-map
+    'mouse-face		'mode-line-highlight
+    'help-echo		"Buffer position, mouse-1: Line/col menu")))
+
+;; Mode Line - Position Section
+(setq-default
+ modeline-position
+ '(:eval
+   (propertize
+    ;; Format
+    " (%c, %l) "
+    ;; Face
+    'face	(and
+		 (>
+		  (current-column)
+		  80)
+		 'mode-line-column-warn-face)    
+    'local-map		mode-line-column-line-number-mode-map
+    'mouse-face	'mode-line-highlight
+    'help-echo		"Line and column, mouse-1: Line/col menu")))
+
+;; Mode Line - Read Only Icon
+(setq-default
+ modeline-read-only
+ '(:eval
+   (propertize
+    ;; Format
+    (if buffer-read-only
+    	   octicon-lock
+    	 octicon-pencil)
+    ;; Face
+    'face			'octicons
+    'local-map		'(keymap
+				  (mode-line keymap
+						   (mouse-1 . mode-line-toggle-read-only)))
+    'mouse-face	'mode-line-highlight
+    'help-echo		'mode-line-read-only-help-echo)))
+
+;; Mode Line - Modified Icon
+(setq-default
+ modeline-modified
+ '(:eval
+   (propertize
+    ;; Format
+    (if (buffer-modified-p)
+    	   octicon-alert
+    	 "    ")
+    ;; Face
+    'face			'(octicons mode-line-read-only-face)
+    'local-map		'(keymap
+    				  (mode-line keymap
+    						   (mouse-1 . save-buffer)))
+    'mouse-face	'mode-line-highlight
+    'help-echo		'(format
+				  "Buffer is %smodified\nmouse-1: Save buffer"
+				  (if (buffer-modified-p)
+					 ""
+				    "not ")))))
+
+
+(setq powerline-height nil)
+(setq powerline-text-scale-factor 0.9)
+
+;; Mode Line
+(setq-default
+ mode-line-format
+ '("%e"
+   (:eval
+    (let* ((active
+		  (powerline-selected-window-active))
+		 (process
+		  (get-buffer-process (current-buffer)))
+		 ;; Faces
+		 (mode-face
+		  (if active 'mode-line-mode-face 'mode-line-mode-inactive-face))
+		 (process-face
+		  (if active 'mode-line-process-face
+		    'mode-line-process-inactive-face))
+		 (face-0
+		  (if active 'mode-line 'mode-line-inactive))
+		 (face-1
+		  (if active 'mode-line-1 'mode-line-1-inactive))
+		 (face-2
+		  (if active 'mode-line-2 'mode-line-2-inactive))
+
+		 (modeline-icon
+		  (propertize
+		   ;; Format
+		   (cond
+		    (process					octicon-terminal)
+		    ((derived-mode-p 'text-mode)	octicon-file-text)
+		    (t						octicon-file-code))
+		   
+		   ;; Face
+		   'face			'octicons
+		   'mouse-face		'mode-line-highlight
+		   'help-echo
+		   (cond
+		    (process					"Terminal / Process")
+		    ((derived-mode-p 'text-mode)	"Text File")
+		    (t						"Code File"))
+		   ))
+	 
+		 ;; Separators
+		 (separator-left
+		  (intern (format "powerline-%s-%s"
+					   (powerline-current-separator)
+					   (car powerline-default-separator-dir))))
+		 (separator-right
+		  (intern (format "powerline-%s-%s"
+					   (powerline-current-separator)
+					   (cdr powerline-default-separator-dir))))
+		 
+		 ;; ---------- Left Hand Side ---------- ;;
+		 ;; - Read-Only
+		 ;; - Modified
+		 (lhs
+		  (list
+		   (powerline-raw	" " face-0)
+		   (powerline-raw	modeline-icon face-0 'l)
+		   (powerline-raw	" " face-0)
+		   (powerline-raw	modeline-read-only face-0 'l)
+		   (powerline-raw	" " face-0)
+		   (powerline-raw	modeline-modified face-0 'l)
+		   (powerline-raw	" " face-0)
+		   (funcall separator-left face-0 face-1)
+		   (powerline-narrow face-1 'l)
+		   (powerline-raw	modeline-region face-1 'l)			    
+		   (powerline-vc face-1)))
+
+		 (lhs (if process
+				(list
+				 (powerline-raw	" " face-0)
+				 (powerline-raw	modeline-icon face-0 'l)
+				 (powerline-raw	"  " face-0)
+				 (funcall separator-left face-0 face-1)
+				 (powerline-narrow face-1 'l)
+				 (powerline-raw	modeline-region face-1 'l)
+				 (powerline-vc face-1))
+			   lhs))
+		 
+		 ;; ---------- Center ---------- ;;
+		 ;; - Major Mode
+		 ;; - Process
+		 (center
+		  (list
+		   (powerline-raw	" " face-1)
+		   (funcall separator-left face-1 face-2)
+		   ;; (when (and (boundp 'erc-track-minor-mode)
+		   ;; 		    erc-track-minor-mode)
+		   ;; 	(powerline-raw erc-modified-channels-object face-2 'l))
+		   (powerline-raw	" " mode-face)
+		   (powerline-major-mode mode-face 'l)
+		   (powerline-raw	" " mode-face)
+		   (powerline-process process-face)
+		   ;; (powerline-minor-modes face-2 'l)
+		   (powerline-raw	" " face-2)
+		   (funcall separator-right face-2 face-1)))
+		 
+		 ;; ---------- Right Hand Side ---------- ;;
+		 (rhs
+		  (list
+		   (powerline-raw	global-mode-string face-1 'r)
+		   (powerline-raw	modeline-position face-1 'r)
+		   ;; (powerline-raw "%4l" face-1 'r)
+		   ;; (powerline-raw ":" face-1)
+		   ;; (powerline-raw "%3c" face-1 'r)
+		   (funcall separator-right face-1 face-0)
+		   (powerline-raw	" " face-0)
+		   (when powerline-display-buffer-size
+			(powerline-buffer-size face-0 'r))
+		   (powerline-raw	"/ " face-0)
+		   (powerline-raw	"%3p" face-0 'r)
+		   (when powerline-display-hud
+			(powerline-hud face-2 face-1))
+		   (powerline-fill	face-0 0)))
+
+		 (rhs (if process
+				(list
+				 (powerline-raw	global-mode-string face-1 'r)
+				 (powerline-raw	modeline-position face-1 'r)
+				 (funcall separator-right face-1 face-0)
+				 (powerline-raw	"      " face-0)
+				 (powerline-fill	face-0 0))
+			   rhs))
+		 )
+	 
+	 (concat (powerline-render lhs)
+		    (powerline-fill-center face-1 (/ (powerline-width center) 2.0))
+		    (powerline-render center)
+		    (powerline-fill face-1 (powerline-width rhs))
+		    (powerline-render rhs))))))
+
+
 (column-number-mode 1)
 (size-indication-mode 1)
 
-;; --------------------------------------------------------------------------
-;; Mode-Line Setup
-;; --------------------------------------------------------------------------
-(setq-default
- mode-line-format
- '(;; Position, including warning for 80 columns (0-8)
-   (:propertize "%4l:" face mode-line-position-face)
-   (:eval (propertize "%3c" 'face
-                      (if (> (current-column) 80)
-                          'mode-line-80col-face
-                        'mode-line-position-face)))
-   ;; [+5] (9-13) 
-   "     "
-   
-   ;; read-only or modified status (14-17)
-   (:eval
-    (cond (buffer-read-only
-           (propertize " XX " 'face 'mode-line-read-only-face))		
-          ((buffer-modified-p)
-           (propertize " !! " 'face 'mode-line-modified-face))
-          (t "    ")))
 
-   ;; [+5] (18-22)
-   "     "   
 
-   ;; Percent / Size
-   (:propertize "%p / %I" face mode-line-position-face) 
-
-   ;; [+15]
-   "               "
-   
-   ;; (:propertize "%b" face mode-line-filename-face)
-   
-   ;; Major Mode
-   "- "
-   (:propertize mode-name
-                face mode-line-mode-face)
-   " -"
-
-   ;; [+15]
-   "               "
-   
-   ;; (:eval (propertize (format-mode-line minor-mode-alist)
-   ;;                    'face 'mode-line-minor-mode-face))
-   
-   ;; Process
-   (:propertize mode-line-process
-                face mode-line-process-face)
-   ))
-
-(make-face		'mode-line-read-only-face)
-(make-face		'mode-line-modified-face)
-(make-face		'mode-line-position-face)
-(make-face		'mode-line-mode-face)
-(make-face		'mode-line-process-face)
-(make-face		'mode-line-80col-face)
 
 
 
