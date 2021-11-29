@@ -181,7 +181,7 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
  '(("\\_<-?[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?"
     .
     'font-lock-number-face)
-   ("(\\([/!<>]=\\|[<>]\\|and\\|or\\|not\\|eq[1]?\\)\\b"
+   ("(\\([/!<>]=\\|[<>=]\\|and\\|or\\|not\\|equal\\|eq[1]?\\)"
      .
      'font-lock-relation-operator-face)))
 

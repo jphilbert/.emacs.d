@@ -11,7 +11,9 @@
 
 (ess-toggle-S-assign-key		t)	     ; enable above key definition
 (ess-toggle-underscore		nil)	     ; leave my underscore alone
-
+(add-to-list 'hs-special-modes-alist
+		   '(ess-mode "{" "}" "/[*/]" nil
+				    hs-c-like-adjust-block-beginning))
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
@@ -20,9 +22,6 @@
   (interactive)  
 
   (hs-minor-mode t)
-  (add-to-list 'hs-special-modes-alist
-			'(ess-mode "{" "}" "/[*/]" nil
-					 hs-c-like-adjust-block-beginning))
   (hs-hide-all)
   (setq ac-sources
 	   (append '(ac-source-R-objects
@@ -158,9 +157,8 @@
 (defun R-process-new ()
   "Creates a new R-process."
   (interactive)
-  (save-window-excursion (R))
-  (save-frame-excursion
-   (switch-frame-previous-R)))
+  (R)
+  (R-switch-frame-script))
 
 (defun R-kill-all-processes ()
   "Kills all R processes and clears the name-list."
@@ -216,7 +214,7 @@
 ;; ---------- Echo Results / Pander ---------- ;;
 (defun R-pander-wrap (string)
   (format "pander:::panderOptions('table.alignment.default', 'right')\n
-pander:::pander({%s}, style = \"%s\")\n"
+pander:::pander({%s\n}, style = \"%s\")\n"
 		string "simple"))
 
 (defun R-eval-pander ()
@@ -244,38 +242,40 @@ pander:::pander({%s}, style = \"%s\")\n"
     
     (goto-char pt-end)
     (newline)
-    
-    
-    ;; (message "%s" (R-pander-wrap (buffer-substring pt-beg pt-end)))
+
     (ess-command (R-pander-wrap (buffer-substring pt-beg pt-end))
 			  nil nil nil nil (get-process "R"))
     
     (save-excursion
-    	 (set-buffer (get-buffer-create " *ess-command-output*"))
-    	 (goto-char (point-min))
-	 
-	 ;; Trim junk lines at the start
-	 (cl-loop
-	  until (or (eobp)
-			  (looking-at "^\\([ ]+\\)\\([[:alnum:]_]+\\)"))
-	  do (kill-line))
-
-	 ;; Insert comments on line
-    	 (insert comment-str)
-    	 (cl-loop repeat
-    			(count-lines (point-min) (point-max))
-    			do
-    			(forward-line 1)
-    			(insert comment-str))
+    	 (set-buffer (get-buffer-create " *ess-command-output*"))	 
 
 	 ;; Trim empty lines at the end (usually 2)
-	 (beginning-of-line)
-	 (cl-loop while
-			(and (not (bobp))
-			    (looking-at (concat "^" comment-str "[[:space:]]*$")))
-			do
-			(forward-line -1))
-	 (kill-region (- (point) 1) (point-max)))
+	 (goto-char (point-max))
+    	 (beginning-of-line)
+    	 (cl-loop
+	  while (and (not (bobp))
+			   (looking-at "^[[:space:]]*$"))
+	  do (forward-line -1)
+	  )
+	 (forward-line)
+    	 (kill-region (1- (point)) (point-max))
+
+    	 ;; Trim junk lines at the start
+	 (goto-char (point-min)) 
+	 (kill-line)
+    	 (cl-loop
+    	  while (and (not (eobp))
+			   (looking-at "^[[:space:]]*$"))
+    	  do (kill-line))
+	 
+    	 ;; Insert comments on line
+    	 ;; (insert comment-str)
+    	 (cl-loop
+	  until (eobp)
+	  do
+	  (insert comment-str)
+	  (forward-line 1))
+	 )
     (insert-buffer-substring " *ess-command-output*"))
   (ess-next-code-line 1))
 
@@ -387,14 +387,15 @@ initially found it automatically shows the help without prompting."
 ;; ------------------------------------------------------------------------- ;;
 ;; Syntax Highlighting
 ;; ------------------------------------------------------------------------- ;;
-(font-lock-add-keywords
+(
+ font-lock-add-keywords
+ ;; font-lock-remove-keywords
  'ess-mode
- '(
-   ;;    ("\\s\"?\\(\\(\\sw\\|\\s_\\)+\\(<-\\)?\\)\\s\"?*\\s-*\\["
-   ;;     1                               ; Signifies which group
-   ;;     'font-lock-ess-dataframe-face)
-   ("\\(\\sw\\|\\s\"\\|\\s-\\)\
-\\([<=>]=\\|[!<>]\\|[&|]\\{1,2\\}\\)\
-\\(\\sw\\|\\s\"\\|\\s-\\)"
+ '(("\\(\\sw\\|\\s\"\\|\\s-\\)\
+\\([!<=>]=\\|[!<>]\\|[&|]\\{1,2\\}\\)\
+\\(\\sw\\|\\s\"\\|\\s-\\|$\\)"
+    2
+    'font-lock-relation-operator-face))
+ '(("\\(\\s-\\|^\\|\\s\(\\)\\(!\\)"
     2
     'font-lock-relation-operator-face)))

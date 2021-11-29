@@ -19,11 +19,23 @@
 (use-package package
   :config
   (add-to-list 'package-archives
-             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+             '("melpa-stable" . "http://stable.melpa.org/packages/") t)
   (package-initialize))
 
+;; (unless package-archive-contents
+;;     (package-refresh-contents))
 
- 
+;; (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
+
+;; (package-refresh-contents)
+
+;; (add-to-list 'package-archives
+;;              '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+
+;; (setq package-archives
+;; 	 '(("gnu" . "http://elpa.gnu.org/packages/")
+;; 	   ("melpa" . "http://melpa.org/packages/")))
+
 ;; ------------------------------------------------------------------------- ;;
 ;; Directories / Backups
 ;; ------------------------------------------------------------------------- ;;
@@ -89,52 +101,113 @@
 ;; ----------------------------------------------------------------------------
 ;; General Settings
 ;; ----------------------------------------------------------------------------
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(abbrev-file-name (concat user-emacs-directory "abbrev_defs"))
+ '(ac-use-quick-help nil)
+ '(ansi-color-for-comint-mode t)
+ '(comint-move-point-for-output t)
+ '(comint-prompt-read-only nil)
+ '(comint-scroll-to-bottom-on-input t)
+ '(comint-scroll-to-bottom-on-output t)
+ '(comint-use-prompt-regexp t)
+ '(comment-auto-fill-only-comments t)
+ '(cua-mode t nil (cua-base))
+ '(delete-by-moving-to-trash t)
+ '(delete-selection-mode t)
+ '(directory-abbrev-alist
+   (pcase
+	  (system-name)
+	("USS7W8JBM2"
+	 (quote
+	  (("~/desktop/" . "~/OneDrive - UPMC/desktop/")
+	   ("~/custom/" . "X:/Data Analysis/Data Analysis(Custom)/")
+	   ("~/dohe/" . "X:/Data Analysis/Data Analysis(DeptUsers)/")
+	   ("~/dev/" . "X:/Data Analysis/Data Analysis(DeptUsers)/Development Team/")
+	   ("~/sci/" . "X:/Data Analysis/Data Analysis(DeptUsers)/Science_Team/"))))
+	("YOGA-JPH"
+	 (quote
+	  (("~/desktop/" . "~/desktop/")
+	   ("~/google/" . "~/Google Drive/"))))))
+ '(ess-R-font-lock-keywords
+   (quote
+    ((ess-R-fl-keyword:modifiers . t)
+	(ess-R-fl-keyword:fun-defs . t)
+	(ess-R-fl-keyword:keywords . t)
+	(ess-R-fl-keyword:assign-ops . t)
+	(ess-R-fl-keyword:constants . t)
+	(ess-fl-keyword:fun-calls . t)
+	(ess-fl-keyword:numbers . t)
+	(ess-fl-keyword:operators)
+	(ess-fl-keyword:delimiters)
+	(ess-fl-keyword:= . t)
+	(ess-R-fl-keyword:F&T . t)
+	(ess-R-fl-keyword:%op% . t))))
+ '(ess-ask-for-ess-directory nil)
+ '(ess-default-style (quote RStudio))
+ '(ess-eval-visibly nil)
+ '(ess-help-kill-bogus-buffers t)
+ '(ess-help-own-frame 1)
+ '(ess-history-file nil)
+ '(ess-keep-dump-files nil)
+ '(ess-r-args-electric-paren nil)
+ '(ess-r-args-noargsmsg "No Args")
+ '(ess-r-args-show-as (quote tooltip))
+ '(ess-r-args-show-prefix "")
+ '(fill-column 80)
+ '(global-visual-line-mode t)
+ '(inferior-R-args "--no-restore-history --no-save")
+ '(inferior-R-program-name
+   (pcase
+	  (system-name)
+	("USS7W8JBM2" "~\\R\\R-4.0.2\\bin\\x64\\Rterm.exe")
+	("YOGA-JPH" "c:/Program Files/r/R-3.4.3/bin/x64/Rterm.exe")))
+ '(inhibit-startup-screen t)
+ '(mouse-avoidance-mode (quote jump) nil (avoid))
+ '(package-selected-packages
+   (quote
+    (yasnippet websocket web-mode sql-indent rainbow-delimiters pythonic python-environment pretty-lambdada powershell-mode powershell pos-tip mouse3 markdown-mode json-rpc icicles fuzzy fold-dwim expand-region ess epc dired+ color-theme auto-complete adaptive-wrap ac-js2)))
+ '(python-guess-indent nil)
+ '(python-indent 4)
+ '(python-indent-guess-indent-offset nil)
+ '(python-indent-offset 4)
+ '(python-shell-interpreter
+   (pcase
+	  (system-name)
+	("USS7W8JBM2" "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/Scripts/ipython.exe")
+	("YOGA-JPH" nil)))
+ '(save-abbrevs nil)
+ '(scroll-preserve-screen-position 1)
+ '(select-enable-clipboard t)
+ '(show-paren-mode t)
+ '(sql-ms-options (quote ("-w" "2000" "-y" "2000" "-s" "|" "-k")))
+ '(sql-ms-program
+   (pcase
+	  (system-name)
+	("USS7W8JBM2" "C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd.exe")
+	("YOGA-JPH" nil)))
+ '(sql-oracle-program "sqlplus")
+ '(sql-oracle-scan-on nil)
+ '(sql-product (quote oracle))
+ '(sql-send-terminator nil)
+ '(tab-width 5)
+ '(tool-bar-mode nil)
+ '(tooltip-mode nil)
+ '(user-full-name "John P. Hilbert")
+ '(user-mail-address "jphilbert@gmail.com")
+ '(visible-bell t))
+
 (setq-default
- user-full-name				"John P. Hilbert"
- user-mail-address				"jphilbert@gmail.com"
- 
- fill-column					80
- tab-width					5
- comment-auto-fill-only-comments	t	; Don't fill except for comments
- inhibit-startup-screen			t	; No Splash Screen
- visible-bell					t	; No Beep
- x-select-enable-clipboard		t	; yank to MS clipboard
- ;; redisplay-dont-pause			t	; > obsolete <
- scroll-preserve-screen-position	1	; Keeps cursor in one spot
- delete-by-moving-to-trash		t	; use recycling bin
  ediff-split-window-function		'split-window-horizontally
- 
  completion-ignore-case			t
  
  ;; ---------- Scratch ---------- ;;
  initial-scratch-message		";; ---------- Scratch Buffer ---------- ;;\n"
  initial-major-mode				'emacs-lisp-mode
- 
- ;; ---------- Command Interpreter ---------- ;;
- ansi-color-for-comint-mode        t
- comint-use-prompt-regexp		t	; fixes the weird prompt highlighting
- comint-scroll-to-bottom-on-input	t
- comint-scroll-to-bottom-on-output	t
- comint-move-point-for-output		t
- comint-prompt-read-only			nil
 
- ;; ---------- Abbreviations ---------- ;;
- save-abbrevs					nil
- abbrev-file-name				(concat user-emacs-directory "abbrev_defs")
- directory-abbrev-alist
-(append
-  directory-abbrev-alist
-  '(("~/desktop/"
-	.	 "~/OneDrive - UPMC/desktop/")
-    ("~/custom/"
-	.	"X:/Data Analysis/Data Analysis(Custom)/")
-    ("~/dohe/"
-	.	"X:/Data Analysis/Data Analysis(DeptUsers)/")
-    ("~/dev/"
-	.	"X:/Data Analysis/Data Analysis(DeptUsers)/Development Team/")
-    ("~/sci/"
-	.	"X:/Data Analysis/Data Analysis(DeptUsers)/Science_Team/")))
- 
  )
 
 ;; Substitute y/n for yes/no
@@ -152,25 +225,6 @@
 ;; enable PRETTY-LAMBDA-MODE
 (add-to-list 'pretty-lambda-auto-modes 'python-mode)
 (pretty-lambda-for-modes)		
-
-;; Various Minor Modes
-;; TO-DO: convert to customized variables
-(tooltip-mode				0)		; been causing lag in various modes  
-(cua-mode					t)	
-(fringe-mode                  0)	     ; Removes fringes
-(global-visual-line-mode		t)	     ; Word Wrapping
-(global-font-lock-mode		t)	     ; Syntax Coloring
-(delete-selection-mode		t)	     ; Entry deletes marked text
-(show-paren-mode			t)	     ; Highlight pairs
-(mouse-avoidance-mode		'jump)    ; Moves cursor out of way
-(tool-bar-mode				0)	     ; No Tool Bar
-(menu-bar-mode				0)	     ; No Menu Bar
-(toggle-scroll-bar			nil)	     ; no scroll bars
-(electric-pair-mode)				; turn on auto pairing
-
-
-
-
 
 
 ;; -----------------------------------------------------------------------------
@@ -538,60 +592,30 @@ opposite of what it did last so it may be wrong if `fold-dwim-show-all' or
 ;; https://www.emacswiki.org/emacs/ElectricHelp
 ;; (require 'ehelp nil t)
 ;; (global-set-key "\C-h" 'ehelp-command)
-
-(custom-set-variables
- '(ac-use-quick-help nil)
- 
- ;; ESS
- '(ess-R-font-lock-keywords
-   (quote
-    ((ess-R-fl-keyword:modifiers . t)
-	(ess-R-fl-keyword:fun-defs . t)
-	(ess-R-fl-keyword:keywords . t)
-	(ess-R-fl-keyword:assign-ops . t)
-	(ess-R-fl-keyword:constants . t)
-	(ess-fl-keyword:fun-calls . t)
-	(ess-fl-keyword:numbers . t)
-	(ess-fl-keyword:operators)
-	(ess-fl-keyword:delimiters)
-	(ess-fl-keyword:= . t)
-	(ess-R-fl-keyword:F&T . t)
-	(ess-R-fl-keyword:%op% . t))))
- '(ess-ask-for-ess-directory		nil)	; Suppress ask for directory
- '(ess-default-style			(quote RStudio))
- '(ess-eval-visibly				nil)
- '(ess-help-kill-bogus-buffers	t)	; Kill silly buffers
- '(ess-help-own-frame			1)
- '(ess-history-file				nil)
- '(ess-keep-dump-files			nil)
- '(ess-r-args-electric-paren		nil)
- '(ess-r-args-noargsmsg			"No Args")
- '(ess-r-args-show-as			(quote tooltip)) ; R ARGS as tool tip
- '(ess-r-args-show-prefix		"")			  ; Remove ARG Prefix
- '(inferior-R-args
-   "--no-restore-history --no-save")
- '(inferior-R-program-name
-   "~\\R\\R-4.0.2\\bin\\x64\\Rterm.exe")
- 
- ;; Python
- '(python-guess-indent			nil)
- '(python-indent				4)
- '(python-indent-guess-indent-offset nil)
- '(python-indent-offset			4)
- '(python-shell-interpreter
-   "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/Scripts/ipython.exe")
-
- ;; SQL
-  '(sql-ms-program
-    "C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd.exe")
-  '(sql-oracle-program			"sqlplus")
-  '(sql-oracle-scan-on			nil)
-  '(sql-send-terminator			nil)	; since I don't put GO after
-								; (CAUSE ISSUES IN SQLPLUS if non-nil)
-  '(sql-ms-options
-    '("-w" "2000"					; Max Column Width
-	 "-y" "2000"					; Individual Char Width
-	 "-s" "|"						; Column Separator
-	 "-k"))
-  '(sql-product				(quote oracle)) ; Default
-  )
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ac-candidate-face ((t (:height 100 :slant normal :weight normal))))
+ '(ac-selection-face ((t (:height 100 :slant normal :weight normal))))
+ '(ac-yasnippet-candidate-face ((t (:inherit (quote ac-candidate-face) :foreground "#6C3333"))))
+ '(ac-yasnippet-selection-face ((t (:inherit (quote ac-selection-face) :foreground "#D0BF8F"))))
+ '(font-lock-comment-delimiter-face ((t (:foreground "#6F8F6F"))))
+ '(font-lock-comment-face ((t (:foreground "#6F8F6F"))))
+ '(font-lock-number-face ((t (:foreground "#5C888B"))) t)
+ '(font-lock-relation-operator-face ((t (:foreground "#DFAF8F" :weight bold))) t)
+ '(lazy-highlight ((t (:foreground "#C77138" :weight bold :background "#494949"))))
+ '(mode-line ((t (:foreground "#8FB28F" :background "#000000" :height 80 :box (:line-width -1 :style released-button)))))
+ '(mode-line-1 ((t (:inherit mode-line :background "#2B2B2B"))))
+ '(mode-line-1-inactive ((t (:inherit mode-line-inactive :background "#3F3F3F"))))
+ '(mode-line-2 ((t (:inherit mode-line :background "#3F3F3F"))))
+ '(mode-line-2-inactive ((t (:inherit mode-line-inactive :background "#4F4F4F"))))
+ '(mode-line-column-warn-face ((t (:inherit mode-line-position-face :inverse-video t :weight bold))))
+ '(mode-line-inactive ((t (:inherit mode-line :foreground "#AFD8AF" :background "#2B2B2B"))))
+ '(mode-line-mode-face ((t (:inherit mode-line-2 :foreground "#94BFF3" :background nil :weight bold))))
+ '(mode-line-mode-inactive-face ((t (:inherit mode-line-2-inactive :foreground "#8CD0D3"))))
+ '(mode-line-modified-face ((t (:inherit mode-line :foreground "#CC9393" :background nil :weight bold :box (:line-width 2 :color "#CC9393")))))
+ '(mode-line-process-face ((t (:inherit mode-line-2 :foreground "#F0DFAF" :background nil :weight bold))))
+ '(mode-line-process-inactive-face ((t (:inherit mode-line-2-inactive :foreground "#E0CF9F"))))
+ '(mode-line-read-only-face ((t (:foreground "#AC7373")))))

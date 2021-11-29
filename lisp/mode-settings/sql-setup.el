@@ -27,29 +27,21 @@
 ;; --------------------------------------------------------------------------
 (defun my-sql-mode-hook ()
   (interactive)
-
-  ;; Not needed since we have abbrev-mode?
-  ;; (require 'ac-sql)
-  ;; (add-to-list 'ac-sources 'ac-source-sql)
-  
+ 
   (hs-minor-mode t)
   (setq ac-sources
-	   (append '(ac-source-yasnippet) ac-sources))
+  	   (append '(ac-source-yasnippet) ac-sources))
   (flyspell-prog-mode)
   (turn-on-auto-fill)  
   (rainbow-delimiters-mode 1)
 
-
   (add-function :around (local 'abbrev-expand-function)
-			 #'sql-mode-abbrev-expand-function)
-  
+    #'sql-mode-abbrev-expand-function)  
   (abbrev-mode t)
 
   (make-local-variable 'sql-product)
 
   (sql-set-product 'oracle)
-  ;; (setq comment-start "/*") **/
-  ;; (setq comment-end "*\/") **/
   )
 
 (defun my-sql-interactive-mode-hook ()
@@ -873,6 +865,14 @@ go")
     )
   )
 
+;; Fix SQL Highlighting + Rainbow Delimiters
+;;	sql-highlight-product overrides rainbow-delimiters so we need to reapply it
+;;	afterwords if it was on
+(advice-add 'sql-highlight-product :around
+		  '(lambda (func)
+			(let ((rainbow-state rainbow-delimiters-mode))
+			  (funcall func)
+			  (rainbow-delimiters-mode rainbow-state))))
 
 ;; --------------------------------------------------------------------------
 ;; Additional Keywords
@@ -995,7 +995,7 @@ go")
   "insert" "int" "integer" "intersect" "interval" "into" "is" "isolation"
   "iterate" "join" "key" "language" "large" "last" "lateral" "leading" "leave"
   "left" "level" "like" "local" "localtime" "localtimestamp" "locator" "loop"
-  "lower" "map" "match" "map" "member" "merge" "method" "min" "minute"
+  "lower" "map" "match" "map" "member" "merge" "method" "min" "max" "minute"
   "modifies" "module" "month" "multiset" "names" "national" "natural" "nchar"
   "nclob" "new" "next" "no" "none" "not" "null" "nullif" "numeric" "object"
   "octet_length" "of" "old" "on" "only" "open" "option" "or" "order"
@@ -1015,9 +1015,7 @@ go")
   "under" "undo" "union" "unique" "unknown" "unnest" "until" "update" "upper"
   "usage" "user" "using" "value" "values" "varchar" "varying" "view" "when"
   "whenever" "where" "while" "window" "with" "within" "without" "work" "write"
-  "year" "zone")
-		)
-  )
+  "year" "zone")))
 
 
 

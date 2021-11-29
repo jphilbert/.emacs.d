@@ -196,6 +196,94 @@ true."
       (when (> bottom max-y)
         (set-frame-height frame (/ (- max-y top) char-height))))))
 
+(defun frame-cascade-vertical-value ()
+  (let*
+	 ((current-pos
+	   (frame-parameter nil 'top))
+	  (display-pos
+	   (nth 1 (cdr (assoc 'workarea (frame-monitor-attributes)))))
+	  (workarea-size
+	   (nth 3 (cdr (assoc 'workarea (frame-monitor-attributes)))))
+	  (frame-size
+	   (* (frame-char-height) (frame-parameter nil 'height)))
+	  (max-offset (- workarea-size frame-size
+				  32				; Task Bar Height
+				  )))
+    
+    ;; Typically the position is a list of form (+ . INT)
+    (when (consp current-pos)
+      (setq current-pos (car (last current-pos))))
+
+    ;; Make the position relative to this display
+    (setq current-pos (- current-pos display-pos))
+    
+    (setq current-pos
+		(cond
+		 ;; If we have room, offset
+		 ((> max-offset (+ current-pos Frame-Cascade-Offset))
+		  (+ current-pos Frame-Cascade-Offset))
+		 ;; Else offsetting will cut some of the frame so reset the window
+		 ;; back to zero and offset the surplus
+		 ((> (* 2 max-offset) (+ current-pos Frame-Cascade-Offset))
+		  (- (+ current-pos Frame-Cascade-Offset) max-offset))
+		 ;; There is a chance that this surplus will still yield some cutting
+		 ;; of the frame (typical on small displays) so either put the frame
+		 ;; to the minimum or maximum (which ever its farthest)
+		 ((> (/ max-offset 2) current-pos)
+		  max-offset)
+		 (t 0)))
+
+    `(+ ,(+ current-pos display-pos))
+    ))
+
+(defun frame-cascade-horizontal-value ()
+  (let*
+	 ((current-pos
+	   (frame-parameter nil 'left))
+  	  (display-pos
+	   (nth 0 (cdr (assoc 'workarea (frame-monitor-attributes)))))
+	  (workarea-size
+	   (nth 2 (cdr (assoc 'workarea (frame-monitor-attributes)))))
+	  (frame-size
+	   (* (frame-char-width) (frame-parameter nil 'width)))
+	  (max-offset (- workarea-size frame-size)))
+
+    ;; Typically the position is a list of form (+ . INT)
+    (when (consp current-pos)
+      (setq current-pos (car (last current-pos))))
+
+    ;; Make the position relative to this display
+    (setq current-pos (- current-pos display-pos))
+
+    (setq current-pos
+		(cond
+		 ;; If we have room, offset
+		 ((> max-offset (+ current-pos Frame-Cascade-Offset))
+		  (+ current-pos Frame-Cascade-Offset))
+		 ;; Else offsetting will cut some of the frame so reset the window
+		 ;; back to zero and offset the surplus
+		 ((> (* 2 max-offset) (+ current-pos Frame-Cascade-Offset))
+		  (- (+ current-pos Frame-Cascade-Offset) max-offset))
+		 ;; There is a chance that this surplus will still yield some cutting
+		 ;; of the frame (typical on small displays) so either put the frame
+		 ;; to the minimum or maximum (which ever its farthest)
+		 ((> (/ max-offset 2) current-pos)
+		  max-offset)
+		 (t 0)))
+
+    `(+ ,(+ current-pos display-pos))
+    ))
+
+(defun frame-cascade (&optional frame)
+  (interactive)
+  (unless
+	 ;; Inhibit special buffers
+	 (display-buffer-assq-regexp
+	  (buffer-name (car (frame-parameter frame 'buffer-list)))
+	  display-buffer-alist nil)
+    (set-frame-parameter frame 'left (frame-cascade-horizontal-value))
+    (set-frame-parameter frame 'top (frame-cascade-vertical-value))))
+
 (provide 'frame-functions-misc)
 ;; ;;; FRAME-FUNCTIONS-MISC.EL ends here
 
