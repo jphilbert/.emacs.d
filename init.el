@@ -187,12 +187,11 @@
  '(sql-ms-program
    (pcase
 	  (system-name)
-	("USS7W8JBM2" "C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd.exe")
+	("USS7W8JBM2" "c:\\Program Files\\Microsoft SQL Server\\100\\Tools\\Binn\\sqlcmd.exe")
 	("YOGA-JPH" nil)))
  '(sql-oracle-program "sqlplus")
  '(sql-oracle-scan-on nil)
  '(sql-product (quote oracle))
- '(sql-send-terminator nil)
  '(tab-width 5)
  '(tool-bar-mode nil)
  '(tooltip-mode nil)
@@ -226,6 +225,20 @@
 (add-to-list 'pretty-lambda-auto-modes 'python-mode)
 (pretty-lambda-for-modes)		
 
+;; Various Minor Modes
+;; TO-DO: convert to customized variables
+(tooltip-mode				0)		; been causing lag in various modes  
+(cua-mode					t)	
+(fringe-mode                  0)	     ; Removes fringes
+(global-visual-line-mode		t)	     ; Word Wrapping
+(global-font-lock-mode		t)	     ; Syntax Coloring
+(delete-selection-mode		t)	     ; Entry deletes marked text
+(show-paren-mode			t)	     ; Highlight pairs
+(mouse-avoidance-mode		'jump)    ; Moves cursor out of way
+(tool-bar-mode				0)	     ; No Tool Bar
+(menu-bar-mode				0)	     ; No Menu Bar
+(toggle-scroll-bar			0)	     ; no scroll bars
+(electric-pair-mode			t)		; turn on auto pairing
 
 ;; -----------------------------------------------------------------------------
 ;; Aesthetics

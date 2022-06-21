@@ -8,6 +8,11 @@
 (require 'sql-indent) 
 (add-to-list 'ac-modes 'sql-mode)
 
+;; (setq sql-ms-program		"mssql-cli"
+;; 	 sql-ms-options		nil
+;; 	 )
+
+
 ;; (setq sql-ms-program		"C:/Program Files/Microsoft SQL Server/100/Tools/Binn/sqlcmd.exe"
 ;;       sql-oracle-program		"sqlplus"
 ;; 	 sql-oracle-scan-on		nil
@@ -21,6 +26,13 @@
 
 ;; Adds _ as a word characters so abbrev-mode doesn't changes parts of strings
 (modify-syntax-entry ?_ "w" sql-mode-syntax-table)
+
+(make-variable-buffer-local 'sql-product)
+(make-variable-buffer-local 'sql-send-terminator)
+
+(setq sql-ms-options nil)
+(setq sql-ms-program "~/apps/sqlcmdline/sqlcmdline") 
+;; (plist-put (alist-get 'ms sql-product-alist) :prompt-cont-regexp "^[0-9]*>")
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
@@ -38,8 +50,6 @@
   (add-function :around (local 'abbrev-expand-function)
     #'sql-mode-abbrev-expand-function)  
   (abbrev-mode t)
-
-  (make-local-variable 'sql-product)
 
   (sql-set-product 'oracle)
   )
@@ -60,8 +70,10 @@
   (abbrev-mode t)
   ;; (setq ac-ignore-case nil)
   ;; (setq-default truncate-lines t)
-  )
 
+  (setq sql-send-terminator			; changed to be product specific
+	   (sql-get-product-feature sql-product :sql-send-terminator))  
+  )
 
 ;; --------------------------------------------------------------------------
 ;; Key Binding
@@ -142,16 +154,104 @@
   "\C-ho"           'sql-inspect-table
   )
 
-
 ;; --------------------------------------------------------------------------
 ;; Product Features
 ;; --------------------------------------------------------------------------
+(setq sql-product-alist
+  '((oracle
+     :name "Oracle"
+     :font-lock sql-mode-oracle-font-lock-keywords
+     :sqli-program sql-oracle-program
+     :sqli-options sql-oracle-options
+     :sqli-login sql-oracle-login-params
+     :sqli-comint-func sql-comint-oracle
+     :list-all sql-oracle-list-all
+     :list-table sql-oracle-list-table
+     :completion-object sql-oracle-completion-object
+     :prompt-regexp "^SQL> "
+     :prompt-length 5
+     :prompt-cont-regexp "^\\(?:[ ][ ][1-9]\\|[ ][1-9][0-9]\\|[1-9][0-9]\\{2\\}\\)[ ]\\{2\\}"
+     :statement sql-oracle-statement-starters
+     :syntax-alist ((?$ . "_") (?# . "_"))
+     :terminator ("\\(^/\\|;\\)$" . "/")
+     :input-filter sql-placeholders-filter)
+    (ms
+     :name "Microsoft"
+     :font-lock sql-mode-ms-font-lock-keywords
+     :sqli-program sql-ms-program
+     :sqli-options sql-ms-options
+     :sqli-login sql-ms-login-params
+     :sqli-comint-func sql-comint-ms
+     :prompt-regexp "^[0-9]*>"
+	:prompt-cont-regexp "^[0-9]*>"
+     :prompt-length 5
+     :syntax-alist ((?@ . "_"))
+     :terminator ("^go" . "go"))
+    (postgres
+     :name "Postgres"
+     :free-software t
+     :font-lock sql-mode-postgres-font-lock-keywords
+     :sqli-program sql-postgres-program
+     :sqli-options sql-postgres-options
+     :sqli-login sql-postgres-login-params
+     :sqli-comint-func sql-comint-postgres
+     :list-all ("\\d+" . "\\dS+")
+     :list-table ("\\d+ %s" . "\\dS+ %s")
+     :completion-object sql-postgres-completion-object
+     :prompt-regexp "^\\w*=[#>] "
+     :prompt-length 5
+     :prompt-cont-regexp "^\\w*[-(][#>] "
+     :input-filter sql-remove-tabs-filter
+     :terminator ("\\(^\\s-*\\\\g$\\|;\\)" . "\\g"))
+    (sqlite
+     :name "SQLite"
+     :free-software t
+     :font-lock sql-mode-sqlite-font-lock-keywords
+     :sqli-program sql-sqlite-program
+     :sqli-options sql-sqlite-options
+     :sqli-login sql-sqlite-login-params
+     :sqli-comint-func sql-comint-sqlite
+     :list-all ".tables"
+     :list-table ".schema %s"
+     :completion-object sql-sqlite-completion-object
+     :prompt-regexp "^sqlite> "
+     :prompt-length 8
+     :prompt-cont-regexp "^   \.\.\.> "
+     :terminator ";")
+    (ansi
+     :name "ANSI"
+     :font-lock sql-mode-ansi-font-lock-keywords
+     :statement sql-ansi-statement-starters)))
 
+(setq-default sql-product (caar sql-product-alist))
+
+
+(defun sql-set-product (product)
+  "Set `sql-product' to PRODUCT and enable appropriate highlighting."
+  (interactive
+   (list (sql-read-product
+		"SQL product: "
+		;; added default to last
+		sql-product)))
+  (if (stringp product) (setq product (intern product)))
+  (when (not (assoc product sql-product-alist))
+    (user-error "SQL product %s is not supported; treated as ANSI" product)
+    (setq product 'ansi))
+
+  ;; Save product setting and fontify.
+  (setq sql-product product)
+  (sql-highlight-product))
+
+;; MS Prompt
 (sql-set-product-feature
  'ms :prompt-regexp "^[0-9]*>") ;existing line
 
 (sql-set-product-feature
  'ms :prompt-cont-regexp "^[0-9]*>") ;new line
+
+;; MS send GO automatically
+(sql-set-product-feature
+ 'ms :sql-send-terminator "GO")
 
 ;; Describe 
 (sql-set-product-feature
@@ -165,9 +265,23 @@ describe PATTERN;")
 
 (sql-set-product-feature
  'ms
- :func-desc "select left(COLUMN_NAME, 40) as COL_NAME,
-left(DATA_TYPE, 20) as DATE_TYPE, CAST(CHARACTER_MAXIMUM_LENGTH AS varchar(6)) as length, IS_NULLABLE
-from INFORMATION_SCHEMA.COLUMNS where TABLE_schema + '.' +  TABLE_NAME='PATTERN'
+ :func-desc "SELECT
+    LEFT(COLUMN_NAME, 40) as COL_NAME,
+    LEFT(DATA_TYPE, 20) as DATE_TYPE,
+    CAST(CHARACTER_MAXIMUM_LENGTH AS varchar(6)) as length,
+    IS_NULLABLE
+FROM
+    INFORMATION_SCHEMA.COLUMNS
+    LEFT JOIN
+    sys.synonyms ON (
+	   COALESCE(PARSENAME(base_object_name, 2),
+		  SCHEMA_NAME(SCHEMA_ID ())) = TABLE_SCHEMA
+	   AND
+	   TABLE_NAME = PARSENAME(base_object_name, 1)) 
+WHERE
+    PARSENAME('PATTERN', 2) = TABLE_SCHEMA
+    AND
+    PARSENAME('PATTERN', 1) IN (TABLE_NAME, NAME)
 GO
 ")
 
