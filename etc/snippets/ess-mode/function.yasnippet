@@ -1,0 +1,33 @@
+# -*- mode: snippet -*-
+# name: function
+# key: func
+# --
+${1:function_name} <- function(${2:parameters}) {
+  `(concat
+   "## "
+   (make-string (- 79 (current-column)
+			  (* 4 (length comment-start)) 2) (string-to-char "#"))
+   " ##")`
+  ## ${1:$(upcase yas-text)}(${2:$(upcase yas-text)})
+  ## ${3:SUMMARY OF FUNCTION}
+  ##
+  ## PARAMETERS:
+  ##   - ${2:$(if (> (length yas-text) 0)
+    (concat (replace-regexp-in-string
+		   ","
+		   " (TYPE):\n  ##     DESCRIPTION\n  ##   -"
+		   (upcase yas-text))
+		  " (TYPE):\n  ##     DESCRIPTION\n  ##")
+  "<none>")} 
+  ##
+  ## OUTPUT:
+  ##   - ${5:NULL}
+  ##
+  `(concat
+   "## "
+   (make-string (- 79 (current-column)
+			  (* 4 (length comment-start)) 2) (string-to-char "#"))
+   " ##")`
+  $0
+  return($5)
+}

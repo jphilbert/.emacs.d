@@ -1,21 +1,12 @@
-# Windows image file caches
+# Windows Junk
 Thumbs.db
-
-# Folder config file
 Desktop.ini
 
 #Emacs
-config
-auto-save-list
-backups
-autosaves
-server
-*~
-.places
-session.*
+\#*
 *.elc
-ac-comphist.dat
-frame-settings.*
-.python-*
-*.desktop
-*.desktop.lock
+save/*
+!save/.gitkeep
+modules/elpa/*
+!modules/elpa/.gitkeep
+

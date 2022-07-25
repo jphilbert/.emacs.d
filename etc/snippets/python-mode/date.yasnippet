@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: date 
+# key: date
+# --
+datetime.datetime.strptime(${1:'${2:`(format-time-string "%Y")`}-${3:`(format-time-string "%m")`}-${4:`(format-time-string "%d")`}'}, '%Y-%m-%d')$0
