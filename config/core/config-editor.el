@@ -5,45 +5,19 @@
 ;; Global / Fundamental Mode options for Emacs
 
 ;;; Code:
-
-
-;;  '(abbrev-file-name (concat user-emacs-directory "abbrev_defs"))
-;;  '(ac-use-quick-help nil)
-;;  '(confirm-kill-processes nil)
-
-;; '(cua-mode t nil (cua-base))
-;;  '(delete-by-moving-to-trash t)
-;;  '(delete-selection-mode t)
-
-
-;; '(mouse-avoidance-mode 'jump nil (avoid))
-;; '(save-abbrevs nil)
-;; '(select-enable-clipboard t)
-;; '(tooltip-mode nil)
-
-
-
 (require 'crux)
 
-;; Death to the tabs!  However, tabs historically indent to the next
-;; 8-character offset; specifying anything else will cause *mass*
-;; confusion, as it will change the appearance of every existing file.
-;; In some cases (python), even worse -- it will change the semantics
-;; (meaning) of the program.
-;;
-;; Emacs modes typically provide a standard means to change the
-;; indentation width -- eg. c-basic-offset: use that to adjust your
-;; personal indentation width, while maintaining the style (and
-;; meaning) of any files you load.
-(setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
-(setq-default tab-width 5)            ;; but maintain correct appearance
+;; No Tabs
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
 
 ;; Newline at end of file
 (setq require-final-newline t)
 
-;; delete the selection with a keypress
+;; Delete the selection with a key press
 (delete-selection-mode t)
 
+(setq confirm-kill-processes nil)
 
 (setq comment-auto-fill-only-comments t)
 
@@ -52,31 +26,36 @@
 ;; ------------------------------------------------------------------------- ;;
 ;; Directories / Backups
 ;; ------------------------------------------------------------------------- ;;
-(setq-default 
- ;; ---------- Backups Directory and Naming ---------- ;;
- ;; [!] Backups (i.e. versions)
- backup-directory-alist			`((".*" . ,config-dir-backup))
- 
- ;; [#] Auto-saves are done after altering but before saving
- auto-save-file-name-transforms
- `((".*"  ,(concat config-dir-autosave "/") t))
- 
- ;; Auto-save List (for recover-session)
-                                        ;auto-save-list-file-prefix (expand-file-name "auto-save-list" config-dir-save)
- auto-save-list-file-name
- (concat (expand-file-name "auto-save-list" config-dir-save)
-         " "
-         (format-time-string "%Y%m%d-%H%M%S")
-    	    ".txt")
- ;; [.#] Locks are done in the same path (not to be confused with Auto-saves)
- create-lockfiles				nil
+;; ---------- Backups Directory and Naming ---------- ;;
+;; [!] Backups (i.e. versions)
+(make-directory (config-get :config-paths :backup) t)
+(setq backup-directory-alist
+	 `((".*" . ,(config-get :config-paths :backup))))
 
- ;; ---------- Backup Settings ---------- ;;
- version-control			t	; Use version numbers for backups.
- kept-new-versions			2	; Number of newest versions to keep.
- kept-old-versions			0	; Number of oldest versions to keep.
- delete-old-versions		t	; Don't ask to delete excess backup versions.
- backup-by-copying			t	; Copy all files, don't rename them.
+;; [#] Auto-saves are done after altering but before saving
+(make-directory (config-get :config-paths :autosave) t)
+(setq auto-save-file-name-transforms
+      `((".*" ,(concat (config-get :config-paths :autosave) "/") t)))
+
+;; Auto-save List (for recover-session)
+(make-directory (config-get :config-paths :temp) t)
+(setq auto-save-list-file-name
+      (concat (expand-file-name "auto-save-list"
+                                (config-get :config-paths :temp))
+              " "
+              (format-time-string "%Y%m%d-%H%M%S")
+              ".txt"))
+
+;; [.#] Locks are done in the same path (not to be confused with Auto-saves)
+(setq create-lockfiles				nil)
+
+;; ---------- Backup Settings ---------- ;;
+(setq
+ version-control                t	; Use version numbers for backups.
+ kept-new-versions          	2	; Number of newest versions to keep.
+ kept-old-versions              0	; Number of oldest versions to keep.
+ delete-old-versions            t	; Don't ask to delete excess backup versions.
+ backup-by-copying              t	; Copy all files, don't rename them.
  )
 
 
@@ -85,25 +64,27 @@
 (add-hook 'before-save-hook  'backup-buffer)
 
 ;; ---------- Turn On Desktop Saving ---------- ;;
-(setq-default
- desktop-path			(list config-dir-save)
- desktop-base-file-name		"desktop.el"
- desktop-base-lock-name		"desktop.lock.el"
+(setq
+ desktop-path                   (list (config-get :config-paths :temp))
+ desktop-base-file-name         "desktop.el"
+ desktop-base-lock-name         "desktop.lock.el"
  desktop-load-locked-desktop	t
- desktop-restore-eager		5
- desktop-restore-frames		t
+ desktop-restore-eager          5
+ desktop-restore-frames         nil
  )
-
-(desktop-save-mode)  
+(desktop-save-mode)
 
 ;; ---------- Opens Files with Emacs ---------- ;;
 (require 'server)
 (defun server-ensure-safe-dir (dir) t) ; Suppresses common windows error
-(setq
- server-auth-dir	config-dir-save ; change the server directory
- server-name		(expand-file-name "server-process" config-dir-save))
+
+;; change the server directory
 ;; !!! if changed, batch file needs option "-f %path/server_file%"
-(server-force-delete)				; just in case delete
+(setq server-auth-dir	(config-get :config-paths :temp))
+(setq server-name		(expand-file-name
+                          "server-process" (config-get :config-paths :temp)))
+
+(server-force-delete)                   ; just in case delete
 (server-start)						; start the server
 
 
@@ -131,7 +112,7 @@
         try-complete-lisp-symbol))
 
 ;; smart tab behavior - indent or complete
-(setq tab-always-indent 'complete)
+(setq tab-always-indent                 'complete)
 
 ;; smart pairing for all
 (require 'smartparens-config)
@@ -141,19 +122,17 @@
 ;; (sp-use-paredit-bindings)
 (show-smartparens-global-mode +1)
 
-
-
-
 ;; disable annoying blink-matching-paren
-(setq blink-matching-paren nil)
-
+(setq blink-matching-paren              nil)
 
 ;; meaningful names for buffers with the same name
 (require 'uniquify)
-(setq uniquify-buffer-name-style 'forward)
-(setq uniquify-separator "/")
-(setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
-(setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
+(setq uniquify-buffer-name-style        'forward)
+(setq uniquify-separator                "/")
+;; rename after killing uniquified
+(setq uniquify-after-kill-buffer-p      t)
+;; don't muck with special buffers
+(setq uniquify-ignore-buffers-re        "^\\*")
 
 
 (defadvice set-buffer-major-mode (after set-major-mode activate compile)
@@ -181,32 +160,20 @@
 
 (set-default 'imenu-auto-rescan t)
 
-;; flyspell-mode does spell-checking on the fly as you type
-(setenv "LANG" "en_US")
-(setq
- ispell-program-name			config-app-spell
- ispell-extra-args				'("--sug-mode=ultra")
- ispell-hunspell-dict-paths-alist	`(("en_US" ,config-app-spell-dict))
- ispell-local-dictionary-alist
- '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)))
-
-
+;; Spell Checking
 (require 'flyspell)
-;; :hook (text-mode . flyspell-mode))
-
 (require 'flyspell-correct)
 (require 'flyspell-correct-popup)
+(setenv "LANG" "en_US")
+(setq ispell-program-name               (config-get :applications :spell :exe))
+(setq ispell-extra-args				'("--sug-mode=ultra"))
+(setq ispell-hunspell-dict-paths-alist
+      `(("en_US" ,(config-get :applications :spell :dict))))
+(setq ispell-local-dictionary-alist
+      '(("en_US" "[[:alpha:]]" "[^[:alpha:]]"
+         "[']" nil ("-d" "en_US") nil utf-8)))
 
 
-;; (defun config-enable-flyspell ()
-;;   "Enable command `flyspell-mode' if `config-flyspell' is not nil."
-;;   (when (and config-flyspell (executable-find ispell-program-name))
-;;     (flyspell-mode +1)))
-
-(defun config-cleanup-maybe ()
-  "Invoke `whitespace-cleanup' if `config-clean-whitespace-on-save' is not nil."
-  (when config-clean-whitespace-on-save
-    (whitespace-cleanup)))
 
 
 ;; enable narrowing commands
@@ -219,38 +186,51 @@
 (put 'downcase-region	'disabled nil)
 
 ;; enable erase-buffer command
-(put 'erase-buffer		'disabled nil)
+(put 'erase-buffer       'disabled nil)
 
 (require 'expand-region)
 
 
+;; Whitespace displaying and cleanup
+(require 'whitespace)
+(setq whitespace-line-column 80) ;; limit line length
+(setq whitespace-style
+      '(face empty trailing lines-tail space-before-tab space-after-tab))
+
+(defun config-cleanup-maybe ()
+  "Invoke `whitespace-cleanup' if `config-clean-whitespace-on-save' is not nil."
+  (when config-clean-whitespace-on-save
+    (whitespace-cleanup)))
+
+(with-region-or-buffer indent-region)
+
+(require 'tabify)
+(with-region-or-buffer untabify)
 
 
-(require 'recentf) 
+(require 'recentf)
 (setq recentf-save-file
-      (expand-file-name "recentf.el" config-dir-save))
+      (expand-file-name "recentf.el" (config-get :config-paths :temp)))
 (recentf-mode 1)
 
 
 ;; bookmarks
 (require 'bookmark)
-(setq
- bookmark-default-file	(expand-file-name
-					 "bookmarks.txt" config-dir-save)
- bookmark-save-flag		1)
+(setq bookmark-default-file
+      (expand-file-name "bookmarks.txt" (config-get :config-paths :temp)))
+(setq bookmark-save-flag      1)
 
 
 ;; dired - reuse current buffer by pressing 'a'
-(put 'dired-find-alternate-file 'disabled nil)
+(put 'dired-find-alternate-file    'disabled nil)
 
 ;; always delete and copy recursively
-(setq
- dired-recursive-deletes		'always
- dired-recursive-copies		'always)
+(setq dired-recursive-deletes		'always)
+(setq dired-recursive-copies		'always)
 
 ;; if there is a dired buffer displayed in the next window, use its
 ;; current subdir, instead of the current subdir of this dired buffer
-(setq dired-dwim-target t)
+(setq dired-dwim-target            t)
 
 ;; enable some really cool extensions like C-x C-j(dired-jump)
 (require 'dired-x)
@@ -265,18 +245,15 @@
 ;; smarter kill-ring navigation
 
 
-(require 'tabify)
-(with-region-or-buffer indent-region)
-(with-region-or-buffer untabify)
-
 ;; saner regex syntax
 (require 're-builder)
 (setq reb-re-syntax 'string)
 
 (require 'rg)
 (rg-enable-default-bindings)
+(setq rg-executable                (config-get :applications :ripgrep))
 (setq transient-history-file
-      (expand-file-name "transient_history.el" config-dir-save))
+      (expand-file-name "transient_history.el" (config-get :config-paths :temp)))
 
 
 ;; supercharge your undo/redo with undo-tree
@@ -415,7 +392,7 @@ Fix for `hs-toggle-hiding'."
 
 ;; TODO: move to config-mode-text
 ;; Auto-Fill text modes
-(add-hook	'text-mode-hook	'turn-on-auto-fill)	
+(add-hook	'text-mode-hook	'turn-on-auto-fill)
 ;; (add-hook 'text-mode-hook 'config-enable-flyspell)
 ;; (add-hook 'text-mode-hook 'config-enable-whitespace)
 ;; (add-hook 'text-mode-hook 'abbrev-mode)
@@ -451,7 +428,7 @@ Fix for `hs-toggle-hiding'."
     ("'" . operate-on-number-at-point)))
 
 
-(setq rg-executable 'config-app-ripgrep)
+
 
 
 (define-keys vertico-map
@@ -465,6 +442,20 @@ Fix for `hs-toggle-hiding'."
 
 
 (setq projectile-cache-file
-      (expand-file-name "projectile.cache" config-dir-save))
+      (expand-file-name "projectile.cache"
+                        (config-get :config-paths :temp)))
 (setq projectile-known-projects-file
-      (expand-file-name "projectile-known-projects.eld" config-dir-save))
+      (expand-file-name "projectile-known-projects.eld"
+                        (config-get :config-paths :temp)))
+
+;; :hook (text-mode . flyspell-mode))
+
+
+
+;;  '(abbrev-file-name (concat user-emacs-directory "abbrev_defs"))
+
+;; '(cua-mode t nil (cua-base))
+;;  '(delete-by-moving-to-trash t)
+
+;; '(mouse-avoidance-mode 'jump nil (avoid))
+

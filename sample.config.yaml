@@ -1,0 +1,69 @@
+## ------------------------------------------------------------------------- ##
+## Directory Structure
+## ------------------------------------------------------------------------- ##
+# All paths are relative to config-root (.emacs.d/) if they are not absolute
+## .emacs.d/					--> config-root
+##   init.el
+##	 config/				
+##	   core/
+##     modes/
+##     custom.el
+##	 modules/
+##     elpa/
+##     user/
+##	 temp/	
+##     backup/
+##	   autosave/
+
+config-paths:
+  # Default path of buffer
+  default:              "~/"
+
+  # Core configuration files
+  core:                 "config/core"
+  # Mode specific configurations
+  mode:                 "config/modes"
+  # Emacs custom file (typically unused)
+  custom-file:          "config/custom.el"
+
+  # Archived packages from ELPA/MELPA
+  elpa-modules:         "modules/elpa"
+  # User packages that are manually installed or created
+  user-modules:         "modules/user"
+
+  # Temporary settings
+  temp:                 "temp"
+  backup:               "temp/backup"                     
+  autosave:             "temp/autosave"                   
+
+## ------------------------------------------------------------------------- ##
+## User Info
+## ------------------------------------------------------------------------- ## 
+user-info:
+  full-name:            ""
+  mail-address:         ""
+
+## ------------------------------------------------------------------------- ##
+## Specific Application Paths / Settings
+## ------------------------------------------------------------------------- ## 
+applications:
+  spell:
+    exe:                ""
+    dict:               ""
+  ripgrep:              ""
+  r:                    ""
+  python:               ""
+  zip7:                 ""
+  git:                  ""
+  pandoc:               ""
+  sql:                  
+    exe:                
+      oracle:           ""
+      ms:               ""
+    servers:            
+      name:             
+        product:        ""         
+        uid:            ""
+        pw:             ""
+
+

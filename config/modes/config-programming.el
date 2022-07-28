@@ -25,7 +25,7 @@
   (when (executable-find ispell-program-name)
     (flyspell-prog-mode))
   (smartparens-mode +1)
-  (smartparens-strict-mode -1)
+  (smartparens-global-strict-mode -1)
   (comment-auto-fill-only-comments-local)
   (hs-minor-mode))
 

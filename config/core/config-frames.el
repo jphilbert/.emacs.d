@@ -6,11 +6,10 @@
 ;; -----------------------------------------------------------------------------
 ;; Customize:
 ;; -----------------------------------------------------------------------------
-
 (defalias 'find-file 'find-file-other-frame)
 
 ;; -------------------- Default Frame ------------------
-;; TO-DO: set height depending on display size
+;; TODO: set height depending on display size
 (setq default-frame-alist
 	 '((left . 0)
 	   (top . 0)
@@ -24,43 +23,40 @@
 
 ;; Sets title bar as "<buffer>"
 ;;      Note: Emacs sets it to this if there are multiple frames anyways
-(setq
- frame-title-format		"%b"
- frame-resize-pixelwise	1
- minibuffer-auto-raise	nil			; <- if true, raises on hover
- )
+(setq frame-title-format            "%b")
+(setq frame-resize-pixelwise        1)
+(setq minibuffer-auto-raise         nil) ; <- if true, raises on hover
 
-(customize-set-variable
- 'display-buffer-base-action
- '((display-buffer-reuse-window
-	display-buffer-pop-up-frame)
-   (reusable-frames . 0)
-   (dedicated . 1)
-   (cascade . t)))
 
-(customize-set-variable
- 'display-buffer-alist
- `(("\\*Help.*\\*"
-    (display-buffer-reuse-window
-	display-buffer-pop-up-frame)
-    (reusable-frames . 0)
-    (cascade . nil)
-    (dedicated . 1)
-    (window-parameters
-	.
-	((mode-line-format . none)))
-    (pop-up-frame-parameters
-	.
-	((unsplittable . t)
-	 (horizontal-scroll-bars . nil)
-	 (vertical-scroll-bars . nil)
-	 (width . 60)
-	 (top . 10)
-	 (left . 790)
-	 (minibuffer . nil)
-	 (fit-frame-to-buffer-sizes . (30 0 100 0))
-	 (fit-frame-always . t)
-	 )))))
+(setq display-buffer-base-action
+      '((display-buffer-reuse-window
+	     display-buffer-pop-up-frame)
+        (reusable-frames . 0)
+        (dedicated . 1)
+        (cascade . t)))
+
+(setq display-buffer-alist
+      `(("\\*Help.*\\*"
+         (display-buffer-reuse-window
+	      display-buffer-pop-up-frame)
+         (reusable-frames . 0)
+         (cascade . nil)
+         (dedicated . 1)
+         (window-parameters
+	      .
+	      ((mode-line-format . none)))
+         (pop-up-frame-parameters
+	      .
+	      ((unsplittable . t)
+	       (horizontal-scroll-bars . nil)
+	       (vertical-scroll-bars . nil)
+	       (width . 60)
+	       (top . 10)
+	       (left . 790)
+	       (minibuffer . nil)
+	       (fit-frame-to-buffer-sizes . (30 0 100 0))
+	       (fit-frame-always . t)
+	       )))))
 
 
 (provide 'config-frames)

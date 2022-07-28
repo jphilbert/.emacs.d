@@ -1,7 +1,7 @@
 ;;; config-packages.el --- Emacs Config: default package selection.
 
 ;;;; Packages / Features: 
-(setq package-user-dir config-dir-elpa-modules)
+ ; Set first
 
 (require 'cl-lib)
 (require 'package)
@@ -57,6 +57,7 @@
     ;; ---------- Modes ---------- ;;
     markdown-mode
     ess
+    yaml-mode
 
     ;; ---------- Untested ---------- ;;
     ;; adaptive-wrap

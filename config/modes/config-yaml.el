@@ -29,21 +29,22 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
-(prelude-require-packages '(yaml-mode))
 
 ;; yaml-mode doesn't derive from prog-mode, but we can at least enable
 ;; whitespace-mode and apply cleanup.
-(add-hook 'yaml-mode-hook 'whitespace-mode)
-(add-hook 'yaml-mode-hook 'subword-mode)
-(add-hook 'yaml-mode-hook
-          (lambda () (add-hook 'before-save-hook 'prelude-cleanup-maybe nil t)))
 
-(provide 'prelude-yaml)
+(defun config-mode-yaml ()
+  "Default coding hook, useful with any programming language."
+  (whitespace-mode)
+  (subword-mode)
+  (add-hook 'before-save-hook 'whitespace-cleanup nil t))
+
+(add-hook 'yaml-mode-hook 'config-mode-yaml)
+
+(provide 'config-yaml)
 ;;; prelude-yaml.el ends here
 
 
-;; (use-package yaml-mode
-;;   :mode "\\.ya?ml\\'"
-;;   :bind (:map yaml-mode-map
-;; 		    ("\C-m"			. newline-and-indent)))
-
+;; (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
+;;   (:map yaml-mode-map
+;;        ("\C-m"   . newline-and-indent)))

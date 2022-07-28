@@ -1,32 +1,3 @@
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(display-buffer-alist
-   '(("\\*Help.*\\*"
-      (display-buffer-reuse-window display-buffer-pop-up-frame)
-      (reusable-frames . 0)
-      (cascade)
-      (dedicated . 1)
-      (window-parameters
-       (mode-line-format . none))
-      (pop-up-frame-parameters
-       (unsplittable . t)
-       (horizontal-scroll-bars)
-       (vertical-scroll-bars)
-       (width . 60)
-       (top . 10)
-       (left . 790)
-       (minibuffer)
-       (fit-frame-to-buffer-sizes 30 0 100 0)
-       (fit-frame-always . t)))))
- '(display-buffer-base-action
-   '((display-buffer-reuse-window display-buffer-pop-up-frame)
-     (reusable-frames . 0)
-     (cascade . t)))
- '(package-selected-packages
-   '(flyspell-correct-popup flyspell-correct corfu transient rg zenburn-theme yasnippet which-key vertico swiper smartrep smartparens smart-hungry-delete rainbow-mode rainbow-delimiters projectile powerline orderless operate-on-number markdown-mode marginalia hl-todo f expand-region ess embark crux consult auto-complete ac-js2)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

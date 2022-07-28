@@ -27,7 +27,7 @@
    (lambda ()
      (when (and
             (string-prefix-p
-		   config-dir
+		   config-root
 		   (file-truename buffer-file-name))
             (file-exists-p
 		   (byte-compile-dest-file buffer-file-name)))
@@ -58,8 +58,8 @@
   (kbd "<tab>")	'indent-for-tab-command   
 
   ;; ---------- Help ----------
-  "\C-hf"			'describe-variable-or-function
-  "\C-hv"			'describe-variable-or-function
+  "\C-hf"			'elisp-help-function
+  "\C-hv"			'elisp-help-variable
   [(f1)]			'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "emacs "))
@@ -71,7 +71,7 @@
 				   (google-query-at-point nil "emacs "))
 
   ;; ---------- Frame Switching ----------
-  [(f12)]           'switch-frame-current-message
+  [(f12)]           'elisp-frame-messages
   ;; [(S-f12)]           'ielm
 
   )
@@ -164,49 +164,18 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
 ;; ------------------------------------------------------------------------- ;;
 (font-lock-add-keywords
  'emacs-lisp-mode        
- '(("\\_<-?[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?"
+ '(("\\_<[-+]?[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?"
     .
     'font-lock-number-face)
-   ("(\\([/!<>]=\\|[<>=]\\|and\\|or\\|not\\|equal\\|eq[1]?\\)"
+   ("(\\([/!<>]=\\|[<>=]\\|and\\|or\\|not\\|equal\\|eq[1]?\\)\\_>"
      .
      'font-lock-relation-operator-face)))
-
-
-
 
 ;; enable elisp-slime-nav-mode
 
 (provide 'config-emacs-lisp)
 
 ;;; CONFIG-EMACS-LISP.EL ends here
-(defun hs-toggle-hiding (&optional e)
-  "Toggle hiding/showing of a block.
-See `hs-hide-block' and `hs-show-block'.
-Argument E should be the event that triggered this action."
-  (interactive)
-  (hs-life-goes-on
-   ;; (posn-set-point (event-end e))
-   (if (hs-already-hidden-p)
-       (hs-show-block)
-     (hs-hide-block))))
-
-(defun hs-already-hidden-p ()
-  "Return non-nil if point is in an already-hidden block, otherwise nil."
-  (save-excursion
-    (let ((c-reg (hs-inside-comment-p)))
-      (if (and c-reg (nth 0 c-reg))
-          ;; point is inside a comment, and that comment is hideable
-          (goto-char (nth 0 c-reg))
-        (end-of-line)
-        ;; (message "%s" (hs-find-block-beginning))
-        (when (and (not c-reg)
-                   (hs-find-block-beginning)
-		   (hs-looking-at-block-start-p))
-          ;; point is inside a block
-          ;; (message "point is inside a block")
-          (goto-char (match-end 0)))))
-    (end-of-line)
-    (hs-overlay-at (point))))
 
 ;; ------------------------------------------------------------------------- ;;
 ;; REPL MODE Stuff
@@ -220,20 +189,14 @@ Argument E should be the event that triggered this action."
   (deactivate-mark)    
   (end-of-defun))
 
-(defun switch-frame-next-message ()
-  "Cycle through message and backtrace buffers."
-  (interactive)
-  (switch-frame-next-buffer '("\\*Message" "\\*Backtrace") '("^ "))
-  (goto-char (point-max)))
-
-(defun switch-frame-current-message ()
+(defun elisp-frame-messages ()
   "Switch to current message buffer and move cursor to the end."
   (interactive)
   (with-current-buffer "*Messages*"
     (end-of-buffer-all))
   (display-buffer "*Messages*"))
 
-(defun describe-variable-or-function ()
+(defun elisp-help-variable ()
   "Combines `describe-variable', `describe-function', and `describe-face' into one.  Additionally does this instantaneously and applies display-*Help*-frame (correct formatting)."
   (interactive)
   (let ((calling-frame (frame-get))
@@ -248,4 +211,21 @@ Argument E should be the event that triggered this action."
 	 (describe-face fn))
 	((message "No variable, function, or face at point")))    
     
-    (raise-frame calling-frame)))	; Switch back to calling frame
+    (raise-frame calling-frame)))
+
+(defun elisp-help-function ()
+  "Combines `describe-variable', `describe-function', and `describe-face' into one.  Additionally does this instantaneously and applies display-*Help*-frame (correct formatting)."
+  (interactive)
+  (let ((calling-frame (frame-get))
+	   fn)
+
+    (cond
+	((setq fn (function-called-at-point))
+	 (describe-function fn))
+     ((not (eq 0 (setq fn (variable-at-point))))
+	 (describe-variable fn))
+	((setq fn (face-at-point t))
+	 (describe-face fn))
+	((message "No variable, function, or face at point")))    
+    
+    (raise-frame calling-frame)))

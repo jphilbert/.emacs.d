@@ -13,6 +13,8 @@
 
 (defalias '-to-list 'flatten-tree)
 
+(defun -query-plist (plist &rest keys)
+  (-reduce-from 'plist-get plist keys))
 
 (provide 'dash+)
 ;;; DASH+.EL ends here

@@ -5,8 +5,11 @@ Desktop.ini
 #Emacs
 \#*
 *.elc
-save/*
-!save/.gitkeep
+
+temp/*
+
 modules/elpa/*
-!modules/elpa/.gitkeep
+!modules/elpa/yaml-[0-9]*
+
+config.yaml
 

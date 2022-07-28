@@ -4,15 +4,6 @@
 ;;; Code:
 (require 'cl-lib)
 
-(defun config-add-subfolders-to-load-path (parent-dir)
-  "Add all level PARENT-DIR subdirs to the `load-path'."
-  (dolist (f (directory-files parent-dir))
-    (let ((name (expand-file-name f parent-dir)))
-      (when (and (file-directory-p name)
-                 (not (string-prefix-p "." f)))
-        (add-to-list 'load-path name)
-        (config-add-subfolders-to-load-path name)))))
-
 (defun config-buffer-mode (buffer-or-name)
   "Retrieve the `major-mode' of BUFFER-OR-NAME."
   (with-current-buffer buffer-or-name
@@ -21,7 +12,7 @@
 (defun config-recompile-init ()
   "Byte-compile all your dotfiles again."
   (interactive)
-  (byte-recompile-directory config-dir 0))
+  (byte-recompile-directory config-root 0))
 
 (defun config-eval-after-init (form)
   "Add `(lambda () FORM)' to `after-init-hook'.
@@ -79,6 +70,36 @@ Only modes that don't derive from `prog-mode' should be listed here."
   "Do indentation, as long as the region isn't too large."
   (if (<= (- end beg) config-yank-indent-threshold)
       (indent-region beg end nil)))
+
+
+(defun hs-toggle-hiding (&optional e)
+  "Toggle hiding/showing of a block.
+See `hs-hide-block' and `hs-show-block'.
+Argument E should be the event that triggered this action."
+  (interactive)
+  (hs-life-goes-on
+   ;; (posn-set-point (event-end e))
+   (if (hs-already-hidden-p)
+       (hs-show-block)
+     (hs-hide-block))))
+
+(defun hs-already-hidden-p ()
+  "Return non-nil if point is in an already-hidden block, otherwise nil."
+  (save-excursion
+    (let ((c-reg (hs-inside-comment-p)))
+      (if (and c-reg (nth 0 c-reg))
+          ;; point is inside a comment, and that comment is hideable
+          (goto-char (nth 0 c-reg))
+        (end-of-line)
+        ;; (message "%s" (hs-find-block-beginning))
+        (when (and (not c-reg)
+                   (hs-find-block-beginning)
+		   (hs-looking-at-block-start-p))
+          ;; point is inside a block
+          ;; (message "point is inside a block")
+          (goto-char (match-end 0)))))
+    (end-of-line)
+    (hs-overlay-at (point))))
 
 
 ;; ------------- ;;
