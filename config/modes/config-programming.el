@@ -39,7 +39,7 @@
 ;; --------------------------------------------------------------------------
 ;; Keybinding
 ;; --------------------------------------------------------------------------
-(define-keysprog-mode-map
+(define-keys prog-mode-map
   (kbd "<backspace>")       'smart-hungry-delete-backward-char
   (kbd "<delete>")          'smart-hungry-delete-forward-char)
 

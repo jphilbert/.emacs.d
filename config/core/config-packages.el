@@ -8,7 +8,7 @@
 
 ;;; Code:
 (add-to-list 'package-archives
-             '("melpa" . "https://stable.melpa.org/packages/") t)
+             '("melpa" . "https://melpa.org/packages/") t)
 
 (package-initialize)
 (package-refresh-contents t)
@@ -27,24 +27,23 @@
     rainbow-mode				; Colors HEX Codes inline 
     zenburn-theme
     powerline					; Mode Line
-    octicons
+;;    octicons
 
     ;; ---------- Minor ---------- ;;
     expand-region					
     operate-on-number			; Inline simple math
-    ;; swiper					; Alternative to iSearch that uses Ivy
     which-key					; Help on keys when needed
     smartparens
     smart-hungry-delete
     hl-todo
     
     ;; ---------- Complete ---------- ;;
-    smart-hungry-delete-add-default-hooks
     vertico						; Minimalistic vertical completion UI
     consult						; Useful search and navigation commands
     orderless					; Advanced completion style
     marginalia					; Rich annotations in the minibuffer
     embark						; Minibuffer actions and context menu
+    cape
 
     corfu
     tempel
