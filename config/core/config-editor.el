@@ -4,33 +4,17 @@
 
 ;; Global / Fundamental Mode options for Emacs
 
+
 ;;; Code:
-(require 'crux)
-
-;; No Tabs
-(setq-default indent-tabs-mode nil)
-(setq-default tab-width 4)
-
-;; Newline at end of file
-(setq require-final-newline t)
-
-;; Delete the selection with a key press
-(delete-selection-mode t)
-
-(setq confirm-kill-processes nil)
-
-(setq comment-auto-fill-only-comments t)
-
-(setq fill-column 80)
 
 ;; ------------------------------------------------------------------------- ;;
-;; Directories / Backups
+;; TEMP Directories
 ;; ------------------------------------------------------------------------- ;;
 ;; ---------- Backups Directory and Naming ---------- ;;
 ;; [!] Backups (i.e. versions)
 (make-directory (config-get :config-paths :backup) t)
 (setq backup-directory-alist
-	 `((".*" . ,(config-get :config-paths :backup))))
+	  `((".*" . ,(config-get :config-paths :backup))))
 
 ;; [#] Auto-saves are done after altering but before saving
 (make-directory (config-get :config-paths :autosave) t)
@@ -69,70 +53,104 @@
  desktop-base-file-name         "desktop.el"
  desktop-base-lock-name         "desktop.lock.el"
  desktop-load-locked-desktop	t
- desktop-restore-eager          5
+ desktop-restore-eager          t
  desktop-restore-frames         nil
- )
+ desktop-clear-preserve-buffers nil)
 (desktop-save-mode)
+(add-hook 'desktop-after-read-hook 'frame-redisplay-all-file-buffers)
 
 ;; ---------- Opens Files with Emacs ---------- ;;
 (require 'server)
-(defun server-ensure-safe-dir (dir) t) ; Suppresses common windows error
-
 ;; change the server directory
-;; !!! if changed, batch file needs option "-f %path/server_file%"
-(setq server-auth-dir	(config-get :config-paths :temp))
-(setq server-name		(expand-file-name
-                          "server-process" (config-get :config-paths :temp)))
+(setq
+ ;; change the server directory
+ server-auth-dir	(config-get :config-paths :temp)
+ ;; !!! if changed, batch file needs option "-f %path/server_file%"
+ server-name		(expand-file-name
+                     "server-process" (config-get :config-paths :temp)))
 
 (server-force-delete)                   ; just in case delete
-(server-start)						; start the server
+(server-start)                          ; start the server
 
+(defadvice server-visit-files
+    (before parse-numbers-in-lines (files proc &optional nowait) activate)
+  "Open file with emacsclient with cursors positioned on requested line.
+Most of console-based utilities prints filename in format
+'filename:linenumber'.  So you may wish to open filename in that
+format.  Just call:
+
+  emacsclient filename:linenumber
+
+and file 'filename' will be opened and cursor set on line 'linenumber'"
+  (ad-set-arg
+   0
+   (mapcar (lambda (fn)
+             (let ((name (car fn)))
+               (if (string-match
+                    "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$" name)
+                   (cons
+                    (match-string 1 name)
+                    (cons (string-to-number (match-string 2 name))
+                          (string-to-number (or (match-string 3 name) ""))))
+                 fn))) files)))
 
 
 
 ;; ------------------------------------------------------------------------- ;;
 
+
+(require 'crux)
+
+;; '(cua-mode t nil (cua-base))
+;; '(delete-by-moving-to-trash t)
+
+;; No Tabs
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+
+;; Newline at end of file
+(setq require-final-newline t)
+
+;; Delete the selection with a key press
+(delete-selection-mode t)
+
+(setq confirm-kill-processes nil)
+
+
 ;; revert buffers automatically when underlying files are changed externally
 (global-auto-revert-mode t)
 
 
-
-
-;; hippie expand is dabbrev expand on steroids
-(setq hippie-expand-try-functions-list
-      '(try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-all-abbrevs
-        try-expand-list
-        try-expand-line
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol))
-
-;; smart tab behavior - indent or complete
+;; ---------- smart tab behavior - indent or complete ----------
 (setq tab-always-indent                 'complete)
 
-;; smart pairing for all
+;; ---------- smart pairing for all ----------
 (require 'smartparens-config)
-;; (setq sp-base-key-bindings			'paredit)
-(setq sp-autoskip-closing-pair		'always)
-(setq sp-hybrid-kill-entire-symbol		nil)
-;; (sp-use-paredit-bindings)
+
+(setq
+ sp-autoskip-closing-pair           'always
+ sp-hybrid-kill-entire-symbol		nil)
+
 (show-smartparens-global-mode +1)
+
+;; smart curly braces
+(sp-pair "{" nil :post-handlers
+         '(((lambda (&rest _ignored)
+              (crux-smart-open-line-above)) "RET")))
+
 
 ;; disable annoying blink-matching-paren
 (setq blink-matching-paren              nil)
 
+
 ;; meaningful names for buffers with the same name
 (require 'uniquify)
-(setq uniquify-buffer-name-style        'forward)
-(setq uniquify-separator                "/")
+(setq uniquify-buffer-name-style        'forward
+      uniquify-separator                "/"
 ;; rename after killing uniquified
-(setq uniquify-after-kill-buffer-p      t)
+      uniquify-after-kill-buffer-p      t
 ;; don't muck with special buffers
-(setq uniquify-ignore-buffers-re        "^\\*")
+      uniquify-ignore-buffers-re        "^\\*")
 
 
 (defadvice set-buffer-major-mode (after set-major-mode activate compile)
@@ -149,8 +167,9 @@
 (require 'rect)
 (crux-with-region-or-line kill-region)
 
-(defun comment-auto-fill-only-comments-local ()
-  (set (make-local-variable 'comment-auto-fill-only-comments) t))
+(defun auto-fill-only-comments-local ()
+  (set (make-local-variable 'comment-auto-fill-only-comments) t)
+  (auto-fill-mode +1))
 
 (defun config-wrap-with (s)
   "Create a wrapper function for smartparens using S."
@@ -158,22 +177,22 @@
      (interactive "P")
      (sp-wrap-with-pair ,s)))
 
+
+
 (set-default 'imenu-auto-rescan t)
 
-;; Spell Checking
+;; ---------- Spell Checking ----------
 (require 'flyspell)
 (require 'flyspell-correct)
 (require 'flyspell-correct-popup)
 (setenv "LANG" "en_US")
-(setq ispell-program-name               (config-get :applications :spell :exe))
-(setq ispell-extra-args				'("--sug-mode=ultra"))
-(setq ispell-hunspell-dict-paths-alist
-      `(("en_US" ,(config-get :applications :spell :dict))))
-(setq ispell-local-dictionary-alist
-      '(("en_US" "[[:alpha:]]" "[^[:alpha:]]"
-         "[']" nil ("-d" "en_US") nil utf-8)))
-
-
+(setq
+ ispell-program-name                (config-get :applications :spell :exe)
+ ispell-extra-args                  '("--sug-mode=ultra")
+ ispell-hunspell-dict-paths-alist   `(("en_US" ,(config-get
+                                                 :applications :spell :dict)))
+ ispell-local-dictionary-alist      '(("en_US" "[[:alpha:]]" "[^[:alpha:]]"
+                                       "[']" nil ("-d" "en_US") nil utf-8)))
 
 
 ;; enable narrowing commands
@@ -196,6 +215,9 @@
 (setq whitespace-line-column 80) ;; limit line length
 (setq whitespace-style
       '(face empty trailing lines-tail space-before-tab space-after-tab))
+(setq
+ comment-auto-fill-only-comments    t
+ fill-column                        80)
 
 (defun config-cleanup-maybe ()
   "Invoke `whitespace-cleanup' if `config-clean-whitespace-on-save' is not nil."
@@ -237,18 +259,23 @@
 
 ;; ediff - don't start another frame
 (require 'ediff)
-(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+(setq
+ ediff-window-setup-function        'ediff-setup-windows-plain
+ ediff-split-window-function        'split-window-horizontally)
 
-;; clean up obsolete buffers automatically
+
+;; ---------- clean up obsolete buffers automatically ----------
 (require 'midnight)
 
 ;; smarter kill-ring navigation
 
 
-;; saner regex syntax
+;; ---------- saner regex syntax ----------
 (require 're-builder)
 (setq reb-re-syntax 'string)
 
+;; ---------- RipGREP ----------
+;; https://rgel.readthedocs.io/en/2.2.1/index.html
 (require 'rg)
 (rg-enable-default-bindings)
 (setq rg-executable                (config-get :applications :ripgrep))
@@ -263,36 +290,15 @@
 
 ;; easy-kill
 
-;; smart-hungry-delete
+;; ---------- smart-hungry-delete ----------
 (require 'smart-hungry-delete)
 (smart-hungry-delete-add-default-hooks)
 
-;; operate-on-number
+;; ---------- operate-on-number ----------
 (require 'operate-on-number)
 (require 'smartrep)
 
 
-(defadvice server-visit-files
-    (before parse-numbers-in-lines (files proc &optional nowait) activate)
-  "Open file with emacsclient with cursors positioned on requested line.
-Most of console-based utilities prints filename in format
-'filename:linenumber'.  So you may wish to open filename in that
-format.  Just call:
-
-  emacsclient filename:linenumber
-
-and file 'filename' will be opened and cursor set on line 'linenumber'"
-  (ad-set-arg
-   0
-   (mapcar (lambda (fn)
-             (let ((name (car fn)))
-               (if (string-match
-                    "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$" name)
-                   (cons
-                    (match-string 1 name)
-                    (cons (string-to-number (match-string 2 name))
-                          (string-to-number (or (match-string 3 name) ""))))
-                 fn))) files)))
 
 
 
@@ -342,19 +348,46 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
   (nconc (seq-filter (lambda (x) (string-suffix-p "/" x)) files)
          (seq-remove (lambda (x) (string-suffix-p "/" x)) files)))
 
+;; hippie expand is dabbrev expand on steroids
+(setq hippie-expand-try-functions-list
+      '(try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-all-abbrevs
+        try-expand-list
+        try-expand-line
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol))
 
-;; Hide-Show
+;; https://github.com/minad/tempel/index
+(require 'tempel)
+(setq tempel-path (config-get :config-paths :tempel))
+
+;; https://github.com/minad/cape
+(require 'cape)
+(setq-default
+ completion-at-point-functions
+	  `(,(cape-super-capf
+          #'elisp-completion-at-point
+		  #'tempel-complete)
+		cape-file))
+
+(setq-default completion-ignore-case			t)
+
+;; ---------- Hide-Show ----------
 (defvar-local hs-hide-all-state
   nil
   "The state of the folding of the buffer. `hs-toggle-hiding-all'")
 (advice-add 'hs-hide-all
-		  :after
-		  #'(lambda () (setq hs-hide-all-state t))
-		  '((name . "set hs-hide-all-state")))
+		    :after
+		    #'(lambda () (setq hs-hide-all-state t))
+		    '((name . "set hs-hide-all-state")))
 (advice-add 'hs-show-all
-		  :after
-		  #'(lambda () (setq hs-hide-all-state nil))
-		  '((name . "set hs-hide-all-state")))
+		    :after
+		    #'(lambda () (setq hs-hide-all-state nil))
+		    '((name . "set hs-hide-all-state")))
 
 (defun hs-toggle-all ()
   "Toggles the document's folding.
@@ -362,7 +395,7 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 This simply does the opposite of what previously done in the buffer."
   (interactive)
   (if hs-hide-all-state
-	 (hs-show-all)
+	  (hs-show-all)
     (hs-hide-all)))
 
 (defun hs-toggle ()
@@ -374,8 +407,15 @@ Fix for `hs-toggle-hiding'."
        (hs-show-block)
      (hs-hide-block))))
 
-(setq-default hs-hide-comments-when-hiding-all		nil)
-(setq-default hs-allow-nesting					t)
+(setq hs-hide-comments-when-hiding-all		nil
+      hs-allow-nesting                      t)
+
+;; show the name of the current function definition in the modeline
+;; (require 'which-func)
+
+;; font-lock annotations like TODO in source code
+(require 'hl-todo)
+(global-hl-todo-mode 1)
 
 
 
@@ -383,19 +423,7 @@ Fix for `hs-toggle-hiding'."
 
 ;;; CONFIG-EDITOR.EL ends here
 
-;; (define-key prog-mode-map (kbd "M-(") (config-wrap-with "("))
-;; ;; FIXME: pick terminal friendly binding
-;; ;; (define-key prog-mode-map (kbd "M-[") (config-wrap-with "["))
-;; (define-key prog-mode-map (kbd "M-\"") (config-wrap-with "\""))
 
-
-
-;; TODO: move to config-mode-text
-;; Auto-Fill text modes
-(add-hook	'text-mode-hook	'turn-on-auto-fill)
-;; (add-hook 'text-mode-hook 'config-enable-flyspell)
-;; (add-hook 'text-mode-hook 'config-enable-whitespace)
-;; (add-hook 'text-mode-hook 'abbrev-mode)
 
 
 
@@ -407,38 +435,14 @@ Fix for `hs-toggle-hiding'."
 ;; .zsh file is shell script too
 (add-to-list 'auto-mode-alist '("\\.zsh\\'" . shell-script-mode))
 
-
-
-(define-keys   prog-mode-map
-  (kbd "<backspace>")    'smart-hungry-delete-backward-char
-  (kbd "<delete>")       'smart-hungry-delete-forward-char)
-
-
-(smartrep-define-key global-map "C-c ."
-  '(("+" . apply-operation-to-number-at-point)
-    ("-" . apply-operation-to-number-at-point)
-    ("*" . apply-operation-to-number-at-point)
-    ("/" . apply-operation-to-number-at-point)
-    ("\\" . apply-operation-to-number-at-point)
-    ("^" . apply-operation-to-number-at-point)
-    ("<" . apply-operation-to-number-at-point)
-    (">" . apply-operation-to-number-at-point)
-    ("#" . apply-operation-to-number-at-point)
-    ("%" . apply-operation-to-number-at-point)
-    ("'" . operate-on-number-at-point)))
+(goto-address-prog-mode t)
 
 
 
 
 
-(define-keys vertico-map
-  (kbd "RET")		'vertico-directory-enter
-  (kbd "DEL")		'vertico-directory-delete-char
-  (kbd "M-DEL")		'vertico-directory-delete-word)
+(require 'rainbow-mode)
 
-
-(define-keys minibuffer-local-map
-  (kbd "M-a")		'marginalia-cycle)
 
 
 (setq projectile-cache-file
@@ -448,14 +452,5 @@ Fix for `hs-toggle-hiding'."
       (expand-file-name "projectile-known-projects.eld"
                         (config-get :config-paths :temp)))
 
-;; :hook (text-mode . flyspell-mode))
 
-
-
-;;  '(abbrev-file-name (concat user-emacs-directory "abbrev_defs"))
-
-;; '(cua-mode t nil (cua-base))
-;;  '(delete-by-moving-to-trash t)
-
-;; '(mouse-avoidance-mode 'jump nil (avoid))
 

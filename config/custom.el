@@ -1,3 +1,11 @@
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(cape tempel "tempel" zenburn-theme yasnippet yaml-mode yaml which-key vertico swiper smartrep smartparens smart-hungry-delete rg rainbow-mode rainbow-delimiters projectile powerline orderless operate-on-number markdown-mode marginalia hl-todo flyspell-correct-popup f expand-region ess embark crux corfu consult)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

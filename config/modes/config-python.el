@@ -1,148 +1,48 @@
-;;; prelude-python.el --- Emacs Prelude: python.el configuration.
-;;
-;; Copyright © 2011-2021 Bozhidar Batsov
-;;
-;; Author: Bozhidar Batsov <bozhidar@batsov.com>
-;; URL: https://github.com/bbatsov/prelude
 
-;; This file is not part of GNU Emacs.
-
-;;; Commentary:
-
-;; Enhanced configuration for python.el (the latest and greatest
-;; Python mode Emacs has to offer).  Most notably Prelude leverages
-;; anaconda mode to provide code navigation, documentation lookup and
-;; completion for Python.
-
-;;; License:
-
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License
-;; as published by the Free Software Foundation; either version 3
-;; of the License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;;; config-python.el --- Emacs Config: python.el configuration.
 
 ;;; Code:
+(require 'config-programming)
+(require 'python)
 
-(require 'electric)
-(require 'prelude-programming)
+(setq
+ python-guess-indent                nil
+ python-indent                      4
+ python-indent-guess-indent-offset  nil
+ python-indent-offset               4
+ python-shell-interpreter           (or
+                                     (config-get :applications :python)
+                                     python-shell-interpreter))
 
-;; Code navigation, documentation lookup and completion for Python
-(prelude-require-package 'anaconda-mode)
-
-(when (boundp 'company-backends)
-  (prelude-require-package 'company-anaconda)
-  (add-to-list 'company-backends 'company-anaconda))
-
-(defcustom prelude-python-mode-set-encoding-automatically nil
-  "Non-nil values enable auto insertion of '# coding: utf-8' on python buffers."
-  :type 'boolean
-  :group 'prelude)
-
-;;; Encoding detection/insertion logic
-;;
-;; Adapted from ruby-mode.el
-;;
-;; This logic was useful in Python 2, but it's not really needed in Python 3.
-(defun prelude-python--encoding-comment-required-p ()
-  (re-search-forward "[^\0-\177]" nil t))
-
-(defun prelude-python--detect-encoding ()
-  (let ((coding-system
-         (or save-buffer-coding-system
-             buffer-file-coding-system)))
-    (if coding-system
-        (symbol-name
-         (or (coding-system-get coding-system 'mime-charset)
-             (coding-system-change-eol-conversion coding-system nil)))
-      "ascii-8bit")))
-
-(defun prelude-python--insert-coding-comment (encoding)
-  (let ((newlines (if (looking-at "^\\s *$") "\n" "\n\n")))
-    (insert (format "# coding: %s" encoding) newlines)))
-
-(defun prelude-python-mode-set-encoding ()
-  "Insert a magic comment header with the proper encoding if necessary."
-  (save-excursion
-    (widen)
-    (goto-char (point-min))
-    (when (prelude-python--encoding-comment-required-p)
-      (goto-char (point-min))
-      (let ((coding-system (prelude-python--detect-encoding)))
-        (when coding-system
-          (if (looking-at "^#!") (beginning-of-line 2))
-          (cond ((looking-at "\\s *#\\s *.*\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)")
-                 ;; update existing encoding comment if necessary
-                 (unless (string= (match-string 2) coding-system)
-                   (goto-char (match-beginning 2))
-                   (delete-region (point) (match-end 2))
-                   (insert coding-system)))
-                ((looking-at "\\s *#.*coding\\s *[:=]"))
-                (t (prelude-python--insert-coding-comment coding-system)))
-          (when (buffer-modified-p)
-            (basic-save-buffer-1)))))))
-
-;;; python-mode setup
-
-(when (fboundp 'exec-path-from-shell-copy-env)
-  (exec-path-from-shell-copy-env "PYTHONPATH"))
-
-(defun prelude-python-mode-defaults ()
-  "Defaults for Python programming."
-  (subword-mode +1)
-  (anaconda-mode +1)
-  (eldoc-mode +1)
-  (setq-local electric-layout-rules
-              '((?: . (lambda ()
-                        (and (zerop (first (syntax-ppss)))
-                             (python-info-statement-starts-block-p)
-                             'after)))))
-  (when (fboundp #'python-imenu-create-flat-index)
-    (setq-local imenu-create-index-function
-                #'python-imenu-create-flat-index))
-  (add-hook 'post-self-insert-hook
-            #'electric-layout-post-self-insert-function nil 'local)
-  (when prelude-python-mode-set-encoding-automatically
-    (add-hook 'after-save-hook 'prelude-python-mode-set-encoding nil 'local)))
-
-(setq prelude-python-mode-hook 'prelude-python-mode-defaults)
-
-(add-hook 'python-mode-hook (lambda ()
-                              (run-hooks 'prelude-python-mode-hook)))
-
-(provide 'prelude-python)
-
-;;; prelude-python.el ends here
-
-;; ----------------------------------------------------------------------------
-;; Python Mode Setup
-;; ----------------------------------------------------------------------------
-(provide 'python-setup)
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(defun my-python-mode-hook ()
-  (interactive)
-  
-  (hs-minor-mode t)
-  (setq ac-sources
-	   (append '(ac-source-yasnippet) ac-sources))
-  (flyspell-prog-mode)
-  (turn-on-auto-fill)  
-  (rainbow-delimiters-mode 1))
+(defun config-mode-python ()
+  "Defaults for Python programming."
+  (subword-mode +1)
+  ;; (eldoc-mode +1)
+  ;; (setq-local electric-layout-rules
+  ;;             '((?: . (lambda ()
+  ;;                       (and (zerop (first (syntax-ppss)))
+  ;;                            (python-info-statement-starts-block-p)
+  ;;                            'after)))))
+  ;; (when (fboundp #'python-imenu-create-flat-index)
+  ;;   (setq-local imenu-create-index-function
+  ;;               #'python-imenu-create-flat-index))
+  ;; (add-hook 'post-self-insert-hook
+  ;;           #'electric-layout-post-self-insert-function nil 'local)
+  ;; (when config-python-mode-set-encoding-automatically
+  ;;   (add-hook 'after-save-hook 'config-python-mode-set-encoding nil 'local))
+)
 
-(defun my-inferior-python-mode-hook () 
-  (text-scale-set -1.1))
+(defun config-mode-python-interactive ()
+  "Defaults for Python REPL buffer."
+  )
+
+(add-hook 'python-mode              'config-mode-python)
+(add-hook 'inferior-python-mode     'config-mode-python-interactive)
+
 
 ;; --------------------------------------------------------------------------
 ;; Keybinding
@@ -204,7 +104,7 @@
   )
 
 ;; --------------------------------------------------------------------------
-;; Functions
+;; Commands
 ;; --------------------------------------------------------------------------
 
 ;; ---------- Evaluation ---------- ;;
@@ -418,6 +318,51 @@
 				  ") if i[0] != '_']))"))))))
 
 
+;;; Encoding detection/insertion logic
+;;
+;; Adapted from ruby-mode.el
+;; This logic was useful in Python 2, but it's not really needed in Python 3.
+(defun python--encoding-comment-required-p ()
+  (re-search-forward "[^\0-\177]" nil t))
+
+(defun python--detect-encoding ()
+  (let ((coding-system
+         (or save-buffer-coding-system
+             buffer-file-coding-system)))
+    (if coding-system
+        (symbol-name
+         (or (coding-system-get coding-system 'mime-charset)
+             (coding-system-change-eol-conversion coding-system nil)))
+      "ascii-8bit")))
+
+(defun python--insert-coding-comment (encoding)
+  (let ((newlines (if (looking-at "^\\s *$") "\n" "\n\n")))
+    (insert (format "# coding: %s" encoding) newlines)))
+
+(defun python-mode-set-encoding ()
+  "Insert a magic comment header with the proper encoding if necessary."
+  (save-excursion
+    (widen)
+    (goto-char (point-min))
+    (when (config-python--encoding-comment-required-p)
+      (goto-char (point-min))
+      (let ((coding-system (config-python--detect-encoding)))
+        (when coding-system
+          (if (looking-at "^#!") (beginning-of-line 2))
+          (cond ((looking-at
+                  "\\s *#\\s *.*\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)")
+                 ;; update existing encoding comment if necessary
+                 (unless (string= (match-string 2) coding-system)
+                   (goto-char (match-beginning 2))
+                   (delete-region (point) (match-end 2))
+                   (insert coding-system)))
+                ((looking-at "\\s *#.*coding\\s *[:=]"))
+                (t (config-python--insert-coding-comment coding-system)))
+          (when (buffer-modified-p)
+            (basic-save-buffer-1)))))))
+
+
+
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Syntax Highlighting
@@ -447,23 +392,7 @@
     'font-lock-number-face)))
 
 
+(provide 'config-python)
+;;; CONFIG-PYTHON.EL ends here
 
-;;; python-setup.el ends here
-
-
-
-(use-package python-setup
-  :hook ((python-mode			. my-python-mode-hook)
-	    (inferior-python-mode	. my-inferior-python-mode-hook))
-  )
-;; ------------------------------------------------------------------------ ;;
-;; '(python-guess-indent nil)
-;; '(python-indent 4)
-;; '(python-indent-guess-indent-offset nil)
-;; '(python-indent-offset 4)
-;; '(python-shell-interpreter
-;;   (pcase
-;; 	  (system-name)
-;; 	("USS7W8JBM2" "C:/Users/hilbertjp2/AppData/Local/Continuum/anaconda3/Scripts/ipython.exe")
-;; 	("Yoga-JPH" nil)))
 

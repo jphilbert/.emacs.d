@@ -14,7 +14,8 @@
 ;; ------------------------------------------------------------------------- ;;
 ;; Functionality to retrieve info from CONFIG YAML file
 ;; ------------------------------------------------------------------------- ;;
-(let* ;; Find and add YAML to load path
+;; Find and add YAML package to load path
+(let* 
     ((elpa-dir
       (with-temp-buffer
         (insert-file-contents config-file)
@@ -26,8 +27,9 @@
       (car (directory-files (expand-file-name elpa-dir config-root)
                             t "yaml-"))))
   (add-to-list 'load-path yaml-dir))
-
 (require 'yaml)
+
+;; Load and parse config yaml
 (defun yaml-parse-file (file &rest args)
   (setq args
         (or args
@@ -35,9 +37,9 @@
   (with-temp-buffer
     (insert-file-contents file)
     (apply #'yaml-parse-string (buffer-string) args)))
-
 (defvar config-plist (yaml-parse-file config-file))
 
+;; Function to easily get data from config file
 (defun config-get (&rest keys)
   (let (
         (value (seq-reduce #'plist-get keys config-plist)))
@@ -45,6 +47,7 @@
         (expand-file-name value config-root)
       value)))
 
+;; Function to easily add directory to load-path
 (defun config-add-to-load-path (dir &optional subfolders)
   "Add DIR and optionally sub-directories to the `load-path'.
 
@@ -93,15 +96,17 @@ to 'only add sub-folders while excluding DIR."
 ;; ------------------------------------------------------------------------- ;;
 ;; Settings to set prior to loading
 ;; ------------------------------------------------------------------------- ;;
+
+(setq
 ;; Always load newest byte code
-(setq load-prefer-newer             t)
+ load-prefer-newer             t
 
 ;; reduce the frequency of garbage collection by making it happen on
 ;; each 50MB of allocated data (the default is on every 0.76MB)
-(setq gc-cons-threshold             50000000)
+ gc-cons-threshold             50000000
 
 ;; warn when opening files bigger than 10MB
-(setq large-file-warning-threshold  10000000)
+ large-file-warning-threshold  10000000)
 
 
 ;; ------------------------------------------------------------------------- ;;

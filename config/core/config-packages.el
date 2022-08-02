@@ -17,43 +17,44 @@
   '(
     ;; ---------- Utilities ---------- ;;
     crux
-    dash							; List functions
+    dash                        ; List functions
     f							; File functions
     s							; String functions
     smartrep
 
     ;; ---------- UI ---------- ;;
-    rainbow-delimiters				; Colors delimiters
-    rainbow-mode					; Colors HEX Codes inline 
+    rainbow-delimiters			; Colors delimiters
+    rainbow-mode				; Colors HEX Codes inline 
     zenburn-theme
-    powerline						; Mode Line 
+    powerline					; Mode Line
+    octicons
 
     ;; ---------- Minor ---------- ;;
     expand-region					
-    operate-on-number				; Inline simple math
-    ;; swiper						; Alternative to iSearch that uses Ivy
-    which-key						; Help on keys when needed
+    operate-on-number			; Inline simple math
+    ;; swiper					; Alternative to iSearch that uses Ivy
+    which-key					; Help on keys when needed
     smartparens
-    rg
     smart-hungry-delete
     hl-todo
-
     
     ;; ---------- Complete ---------- ;;
-    ;; ac-js2
-    ;; auto-complete
-    ;; yasnippet
-
+    smart-hungry-delete-add-default-hooks
     vertico						; Minimalistic vertical completion UI
     consult						; Useful search and navigation commands
-    orderless						; Advanced completion style
-    marginalia						; Rich annotations in the minibuffer
+    orderless					; Advanced completion style
+    marginalia					; Rich annotations in the minibuffer
     embark						; Minibuffer actions and context menu
 
     corfu
+    tempel
+    
     flyspell-correct
     flyspell-correct-popup
 
+    ;; ---------- Tools ---------- ;;
+    rg
+    
     ;; ---------- Modes ---------- ;;
     markdown-mode
     ess

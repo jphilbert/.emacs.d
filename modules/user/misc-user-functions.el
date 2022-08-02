@@ -77,35 +77,6 @@ Version 2017-11-01"
 	 (setq mode-line-format nil)
     (setq mode-line-format (default-value 'mode-line-format))))
 
-(defun kill-buffer-smart ()
-  (interactive)
-  (cond
-   ;; 1 frame + 1 window --> save buffer + kill emacs
-   ((= (length (frame-list)) 1)
-    (kill-emacs))
-   
-   ;; N frame
-   ;;		+ 1 window 
-   ((one-window-p)
-    ;;				+ 1 buffer-window --> kill buffer (kill frame)
-    (if (= (length (get-buffer-window-list nil nil t)) 1)
-	   (kill-buffer)
-	 ;;				+ N buffer-window --> kill frame
-	 (frame-kill)))
-   
-   ;;		 + N windows
-   ;;				 + active buffer in N windows --> kill window
-   ((> (length (get-buffer-window-list nil nil t)) 1)
-    (delete-window))
-   ;; ;;				 + active buffer not in upper left --> kill window
-   ;; ((equal (frame-first-window) (selected-window))
-   ;;  (delete-window))
-   
-   ;; OTHERWISE --> kill other windows
-   (t
-    (delete-other-windows))
-   )
-  )
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Web Searching
@@ -350,6 +321,25 @@ operate from point to the end of (the accessible portion of) the buffer"
   "Retrieve the `major-mode' of BUFFER-OR-NAME."
   (with-current-buffer buffer-or-name
     major-mode))
+
+
+
+(defun end-of-buffer-all ()
+  "Moves the cursor to the end for all windows showing current buffer."
+  (interactive)
+  (goto-char (point-max))
+  (let ((windows (get-buffer-window-list (current-buffer) nil t)))
+      (while windows
+        (set-window-point (car windows) (point-max))
+        (setq windows (cdr windows)))))
+
+;; DEPRECATED
+;; see SAVE-SELECTED-WINDOW, WITH-SELECTED-WINDOW, and WITH-SELECTED-FRAME
+(defmacro save-frame-excursion (&rest x)
+  "Like save-window-excursion, however restores current frame"
+  (let (this-frame (selected-frame))
+    (save-window-excursion x)
+    (raise-frame this-frame)))
 
 
 

@@ -5,7 +5,7 @@
 ;; Description:	Miscellaneous Frame Functions
 ;; Author:		John P. Hilbert <jphilbert@gmail.com>
 ;; Created:		2012-02-13 20:30:16
-;; Last-Updated:	2014-04-05
+;; Last-Updated:    2022-08-01
 ;;           By:	John P. Hilbert
 ;; URL:			
 ;; Keywords:		<NONE>
@@ -61,6 +61,7 @@ This handles various special cases:
 (defun frame-get-buffer (&optional frame)
   "Return the buffer in the main window in FRAME"
   (window-buffer (frame-get-window frame)))
+
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Frame Attributes 
@@ -212,6 +213,7 @@ This the usable size of the frame is calculated by:
   (interactive)
   (delete-other-windows (frame-get-window frame)))
 
+
 ;; ------------------------------------------------------------------------- ;;
 ;; 
 ;; ------------------------------------------------------------------------- ;;
@@ -223,6 +225,7 @@ This the usable size of the frame is calculated by:
 
 (defalias 'frame-new 'make-frame
   "Creates a new frame")
+
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Killing Frames and Buffers
@@ -243,6 +246,36 @@ This the usable size of the frame is calculated by:
     (if (eq (length (frame-list)) 1)
 	(kill-emacs)
       (kill-buffer buffer)))
+
+(defun frame-kill-dwim ()
+  (interactive)
+  (cond
+   ;; 1 frame + 1 window --> save buffer + kill emacs
+   ((= (length (frame-list)) 1)
+    (kill-emacs))
+   
+   ;; N frame
+   ;;		+ 1 window 
+   ((one-window-p)
+    ;;				+ 1 buffer-window --> kill buffer (kill frame)
+    (if (= (length (get-buffer-window-list nil nil t)) 1)
+	   (kill-buffer)
+	 ;;				+ N buffer-window --> kill frame
+	 (frame-kill)))
+   
+   ;;		 + N windows
+   ;;				 + active buffer in N windows --> kill window
+   ((> (length (get-buffer-window-list nil nil t)) 1)
+    (delete-window))
+   ;; ;;				 + active buffer not in upper left --> kill window
+   ;; ((equal (frame-first-window) (selected-window))
+   ;;  (delete-window))
+   
+   ;; OTHERWISE --> kill other windows
+   (t
+    (delete-other-windows))
+   )
+  )
 
 
 ;; ------------------------------------------------------------------------- ;;
@@ -558,6 +591,30 @@ Any leading or trailing empty lines of the buffer content are not considered."
     (frame-size frame size)))
 
 
+
+;; ------------------------------------------------------------------------- ;;
+;; Redisplay Buffers
+;; ------------------------------------------------------------------------- ;;
+(defun frame-redisplay-all (predicate)
+  "Redisplays all buffers that satisfy PREDICATE."
+  (delete-other-frames)
+  (frame-position (frame-display-left-position))
+  
+  (let ((this-buffer (frame-get-buffer)))
+    (--each (-filter predicate (buffer-list))
+      (raise-frame (frame-get (display-buffer it))))
+    
+    (frame-kill (frame-get this-buffer))
+    (when (funcall predicate this-buffer)
+      (display-buffer this-buffer))))
+
+;; ---------- Commands ---------- ;;
+(defun frame-redisplay-all-file-buffers ()
+  "Cascades all file buffer frames from the left corner."
+  (interactive)
+  (frame-redisplay-all #'buffer-file-name))
+
+
 ;; ------------------------------------------------------------------------- ;;
 ;; Cascading of Frames
 ;; ------------------------------------------------------------------------- ;;
@@ -651,7 +708,6 @@ will wrap around from the other display edge.
 By default, the method will cascade until a frame is not found near (see
 `frame-near-by') the the new position. To disable this behavior set
 `ignore-near-frames' to non-nil."
-  (interactive)
   (let*
 	 ((position		(frame--cascade-calculate-value frame position offset))
 	  (search-depth	100))
@@ -731,38 +787,38 @@ parameters are set:
 	  
 	  ;; Get any parameters we need
 	  ((&alist
-	    'cascade					cascade
-	   
+	    'cascade                        cascade
+
+        'font-size                      font-size
+        
 	    'pop-up-frame-parameters
 	    (&alist
-		'fit-frame-always			fit-always
-		'fit-frame-to-buffer-sizes	fit-sizes
+		'fit-frame-always               fit-always
+		'fit-frame-to-buffer-sizes      fit-sizes
 		'fit-frame-to-buffer-margins	fit-margins))
-	   alist)
-	  ;; (cascade
-	  ;; 	&as &alist
-	  ;; 	'offset					cascade-offset
-	  ;; 	'buffers					cascade-buffers)	  
-	  )
+	   alist))
     
     (when window
-	 (setq frame-created (> (length (frame-list)) frame-created))
+      (setq frame-created (> (length (frame-list)) frame-created))
 
-	 ;; Fit Frame
-	 (when (and
-		   ;; Require one of these
-		   (or fit-sizes fit-margins)
-		   ;; ...and either always fit OR this is a new frame
-		   (or fit-always frame-created))	   
-	   (message "  Fitting Buffer")
-	   (frame-fit-to-buffer window))
+      ;; Change Font Size
+      (when font-size
+        (set-face-attribute 'default (frame-get window) :height font-size))      
 
-	 ;; Cascade Frame
-	 (when (and cascade frame-created)
-	   (message "  Cascading Buffer")
-	   (frame-cascade (frame-get window) (frame-position (frame-get)))))
+	  ;; Fit Frame
+	  (when (and
+		     ;; Require one of these
+		     (or fit-sizes fit-margins)
+		     ;; ...and either always fit OR this is a new frame
+		     (or fit-always frame-created))	   
+	    (frame-fit-to-buffer window))
+
+	  ;; Cascade Frame
+	  (when (and cascade frame-created)
+	    (frame-cascade (frame-get window) (frame-position (frame-get)))))
     
     window))
+
 
 ;; Wrap each DISPLAY-BUFFER function
 ;; ------------------------------------------------------
@@ -799,28 +855,3 @@ parameters are set:
 
 (provide 'frame+)
 ;;; FRAME+.EL ends here
-
-
-
-
-
-
-
-(defun end-of-buffer-all ()
-  "Moves the cursor to the end for all windows showing current buffer."
-  (interactive)
-  (goto-char (point-max))
-  (let ((windows (get-buffer-window-list (current-buffer) nil t)))
-      (while windows
-        (set-window-point (car windows) (point-max))
-        (setq windows (cdr windows)))))
-
-;; DEPRECATED
-;; see SAVE-SELECTED-WINDOW, WITH-SELECTED-WINDOW, and WITH-SELECTED-FRAME
-(defmacro save-frame-excursion (&rest x)
-  "Like save-window-excursion, however restores current frame"
-  (let (this-frame (selected-frame))
-    (save-window-excursion x)
-    (raise-frame this-frame)))
-
-

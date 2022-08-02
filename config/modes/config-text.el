@@ -1,31 +1,29 @@
-;;; CONFIG-LISP.EL --- Configuration common to all LISP modes.
-
-;; This file is not part of GNU Emacs.
-
-;;; Code:
-(require 'config-programming)
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(defun config-mode-lisp ()
+(defun config-mode-text ()
+  "Default coding hook, useful with any programming language."
+
+  ;; Spelling
+  (flyspell-mode)
+  
+  ;; Auto fill
+  (auto-fill-mode +1)
+  
+  ;; Turn URLs into links
+  (goto-address-mode)
+
+;; (add-hook 'text-mode-hook 'config-enable-whitespace)
+;; (add-hook 'text-mode-hook 'abbrev-mode)
   )
 
-(defun config-mode-lisp-interactive ()
-  )
+(add-hook 'text-mode 'config-mode-text)
 
-;; (add-hook 'lisp-mode 'config-mode-lisp)
-;; (add-hook 'lisp-interaction-mode 'config-mode-lisp-interactive)
 
 ;; --------------------------------------------------------------------------
 ;; Keybinding
 ;; --------------------------------------------------------------------------
-(define-key read-expression-map (kbd "TAB") 'completion-at-point)
-
-;; Smart Parenthesis wrapping keybindings
-(define-key lisp-mode-shared-map (kbd "M-(") (config-wrap-with "("))
-(define-key lisp-mode-shared-map (kbd "M-[") (config-wrap-with "["))
-(define-key lisp-mode-shared-map (kbd "M-\"") (config-wrap-with "\""))
 
 
 ;; --------------------------------------------------------------------------
@@ -38,6 +36,5 @@
 ;; --------------------------------------------------------------------------
 
 
-(provide 'config-lisp)
-;;; CONFIG-LISP.EL ends here
-
+(provide 'config-text)
+;;; CONFIG-TEXT.EL ends here

@@ -1,45 +1,67 @@
 ;; ----------------------------------------------------------------------------
 ;; R Mode Setup
 ;; ----------------------------------------------------------------------------
-(provide 'r-setup)
-;; (require 'ess-site)
+(require 'config-programming)
+(require 'ess-site)
 
-(setq-default
- ess-local-process-name		"R"			; Set Process Name
- ess-S-assign-key			(kbd "C-=")	; StatET-like assignment 
-)
 
-(ess-toggle-S-assign-key		t)	     ; enable above key definition
-(ess-toggle-underscore		nil)	     ; leave my underscore alone
+
+(setq ess-R-font-lock-keywords
+      '((ess-R-fl-keyword:modifiers .   t)
+	    (ess-R-fl-keyword:fun-defs .    t)
+	    (ess-R-fl-keyword:keywords .    t)
+	    (ess-R-fl-keyword:assign-ops .  t)
+	    (ess-R-fl-keyword:constants .   t)
+	    (ess-fl-keyword:fun-calls .     t)
+	    (ess-fl-keyword:numbers .       t)
+	    (ess-fl-keyword:operators       )
+	    (ess-fl-keyword:delimiters      )
+	    (ess-fl-keyword:= .             t)
+	    (ess-R-fl-keyword:F&T .         t)
+	    (ess-R-fl-keyword:%op% .        t))
+      ess-ask-for-ess-directory         nil
+      ess-eval-visibly                  nil
+      ess-help-kill-bogus-buffers       t
+      ess-help-own-frame                'one
+      ess-history-file                  nil
+      ess-keep-dump-files               nil
+      ;; ess-r-args-electric-paren         nil
+      ;; ess-r-args-noargsmsg              "No Args"
+      ;; ess-r-args-show-as                'tooltip
+      ;; ess-r-args-show-prefix            ""
+      ;;  ess-S-assign-key			(kbd "C-=")	; StatET-like assignment 
+      ess-style                         'RStudio
+      ;; inferior-R-args "--no-restore-history --no-save"
+      inferior-R-program-name           (or
+                                         (config-get :applications :r)
+                                         inferior-R-program-name))
+
+;; (setq-default
+;;  ess-local-process-name		"R"			; Set Process Name
+;; )
+;; (ess-toggle-S-assign-key		t)	     ; enable above key definition
+;; (ess-toggle-underscore		nil)	     ; leave my underscore alone
+
 (add-to-list 'hs-special-modes-alist
-		   '(ess-mode "{" "}" "/[*/]" nil
-				    hs-c-like-adjust-block-beginning))
+		     '(ess-mode "{" "}" "/[*/]" nil
+				        hs-c-like-adjust-block-beginning))
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
-(defun my-r-mode-hook ()  
-  (interactive)  
-
-  (hs-minor-mode t)
-  (hs-hide-all)
-  (setq ac-sources
-	   (append '(ac-source-R-objects
-			   ac-source-R-args
-			   ac-source-yasnippet) ac-sources))
-  (flyspell-prog-mode)
-  (turn-on-auto-fill)  
-  (rainbow-delimiters-mode 1)
+(defun config-mode-r ()
+  "Defaults for R programming."
   )
 
-(defun my-inferior-r-mode-hook ()
-  (text-scale-set -1.1)
-
-  (setq ac-sources
-	   (append '(ac-source-R-objects
-			   ac-source-R-args
-			   ac-source-yasnippet) ac-sources))
+(defun config-mode-r-interactive ()
+  "Defaults for R REPL buffer."
   )
+
+(add-hook 'R-mode-hook                  'config-mode-r)
+(add-hook 'inferior-ess-mode-hook       'config-mode-r-interactive)
+;; (ess-help-mode			. (lambda () (font-lock-mode t))))) 
+
+
 
 ;; --------------------------------------------------------------------------
 ;; Keybinding
@@ -59,14 +81,14 @@
   
   ;; ---------- Help ----------
   [(f1)]		   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point t "R "))
+				       (interactive)
+				       (google-query-at-point t "R "))
   [(S-f1)]	   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "R "))
   (kbd "C-h w")   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point nil "R "))
+				       (interactive)
+				       (google-query-at-point nil "R "))
 
   "\C-p"			'R-pander-style
   "\C-hf"      	'R-object-help
@@ -98,14 +120,14 @@
 
   ;; ---------- Help ----------
   [(f1)]		   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point t "R "))
+				       (interactive)
+				       (google-query-at-point t "R "))
   [(S-f1)]	   	'(lambda ()
 				   (interactive)
 				   (google-query-at-point t "R "))
   (kbd "C-h w")   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point nil "R "))
+				       (interactive)
+				       (google-query-at-point nil "R "))
 
   "\C-hf"      	'R-object-help
   "\C-hv"      	'R-object-str
@@ -121,8 +143,10 @@
 
 (define-key ess-help-mode-map	"q" 'kill-buffer-or-emacs)
 
+
+
 ;; --------------------------------------------------------------------------
-;; Functions
+;; Commands
 ;; --------------------------------------------------------------------------
 
 ;; ---------- Evaluation ---------- ;;
@@ -163,7 +187,7 @@
 (defun R-kill-all-processes ()
   "Kills all R processes and clears the name-list."
   (interactive)
-  (mapcar '(lambda (arg)
+  (mapcar #'(lambda (arg)
              (when (get-process (car arg))
                (kill-process (get-process (car arg)))))
           ess-process-name-list)
@@ -192,30 +216,30 @@
   "Switch to most recent script buffer."
   (interactive)
   (let ((dialect ess-dialect)
-	   (loc-proc-name ess-local-process-name)
-	   (blist (cdr (buffer-list))))
+	    (loc-proc-name ess-local-process-name)
+	    (blist (cdr (buffer-list))))
     (while (and blist
-			 (with-current-buffer (car blist)
-			   (not (or (and
-					   (memq major-mode '(ess-mode ess-julia-mode))
-					   (equal dialect ess-dialect)
-					   (null ess-local-process-name))
-					  (and 
-					   (memq major-mode '(ess-mode ess-julia-mode))
-					   (equal loc-proc-name ess-local-process-name))
-					  ))))
-	 (pop blist))
+			    (with-current-buffer (car blist)
+			      (not (or (and
+					        (memq major-mode '(ess-mode ess-julia-mode))
+					        (equal dialect ess-dialect)
+					        (null ess-local-process-name))
+					       (and 
+					        (memq major-mode '(ess-mode ess-julia-mode))
+					        (equal loc-proc-name ess-local-process-name))
+					       ))))
+	  (pop blist))
     (if blist
-	   (ess-show-buffer (car blist) t)
-	 (message "Found no buffers for ess-dialect %s associated with process %s"
-			dialect loc-proc-name))))
+	    (ess-show-buffer (car blist) t)
+	  (message "Found no buffers for ess-dialect %s associated with process %s"
+			   dialect loc-proc-name))))
 
 
 ;; ---------- Echo Results / Pander ---------- ;;
 (defun R-pander-wrap (string)
   (format "pander:::panderOptions('table.alignment.default', 'right')\n
 pander:::pander({%s\n}, style = \"%s\")\n"
-		string "simple"))
+		  string "simple"))
 
 (defun R-eval-pander ()
   "Evaluates R code and formats output using Pander. Customize the style using `R-pander-style'"
@@ -228,69 +252,69 @@ pander:::pander({%s\n}, style = \"%s\")\n"
 (defun R-pander-insert ()
   (interactive)
   (let
-	 ((pt-beg 0)
-	  (pt-end 0)
-	  (comment-str (concat comment-start comment-start " ")))
+	  ((pt-beg 0)
+	   (pt-end 0)
+	   (comment-str (concat comment-start comment-start " ")))
     
     ;; Get the begin and end point of code
     (save-excursion
-	 (unless (region-active-p)
-	   (ess-mark-function-or-para)
-	   (setq pt-end -1))
-	 (setq pt-beg (region-beginning))
-	 (setq pt-end (+ pt-end (region-end))))
+	  (unless (region-active-p)
+	    (ess-mark-function-or-para)
+	    (setq pt-end -1))
+	  (setq pt-beg (region-beginning))
+	  (setq pt-end (+ pt-end (region-end))))
     
     (goto-char pt-end)
     (newline)
 
     (ess-command (R-pander-wrap (buffer-substring pt-beg pt-end))
-			  nil nil nil nil (get-process "R"))
+			     nil nil nil nil (get-process "R"))
     
     (save-excursion
-    	 (set-buffer (get-buffer-create " *ess-command-output*"))	 
+      (set-buffer (get-buffer-create " *ess-command-output*"))	 
 
-	 ;; Trim empty lines at the end (usually 2)
-	 (goto-char (point-max))
-    	 (beginning-of-line)
-    	 (cl-loop
-	  while (and (not (bobp))
-			   (looking-at "^[[:space:]]*$"))
-	  do (forward-line -1)
+	  ;; Trim empty lines at the end (usually 2)
+	  (goto-char (point-max))
+      (beginning-of-line)
+      (cl-loop
+	   while (and (not (bobp))
+			      (looking-at "^[[:space:]]*$"))
+	   do (forward-line -1)
+	   )
+	  (forward-line)
+      (kill-region (1- (point)) (point-max))
+
+      ;; Trim junk lines at the start
+	  (goto-char (point-min)) 
+	  (kill-line)
+      (cl-loop
+       while (and (not (eobp))
+			      (looking-at "^[[:space:]]*$"))
+       do (kill-line))
+	  
+      ;; Insert comments on line
+      ;; (insert comment-str)
+      (cl-loop
+	   until (eobp)
+	   do
+	   (insert comment-str)
+	   (forward-line 1))
 	  )
-	 (forward-line)
-    	 (kill-region (1- (point)) (point-max))
-
-    	 ;; Trim junk lines at the start
-	 (goto-char (point-min)) 
-	 (kill-line)
-    	 (cl-loop
-    	  while (and (not (eobp))
-			   (looking-at "^[[:space:]]*$"))
-    	  do (kill-line))
-	 
-    	 ;; Insert comments on line
-    	 ;; (insert comment-str)
-    	 (cl-loop
-	  until (eobp)
-	  do
-	  (insert comment-str)
-	  (forward-line 1))
-	 )
     (insert-buffer-substring " *ess-command-output*"))
   (ess-next-code-line 1))
 
 (defun R-pander-style (style)
   "Sets the Pander style for `R-eval-pander'"
   (interactive (list (completing-read
-				  "Style: "
-				  '("multiline" "grid" "simple"
-				    "rmarkdown" "jira"))))
+				      "Style: "
+				      '("multiline" "grid" "simple"
+				        "rmarkdown" "jira"))))
   (fset 'R-pander-wrap
-	   `(lambda (string)
-		 (format
-		  "pander:::panderOptions('table.alignment.default', 'right')\n
+	    `(lambda (string)
+		   (format
+		    "pander:::panderOptions('table.alignment.default', 'right')\n
 pander:::pander({%s}, style = \"%s\")\n"
-		  string ,style)))
+		    string ,style)))
   )
 
 
@@ -308,15 +332,15 @@ pander:::pander({%s}, style = \"%s\")\n"
   (let ((objname (current-word)))    
     (ess-execute (concat "names(" objname ")") t nil "INFO: ")
     (R-raise-frame-process)))
-  
+
 (defun R-object-summaries ()
   "Get summary for object at point"
   (interactive)
   (let ((objname (current-word t)))    
     (ess-execute (concat "cat('\n" objname
-					" ', format(object.size(" objname
-					"), units = 'MB', digits = 3), '\n')")
-			  t nil "INFO: ")
+					     " ', format(object.size(" objname
+					     "), units = 'MB', digits = 3), '\n')")
+			     t nil "INFO: ")
     (R-raise-frame-process)))
 
 (defun R-object-help (object &optional command)
@@ -335,20 +359,20 @@ pander:::pander({%s}, style = \"%s\")\n"
      (ess-force-buffer-current)
      (when current-prefix-arg ;update cache if prefix 
        (with-current-buffer (process-buffer (ess-process-get
-					     ess-current-process-name))
-	 (ess-process-put 'sp-for-help-changed? t)))
+					                         ess-current-process-name))
+	     (ess-process-put 'sp-for-help-changed? t)))
      (list (ess-find-help-file-auto "Help on"))))
   
   (let* ((hb-name	"*Help [R]*") 	; Simple Name
-	 (old-hb-p	(get-buffer hb-name))
-	 (tbuffer	(get-buffer-create hb-name)))
-      (ess-with-current-buffer tbuffer
-	(setq ess-help-object object
-	      ess-help-type 'help)
-	(ess--flush-help-into-current-buffer object command))
+	     (old-hb-p	(get-buffer hb-name))
+	     (tbuffer	(get-buffer-create hb-name)))
+    (ess-with-current-buffer tbuffer
+	  (setq ess-help-object object
+	        ess-help-type 'help)
+	  (ess--flush-help-into-current-buffer object command))
     (if old-hb-p			; Will raise the already existed frames
-	(save-frame-excursion
-	 (show-a-frame-on "*Help [R]*"))
+	    (save-frame-excursion
+	     (show-a-frame-on "*Help [R]*"))
       (display-buffer "*Help [R]*")	; Display the buffer (the typical way)
       )))
 
@@ -358,15 +382,15 @@ initially found it automatically shows the help without prompting."
   (ess-make-buffer-current)
   (if ess-get-help-topics-function
       (let* ((help-files-list (funcall
-			       ess-get-help-topics-function
-			       ess-current-process-name))
-	     (hlpobjs (ess-helpobjs-at-point
-		       help-files-list)))
-	(if (car hlpobjs)
-	    (car hlpobjs)
-	  (ess-completing-read p-string (append (delq nil hlpobjs)
-						help-files-list)
-			       nil nil nil nil (car hlpobjs))))
+			                   ess-get-help-topics-function
+			                   ess-current-process-name))
+	         (hlpobjs (ess-helpobjs-at-point
+		               help-files-list)))
+	    (if (car hlpobjs)
+	        (car hlpobjs)
+	      (ess-completing-read p-string (append (delq nil hlpobjs)
+						                        help-files-list)
+			                   nil nil nil nil (car hlpobjs))))
     ;; (string-match "\\(XLS\\)\\|\\(STA\\)\\|\\(SAS\\)" ess-language)
     (read-string (format "%s: " p-string))))
 
@@ -387,64 +411,17 @@ initially found it automatically shows the help without prompting."
 ;; ------------------------------------------------------------------------- ;;
 ;; Syntax Highlighting
 ;; ------------------------------------------------------------------------- ;;
-(
- font-lock-add-keywords
- ;; font-lock-remove-keywords
- 'ess-mode
- '(("\\(\\sw\\|\\s\"\\|\\s-\\)\
-\\([!<=>]=\\|[!<>]\\|[&|]\\{1,2\\}\\)\
-\\(\\sw\\|\\s\"\\|\\s-\\|$\\)"
-    2
-    'font-lock-relation-operator-face))
- '(("\\(\\s-\\|^\\|\\s\(\\)\\(!\\)"
-    2
-    'font-lock-relation-operator-face)))
+;; (font-lock-add-keywords
+;;  ;; font-lock-remove-keywords
+;;  'ess-mode
+;;  '(("\\(\\sw\\|\\s\"\\|\\s-\\)\
+;; \\([!<=>]=\\|[!<>]\\|[&|]\\{1,2\\}\\)\
+;; \\(\\sw\\|\\s\"\\|\\s-\\|$\\)"
+;;     2
+;;     'font-lock-relation-operator-face))
+;;  '(("\\(\\s-\\|^\\|\\s\(\\)\\(!\\)"
+;;     2
+;;     'font-lock-relation-operator-face)))
 
-
-
-(use-package r-setup
-  :init (require 'ess-site)
-  :hook ((ess-mode				. my-r-mode-hook)
-	    (inferior-ess-mode		. my-inferior-r-mode-hook)
-	    (ess-help-mode			. (lambda () (font-lock-mode t))))) 
-;; '(ess-R-font-lock-keywords
-;;   '((ess-R-fl-keyword:modifiers . t)
-;; 	(ess-R-fl-keyword:fun-defs . t)
-;; 	(ess-R-fl-keyword:keywords . t)
-;; 	(ess-R-fl-keyword:assign-ops . t)
-;; 	(ess-R-fl-keyword:constants . t)
-;; 	(ess-fl-keyword:fun-calls . t)
-;; 	(ess-fl-keyword:numbers . t)
-;; 	(ess-fl-keyword:operators)
-;; 	(ess-fl-keyword:delimiters)
-;; 	(ess-fl-keyword:= . t)
-;; 	(ess-R-fl-keyword:F&T . t)
-;; 	(ess-R-fl-keyword:%op% . t)))
-;; '(ess-ask-for-ess-directory nil)
-;; '(ess-default-style 'RStudio)
-;; '(ess-eval-visibly nil)
-;; '(ess-help-kill-bogus-buffers t)
-;; '(ess-help-own-frame 1)
-;; '(ess-history-file nil)
-;; '(ess-keep-dump-files nil)
-;; '(ess-r-args-electric-paren nil)
-;; '(ess-r-args-noargsmsg "No Args")
-;; '(ess-r-args-show-as 'tooltip)
-;; '(ess-r-args-show-prefix "")
-;; '(ess-style 'RStudio)
-
-;; '(inferior-R-args "--no-restore-history --no-save")
-;; '(inferior-R-program-name
-;;   (pcase
-;; 	  (system-name)
-;; 	("USS7W8JBM2" "~\\R\\R-4.0.2\\bin\\x64\\Rterm.exe")
-;; 	("Yoga-JPH" "c:/Program Files/r/R-3.4.3/bin/x64/Rterm.exe")))
-;; '(inferior-ess-r-program
-;;   (pcase
-;; 	  (system-name)
-;; 	("USS7W8JBM2" "~\\R\\R-4.0.2\\bin\\x64\\Rterm.exe")
-;; 	("Yoga-JPH" "c:/Program Files/r/R-3.4.3/bin/x64/Rterm.exe")))
-
-
-
-
+(provide 'config-r)
+;;; CONFIG-R.EL ends here

@@ -1,0 +1,20 @@
+;; -*- mode: emacs-lisp -*-
+fundamental-mode ;; Available everywhere
+
+(today (format-time-string "%Y-%m-%d"))
+
+prog-mode
+
+(fixme
+ (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "FIXME ")
+(todo (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "TODO ")
+(bug (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "BUG ")
+(hack (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "HACK ")
+
+
+emacs-lisp-mode
+
+(provide
+ "(provide '" (file-name-base (or (buffer-file-name) (buffer-name))) ")" n
+ ";;; " (file-name-nondirectory (or (buffer-file-name) (buffer-name)))
+ " ends here" n)

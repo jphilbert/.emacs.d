@@ -3,10 +3,7 @@
 ;;; Code:
 
 
-(setq-default ediff-split-window-function		'split-window-horizontally)
-(setq-default completion-ignore-case			t)
-(setq-default initial-scratch-message
-		    ";; ---------- Scratch Buffer ---------- ;;\n")
+
 (setq-default initial-major-mode				'emacs-lisp-mode)
 
 
@@ -31,9 +28,6 @@
 ;; Substitute y/n for yes/no
 (defalias 'yes-or-no-p 'y-or-n-p)
 
-;; Frame Tile = Buffer Name
-(setq frame-title-format "%b")
-
 ;; use zenburn as the default theme
 (load-theme 'zenburn t)
 
@@ -42,18 +36,11 @@
 (which-key-mode +1)
  
 
-(provide 'config-ui)
-;;; config-ui.el ends here
 
 
 
 ;; '(select-enable-clipboard t)
 ;; '(show-paren-mode t)
-
-
-
-;; '(fill-column 80)
-
 
 
 ;; enable PRETTY-LAMBDA-MODE
@@ -639,9 +626,6 @@ type, use `frame-parameters'."
 (add-hook 'post-command-hook 'change-cursor-on-overwrite/read-only)
 
 
-;;; AESTHETICS.EL ends here
-
-
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -737,3 +721,5 @@ type, use `frame-parameters'."
 
 
 
+(provide 'config-ui)
+;;; CONFIG-UI.EL ends here

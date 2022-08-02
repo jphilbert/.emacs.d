@@ -32,8 +32,8 @@
 ;; allows binding "C-[" without breaking "M-"
 ;; (see https://emacs.stackexchange.com/a/52334)
 (define-key input-decode-map 
-    (kbd "C-[") 
-    [control-bracketleft])
+  (kbd "C-[") 
+  [control-bracketleft])
 
 ;; CUA overwrite
 ;; (define-key cua--cua-keys-keymap
@@ -59,33 +59,33 @@
  [(f1)]				'(lambda ()
 					   (interactive)
 					   (google-query-at-point t)) 
- [(f2)]                  'occur
- [(f3)]			     'hs-toggle-hiding
- [(shift f3)]            'hs-toggle-hiding-all
+ [(f2)]                 'occur
+ [(f3)]                 'hs-toggle-hiding
+ [(shift f3)]           'hs-toggle-all
 
- [(f5)]                  'display-line-numbers-mode
- [(f6)]                  'explorer
+ [(f5)]                 'display-line-numbers-mode
+ [(f6)]                 'explorer
 
  ;; Spell Check at Point
- [(f7)]				'flyspell-correct-at-point
+ [(f7)]                 'flyspell-correct-at-point
  ;; Thesaurus (Web) 
  [(shift f7)]			'thesaurus-at-point
  ;; Correct Document
  [(ctrl shift f7)]		'flyspell-correct-wrapper
 
- [(f9)]				'menu-bar-mode
+ [(f9)]                 'menu-bar-mode
  [(shift f9)]			'mode-line-toggle
 
  (kbd "S-<tab>")		'auto-complete
  
  ;; ---------- Buffers ----------
-					; Cycle File Buffers
- [(f11)]                 'switch-frame-previous
- [(f10)]                 'get-scratch-buffer
+                                        ; Cycle File Buffers
+ [(f11)]                'switch-frame-previous
+ [(f10)]                'get-scratch-buffer
  
- (kbd   "C-x k")         'frame-kill-buffer
+ (kbd   "C-x k")        'frame-kill-dwim
  (kbd   "C-S-b")		'bs-show
- (kbd   "C-b")           'display-buffer-other-frame
+ (kbd   "C-b")          'display-buffer-other-frame
 
  
  ;; ---------- Killing / Yanking ----------
@@ -99,9 +99,10 @@
  ;; (kbd   "C-S-y")			'tinyeat-yank-overwrite
  ;; (kbd   "C-S-j")			'tinyeat-join-lines
 
- "\M-V"					'yank-pop-forwards
- "\M-v"					'cua-paste-pop ; this doesn't work due to it being
-								; key defined my CUA mode (see fix)
+ "\M-V"                     'yank-pop-forwards
+ "\M-v"                     'cua-paste-pop
+                                        ; this doesn't work due to it being
+                                        ; key defined my CUA mode (see fix)
 
  ;; ---------- Navigation ----------
  (kbd   "C-]")				'forward-list
@@ -112,7 +113,7 @@
  
  ;; ---------- Commenting ----------
  (kbd   "M-;")				'comment-dwim-line 
- (kbd   "M-C-;")              'comment-dwim 
+ (kbd   "M-C-;")            'comment-dwim 
  
 
  ;; ---------- Expand Regions ----------
@@ -129,7 +130,7 @@
 
  ;; ********** Deletions **********
  (kbd   "C-h C-f")			nil
- (kbd   "C-\\")			nil
+ (kbd   "C-\\")             nil
  )
 
 ;; (("C-M-f" . sp-forward-sexp)
@@ -187,7 +188,7 @@
 (defadvice handle-delete-frame (around delete-frame-after-kill activate)
   "Map (X) button to kill-buffer"
   (let ((frame   (posn-window (event-start event))))
-    (frame-kill-buffer)))
+    (frame-kill-dwim)))
 
 
 
@@ -196,9 +197,9 @@
 ;; --------------------------------------------------------------------------
 ;; Remaps up/down to mini-buffer history cycling again
 (dolist (map (append (list minibuffer-local-completion-map
-			   minibuffer-local-must-match-map)
-		     (when (boundp 'minibuffer-local-filename-completion-map)
-		       (list minibuffer-local-filename-completion-map))))
+			               minibuffer-local-must-match-map)
+		             (when (boundp 'minibuffer-local-filename-completion-map)
+		               (list minibuffer-local-filename-completion-map))))
   (define-key map [up] 'previous-history-element)
   (define-key map [down] 'next-history-element))
 
@@ -238,8 +239,39 @@
   "q"				'frame-kill-buffer)
 
 
+(define-keys tempel-map
+  (kbd "SPC")		'corfu-insert-separator)
 
 
+
+(define-keys vertico-map
+  (kbd "RET")		'vertico-directory-enter
+  (kbd "DEL")		'vertico-directory-delete-char
+  (kbd "M-DEL")		'vertico-directory-delete-word)
+
+(define-keys minibuffer-local-map
+  (kbd "M-a")		'marginalia-cycle)
+
+(define-keys corfu-map
+  (kbd "SPC")		'corfu-insert-separator)
+
+;; (define-key prog-mode-map (kbd "M-(") (config-wrap-with "("))
+;; ;; FIXME: pick terminal friendly binding
+;; ;; (define-key prog-mode-map (kbd "M-[") (config-wrap-with "["))
+;; (define-key prog-mode-map (kbd "M-\"") (config-wrap-with "\""))
+
+(smartrep-define-key global-map "C-c ."
+  '(("+" . apply-operation-to-number-at-point)
+    ("-" . apply-operation-to-number-at-point)
+    ("*" . apply-operation-to-number-at-point)
+    ("/" . apply-operation-to-number-at-point)
+    ("\\" . apply-operation-to-number-at-point)
+    ("^" . apply-operation-to-number-at-point)
+    ("<" . apply-operation-to-number-at-point)
+    (">" . apply-operation-to-number-at-point)
+    ("#" . apply-operation-to-number-at-point)
+    ("%" . apply-operation-to-number-at-point)
+    ("'" . operate-on-number-at-point)))
 
 (provide 'config-keybindings)
 

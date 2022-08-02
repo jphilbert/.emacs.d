@@ -29,7 +29,7 @@
 ;;    ielm = inferior-emacs-lisp-mode
 ;;    shell
 
-
+(require 'config-text)
 ;; (require 'config-org)
 
 ;;; Programming Languages Support
@@ -37,17 +37,16 @@
 (require 'config-lisp)
 (require 'config-emacs-lisp)
 
-
 ;; (require 'config-web)
 ;; (require 'config-css)
 ;; (require 'config-js)
 
 ;; (require 'config-xml)
-;; (require 'config-yaml)
+(require 'config-yaml)
 
-;; (require 'config-python)
-;; (require 'config-r)
-;; (require 'config-sql)
+(require 'config-python)
+(require 'config-r)
+(require 'config-sql)
 
 ;; (require 'config-shell)
 

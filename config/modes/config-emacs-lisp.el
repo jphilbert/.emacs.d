@@ -3,11 +3,11 @@
 ;; This file is not part of GNU Emacs.
 
 ;;; Code:
-
 (require 'config-lisp)
-(require 'crux)
-(require 'rainbow-mode)
 
+;; --------------------------------------------------------------------------
+;; Hooks
+;; --------------------------------------------------------------------------
 (defun config-mode-emacs-lisp ()
   "Sensible defaults for `emacs-lisp-mode'."
   (config-mode-lisp)
@@ -15,6 +15,7 @@
   (hs-hide-all)  
   (eldoc-mode +1)
   (rainbow-mode +1)
+  (dash-fontify-mode)
 
   (setq-local
    lisp-indent-function #'keyword-fix-lisp-indent-function)
@@ -27,10 +28,10 @@
    (lambda ()
      (when (and
             (string-prefix-p
-		   config-root
-		   (file-truename buffer-file-name))
+		     config-root
+		     (file-truename buffer-file-name))
             (file-exists-p
-		   (byte-compile-dest-file buffer-file-name)))
+		     (byte-compile-dest-file buffer-file-name)))
        (emacs-lisp-byte-compile)))
    nil
    t))
@@ -45,6 +46,30 @@
 
 (add-hook 'ielm-mode-hook 'config-mode-emacs-lisp-interactive)
 
+
+;; --------------------------------------------------------------------------
+;; Frame Settings
+;; --------------------------------------------------------------------------
+(add-to-list
+ 'display-buffer-alist
+ '("\\*ielm.*\\*"
+   (display-buffer-reuse-window display-buffer-pop-up-frame)
+   (cascade .                   nil)
+   (font-size .                 100)
+
+   (pop-up-frame-parameters
+    .
+    ((top .                     20)
+	 (left .                    810) 
+	 (height .                  0.6) 
+     (unsplittable .            t)
+	 ))))
+
+(defun frame-display-ielm-messages (buffer alist)
+  (display-buffer-pop-up-frame buffer alist)
+  ;; split-window-below
+  ;; switch-buffer 
+  )
 
 
 ;; --------------------------------------------------------------------------
@@ -61,14 +86,14 @@
   "\C-hf"			'elisp-help-function
   "\C-hv"			'elisp-help-variable
   [(f1)]			'(lambda ()
-				   (interactive)
-				   (google-query-at-point t "emacs "))
+				       (interactive)
+				       (google-query-at-point t "emacs "))
   [(S-f1)]		'(lambda ()
 				   (interactive)
 				   (google-query-at-point nil "emacs "))
   (kbd "C-h w")   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point nil "emacs "))
+				       (interactive)
+				       (google-query-at-point nil "emacs "))
 
   ;; ---------- Frame Switching ----------
   [(f12)]           'elisp-frame-messages
@@ -117,14 +142,14 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
     (cond
 	 ;; car of form doesn't seem to be a symbol, or is a keyword
 	 ((and (elt state 2)
-		  (or (not (looking-at "\\sw\\|\\s_"))
-			 (looking-at ":")))
+		   (or (not (looking-at "\\sw\\|\\s_"))
+			   (looking-at ":")))
 	  (if (not (> (save-excursion (forward-line 1) (point))
-			    calculate-lisp-indent-last-sexp))
-		 (progn (goto-char calculate-lisp-indent-last-sexp)
-			   (beginning-of-line)
-			   (parse-partial-sexp (point)
-							   calculate-lisp-indent-last-sexp 0 t)))
+			      calculate-lisp-indent-last-sexp))
+		  (progn (goto-char calculate-lisp-indent-last-sexp)
+			     (beginning-of-line)
+			     (parse-partial-sexp (point)
+							         calculate-lisp-indent-last-sexp 0 t)))
 	  ;; Indent under the list or under the first sexp on the same
 	  ;; line as calculate-lisp-indent-last-sexp.  Note that first
 	  ;; thing on that line has to be complete sexp since we are
@@ -132,35 +157,35 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
 	  (backward-prefix-chars)
 	  (current-column))
 	 ((and (save-excursion
-		    (goto-char indent-point)
-		    (skip-syntax-forward " ")
-		    (not (looking-at ":")))
-		  (save-excursion
-		    (goto-char orig-point)
-		    (looking-at ":")))
+		     (goto-char indent-point)
+		     (skip-syntax-forward " ")
+		     (not (looking-at ":")))
+		   (save-excursion
+		     (goto-char orig-point)
+		     (looking-at ":")))
 	  (save-excursion
 	    (goto-char (+ 2 (elt state 1)))
 	    (current-column)))
 	 (t
 	  (let ((function (buffer-substring (point)
-								 (progn (forward-sexp 1) (point))))
-		   method)
+								        (progn (forward-sexp 1) (point))))
+		    method)
 	    (setq method (or (function-get (intern-soft function)
-								'lisp-indent-function)
-					 (get (intern-soft function) 'lisp-indent-hook)))
+								       'lisp-indent-function)
+					     (get (intern-soft function) 'lisp-indent-hook)))
 	    (cond ((or (eq method 'defun)
-				(and (null method)
-					(> (length function) 3)
-					(string-match "\\`def" function)))
-			 (lisp-indent-defform state indent-point))
-			((integerp method)
-			 (lisp-indent-specform method state
-							   indent-point normal-indent))
-			(method
-			 (funcall method indent-point state))))))))
+				   (and (null method)
+					    (> (length function) 3)
+					    (string-match "\\`def" function)))
+			   (lisp-indent-defform state indent-point))
+			  ((integerp method)
+			   (lisp-indent-specform method state
+							         indent-point normal-indent))
+			  (method
+			   (funcall method indent-point state))))))))
 
 ;; ------------------------------------------------------------------------- ;;
-;; Syntax Highlighting
+;; Syntax Highlighting 
 ;; ------------------------------------------------------------------------- ;;
 (font-lock-add-keywords
  'emacs-lisp-mode        
@@ -168,23 +193,20 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
     .
     'font-lock-number-face)
    ("(\\([/!<>]=\\|[<>=]\\|and\\|or\\|not\\|equal\\|eq[1]?\\)\\_>"
-     .
-     'font-lock-relation-operator-face)))
+    .
+    'font-lock-relation-operator-face)))
 
 ;; enable elisp-slime-nav-mode
 
-(provide 'config-emacs-lisp)
-
-;;; CONFIG-EMACS-LISP.EL ends here
 
 ;; ------------------------------------------------------------------------- ;;
-;; REPL MODE Stuff
+;; Commands
 ;; ------------------------------------------------------------------------- ;;
 (defun elisp-eval ()
   "Evaluate a elisp defun or region and step"
   (interactive)
   (if (and transient-mark-mode mark-active)
-	 (call-interactively     'eval-region)
+	  (call-interactively     'eval-region)
     (call-interactively       'eval-defun))
   (deactivate-mark)    
   (end-of-defun))
@@ -200,16 +222,16 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
   "Combines `describe-variable', `describe-function', and `describe-face' into one.  Additionally does this instantaneously and applies display-*Help*-frame (correct formatting)."
   (interactive)
   (let ((calling-frame (frame-get))
-	   fn)
+	    fn)
 
     (cond
-	((not (eq 0 (setq fn (variable-at-point))))
-	 (describe-variable fn))
-	((setq fn (function-called-at-point))
-	 (describe-function fn))
-	((setq fn (face-at-point t))
-	 (describe-face fn))
-	((message "No variable, function, or face at point")))    
+	 ((not (eq 0 (setq fn (variable-at-point))))
+	  (describe-variable fn))
+	 ((setq fn (function-called-at-point))
+	  (describe-function fn))
+	 ((setq fn (face-at-point t))
+	  (describe-face fn))
+	 ((message "No variable, function, or face at point")))    
     
     (raise-frame calling-frame)))
 
@@ -217,15 +239,20 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
   "Combines `describe-variable', `describe-function', and `describe-face' into one.  Additionally does this instantaneously and applies display-*Help*-frame (correct formatting)."
   (interactive)
   (let ((calling-frame (frame-get))
-	   fn)
+	    fn)
 
     (cond
-	((setq fn (function-called-at-point))
-	 (describe-function fn))
+	 ((setq fn (function-called-at-point))
+	  (describe-function fn))
      ((not (eq 0 (setq fn (variable-at-point))))
-	 (describe-variable fn))
-	((setq fn (face-at-point t))
-	 (describe-face fn))
-	((message "No variable, function, or face at point")))    
+	  (describe-variable fn))
+	 ((setq fn (face-at-point t))
+	  (describe-face fn))
+	 ((message "No variable, function, or face at point")))    
     
     (raise-frame calling-frame)))
+
+
+
+(provide 'config-emacs-lisp)
+;;; CONFIG-EMACS-LISP.EL ends here
