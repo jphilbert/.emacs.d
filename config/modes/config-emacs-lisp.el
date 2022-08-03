@@ -80,24 +80,24 @@
   [(shift return)]  'elisp-eval
   
   ;; ---------- Indent / Tabs ----------
-  (kbd "<tab>")	'indent-for-tab-command   
+  (kbd "<tab>")     'indent-for-tab-command   
 
   ;; ---------- Help ----------
   "\C-hf"			'elisp-help-function
   "\C-hv"			'elisp-help-variable
-  [(f1)]			'(lambda ()
+  [f1]              '(lambda ()
 				       (interactive)
 				       (google-query-at-point t "emacs "))
-  [(S-f1)]		'(lambda ()
-				   (interactive)
-				   (google-query-at-point nil "emacs "))
+  [S-f1]            '(lambda ()
+				       (interactive)
+				       (google-query-at-point nil "emacs "))
   (kbd "C-h w")   	'(lambda ()
 				       (interactive)
 				       (google-query-at-point nil "emacs "))
 
   ;; ---------- Frame Switching ----------
-  [(f12)]           'elisp-frame-messages
-  ;; [(S-f12)]           'ielm
+  [S-f12]           'elisp-frame-messages
+  [f12]             'ielm
 
   )
 
