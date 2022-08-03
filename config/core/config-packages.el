@@ -24,7 +24,6 @@
 
     ;; ---------- UI ---------- ;;
     rainbow-delimiters			; Colors delimiters
-    rainbow-mode				; Colors HEX Codes inline 
     zenburn-theme
     powerline					; Mode Line
 ;;    octicons
