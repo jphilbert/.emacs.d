@@ -3,26 +3,49 @@
 ;; ----------------------------------------------------------------------------
 (require 'config-programming)
 (require 'sql)
-
-
-(setq
- sql-product                        'oracle
- sql-send-terminator                nil
-
- sql-ms-options '("-w" "2000" "-y" "2000" "-s" "|" "-k")
- sql-ms-program                     (or
-                                     (config-get :applications :sql :exe :ms)
-                                     sql-ms-program)
- 
- sql-oracle-scan-on                 nil 
- sql-oracle-program                 (or
-                                     (config-get :applications :sql :exe :oracle)
-                                     sql-oracle-program))
-
+(require 's)
 
 ;; (require 'sql-indent) 
 ;; (add-to-list 'ac-modes 'sql-mode)
 
+
+(defun config-parse-sql-connection (con)
+  (-let*
+      (((con (&plist :product prod
+                     :server srv
+                     :db db
+                     :uid uid
+                     :pw pwd)) con)
+       (con (s-chop-prefix ":" (symbol-name con)))
+       (uid (or uid ""))
+       (pwd (or pwd ""))
+       (con (list con
+                  `(sql-product     ',(intern prod))
+                  `(sql-user        ,uid)
+                  `(sql-password    ,pwd))))
+    (when srv
+      (add-to-list 'con  `(sql-server    ,srv) t))
+    (when db
+      (add-to-list 'con  `(sql-database  ,db) t))
+       con
+       ))
+(defun config-parse-all-sql-connections ()
+  (-map #'config-parse-sql-connection
+        (-partition 2
+                    (config-get :applications :sql :servers))))
+
+(setq
+ sql-connection-alist       (config-parse-all-sql-connections)
+ sql-product                'oracle
+ sql-send-terminator        nil
+
+ sql-ms-options             '("-w" "2000" "-y" "2000" "-s" "|" "-k")
+ sql-ms-program             (or (config-get :applications :sql :exe :ms)
+                                sql-ms-program)
+ 
+ sql-oracle-scan-on         nil 
+ sql-oracle-program         (or (config-get :applications :sql :exe :oracle)
+                                sql-oracle-program))
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
@@ -46,6 +69,23 @@
 (add-hook 'sql-interactive-mode     'config-mode-sql-interactive)
 
 
+;; --------------------------------------------------------------------------
+;; Frame Settings
+;; --------------------------------------------------------------------------
+(add-to-list
+ 'display-buffer-alist
+ '("\\*SQL.*\\*"
+   (display-buffer-reuse-window display-buffer-pop-up-frame)
+   (cascade .                   nil)
+   (font-size .                 100)
+
+   (pop-up-frame-parameters
+    .
+    ((top .                     20)
+	 (left .                    810) 
+	 (height .                  0.6) 
+     (unsplittable .            t)
+	 ))))
 
 ;; --------------------------------------------------------------------------
 ;; Key Binding
@@ -60,19 +100,19 @@
   ;; (kbd "<tab>")     'sql-fix-indent
 
   ;; ---------- Frame Switching ----------
-  [(f12)]			'sql-switch-frame-process
+  [f12]             'sql-switch-frame-process
   [S-f12]           'sql-connect
   [C-f12]			'sql-set-sqli-buffer
   [M-f12]           'sql-set-product
 
 
   ;; ---------- Help ----------
-  [(f1)]            '(lambda ()
+  [f1]              '(lambda ()
                        (interactive)
 				       (google-query-at-point
                         t
                         (format "SQL %s " sql-product)))
-  [(S-f1)]          '(lambda ()
+  [S-f1]            '(lambda ()
 			           (interactive)
 			           (google-query-at-point
                         nil
@@ -211,11 +251,11 @@ GO")
 ;; Initial File
 (sql-set-product-feature
  'oracle
- :init-file "~/OneDrive - UPMC/sql_oracle_init.sql")
+ :init-file (config-get :applications :sql :init :oracle))
 
 (sql-set-product-feature
  'ms
- :init-file "~/OneDrive - UPMC/sql_ms_init.sql")
+ :init-file (config-get :applications :sql :init :ms))
 
 
 ;; List Tables
@@ -385,8 +425,7 @@ go")
 	 prompt
 	 sql-connections
 	 nil t initial 'sql-connection-history default)))
-(advice-add 'sql-read-connection
-		    :around #'sql-read-connection-filtered)
+;; (advice-add 'sql-read-connection :around #'sql-read-connection-filtered)
 
 ;; Restricts to only SQLi buffers
 (defun sql-set-sqli-buffer-filtered (orig-fun &rest args)
@@ -404,9 +443,9 @@ go")
 
 ;; Wrap send-string with saving excursion so the current frame doesn't lose
 ;; focus. This appears to be used by all all higher level SEND functions.
-(advice-add 'sql-send-string :around
-		    #'(lambda (orig-fun &rest args)
-			    (save-frame-excursion (apply orig-fun args))))
+;; (advice-add 'sql-send-string :around
+;; 		    #'(lambda (orig-fun &rest args)
+;; 			    (save-frame-excursion (apply orig-fun args))))
 
 
 ;; Fix the first line of the output
