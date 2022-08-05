@@ -1,13 +1,11 @@
 ;; ----------------------------------------------------------------------------
 ;; SQL MODE
 ;; ----------------------------------------------------------------------------
-(require 'config-programming)
 (require 'sql)
 (require 's)
 
-;; (require 'sql-indent) 
-;; (add-to-list 'ac-modes 'sql-mode)
-
+;; https://github.com/alex-hhh/emacs-sql-indent
+;; (require 'sql-indent)             ; auto-loaded 
 
 (defun config-parse-sql-connection (con)
   (-let*
@@ -53,6 +51,7 @@
 (defun config-mode-sql ()
   (make-local-variable  'sql-product)
   (sql-set-product      'oracle)
+  (sqlind-minor-mode)
   )
 
 (defun config-mode-sql-interactive ()
@@ -70,7 +69,7 @@
 
 
 ;; --------------------------------------------------------------------------
-;; Frame Settings
+;; Frame Settings 
 ;; --------------------------------------------------------------------------
 (add-to-list
  'display-buffer-alist
@@ -445,7 +444,7 @@ go")
 ;; focus. This appears to be used by all all higher level SEND functions.
 ;; (advice-add 'sql-send-string :around
 ;; 		    #'(lambda (orig-fun &rest args)
-;; 			    (save-frame-excursion (apply orig-fun args))))
+;; 			    (progn ; FIXME was save-frame-excursion  (apply orig-fun args))))
 
 
 ;; Fix the first line of the output
@@ -723,7 +722,7 @@ go")
   (end-of-buffer-all))
 
 (defun sql-raise-frame-process ()
-  (save-frame-excursion
+  (progn ; FIXME was save-frame-excursion 
    (raise-frame
     (get-frame sql-buffer))))
 
@@ -808,17 +807,17 @@ go")
   "Lists tables (or views) that match table / schema pattern"
   (interactive "sTable: \nsOwner/Schema: ")
   (let ((func (sql-get-product-feature sql-product :func-list-tables)))
-    (if func     
-	    (save-frame-excursion
-	     (sql-send-string
-	      (replace-regexp-in-string
-	       "OWNER_PATTERN"
-	       (upcase owner-pattern)
+    (if func
+        (progn
+	      (sql-send-string
 	       (replace-regexp-in-string
-		    "TABLE_PATTERN"
-		    (upcase table-pattern)
-		    func)))
-	     (display-buffer sql-buffer))
+	        "OWNER_PATTERN"
+	        (upcase owner-pattern)
+	        (replace-regexp-in-string
+		     "TABLE_PATTERN"
+		     (upcase table-pattern)
+		     func)))
+	      (display-buffer sql-buffer))
 	  (message "no :func-list-tables defined for product %s" sql-product))))
 
 (defun sql-find-column (pattern)
@@ -826,7 +825,7 @@ go")
   (interactive "sPattern: ")
   (let ((func (sql-get-product-feature sql-product :func-find-column)))
     (if func     
-	    (save-frame-excursion
+	    (progn ; FIXME was save-frame-excursion 
 	     (sql-send-string
 	      (replace-regexp-in-string
 	       "PATTERN"
@@ -840,7 +839,7 @@ go")
   (interactive "sPattern: ")
   (let ((func (sql-get-product-feature sql-product :func-user-tables)))
     (if func     
-	    (save-frame-excursion
+	    (progn ; FIXME was save-frame-excursion 
 	     (sql-send-string
 	      (replace-regexp-in-string
 	       "PATTERN"
@@ -854,7 +853,7 @@ go")
   (interactive)
   (let ((func (sql-get-product-feature sql-product :func-user-functions)))
     (if func     
-	    (save-frame-excursion
+	    (progn ; FIXME was save-frame-excursion 
 	     (sql-send-string func)
 	     (display-buffer sql-buffer))
 	  (message "no :func-user-functions defined for product %s" sql-product))))
@@ -864,7 +863,7 @@ go")
   (interactive)
   (let ((func (sql-get-product-feature sql-product :func-last-error)))
     (if func     
-	    (save-frame-excursion
+	    (progn ; FIXME was save-frame-excursion 
 	     (sql-send-string func)
 	     (display-buffer sql-buffer))
 	  (message "no :func-last-error defined for product %s" sql-product))))
@@ -874,7 +873,7 @@ go")
   (interactive)
   (let ((func (sql-get-product-feature sql-product :func-explain)))
     (if func
-	    (save-frame-excursion 
+	    (progn ; FIXME was save-frame-excursion  
 	     (sql-send-string (replace-regexp-in-string
 					       "REGION"
 					       (get-region-as-string)

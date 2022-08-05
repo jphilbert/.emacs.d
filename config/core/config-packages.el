@@ -11,7 +11,7 @@
              '("melpa" . "https://melpa.org/packages/") t)
 
 (package-initialize)
-(package-refresh-contents t)
+;; (package-refresh-contents t)
 
 (defvar config-packages
   '(
@@ -57,6 +57,7 @@
     markdown-mode
     ess
     yaml-mode
+    sql-indent
 
     ;; ---------- Untested ---------- ;;
     ;; adaptive-wrap
