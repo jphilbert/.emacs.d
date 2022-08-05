@@ -335,11 +335,11 @@ operate from point to the end of (the accessible portion of) the buffer"
 
 ;; DEPRECATED
 ;; see SAVE-SELECTED-WINDOW, WITH-SELECTED-WINDOW, and WITH-SELECTED-FRAME
-(defmacro save-frame-excursion (&rest x)
-  "Like save-window-excursion, however restores current frame"
-  (let (this-frame (selected-frame))
-    (save-window-excursion x)
-    (raise-frame this-frame)))
+;; (defmacro save-frame-excursion (&rest x)
+;;   "Like save-window-excursion, however restores current frame"
+;;   (let (this-frame (selected-frame))
+;;     (save-window-excursion x)
+;;     (raise-frame this-frame)))
 
 
 

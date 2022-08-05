@@ -14,3 +14,4 @@ modules/elpa/*
 config.yaml
 
 network-security.data
+config/custom.el
