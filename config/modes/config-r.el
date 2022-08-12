@@ -66,9 +66,9 @@
 ;; --------------------------------------------------------------------------
 ;; Keybinding
 ;; --------------------------------------------------------------------------
-(define-many-keys ess-mode-map
+(define-many-keys ess-r-mode-map
   ;; [(return)]		'newline-and-indent
-
+  (kbd "_")             #'ess-insert-assign
   ;; ---------- Evaluation ----------
   [(shift return)]     'R-eval
   [(M-return)]		   'R-pander-insert
@@ -104,7 +104,9 @@
   [C-f12]			'ess-switch-process
   )
 
-(define-many-keys inferior-ess-mode-map
+(define-many-keys inferior-ess-r-mode-map  
+  (kbd "_")             #'ess-insert-assign
+  
   ;; ---------- Input / Prompt Scrolling ----------
   [C-up]               'comint-previous-prompt
   [C-down]             'comint-next-prompt
