@@ -5,7 +5,7 @@
 (require 's)
 
 ;; https://github.com/alex-hhh/emacs-sql-indent
-;; (require 'sql-indent)             ; auto-loaded 
+;; (require 'sql-indent)             ; auto-loaded
 
 (defun config-parse-sql-connection (con)
   (-let*
@@ -25,13 +25,14 @@
       (add-to-list 'con  `(sql-server    ,srv) t))
     (when db
       (add-to-list 'con  `(sql-database  ,db) t))
-       con
-       ))
+    con
+    ))
 (defun config-parse-all-sql-connections ()
   (-map #'config-parse-sql-connection
         (-partition 2
                     (config-get :applications :sql :servers))))
 
+(make-variable-buffer-local  'sql-product)
 (setq
  sql-connection-alist       (config-parse-all-sql-connections)
  sql-product                'oracle
@@ -49,8 +50,69 @@
 ;; Hooks
 ;; --------------------------------------------------------------------------
 (defun config-mode-sql ()
-  (make-local-variable  'sql-product)
+  (interactive)
   (sql-set-product      'oracle)
+  (setq
+   sqlind-basic-offset 2
+   sqlind-indentation-offsets-alist
+   `((syntax-error sqlind-report-sytax-error)
+     (in-string sqlind-report-runaway-string)
+     
+     (comment-continuation sqlind-indent-comment-continuation)
+     (comment-start sqlind-indent-comment-start)
+     (toplevel 0)
+     (in-block +)
+     (in-begin-block +)
+     (block-start 0)
+     (block-end 0)
+     (declare-statement +)
+     (package ++)
+     (package-body 0)
+     (create-statement +)
+     (defun-start +)
+     (labeled-statement-start 0)
+     (statement-continuation +)
+     
+     (nested-statement-open sqlind-use-anchor-indentation +)
+     (nested-statement-continuation sqlind-use-previous-line-indentation)
+     (nested-statement-close sqlind-use-anchor-indentation)
+
+     (with-clause sqlind-use-anchor-indentation)
+     (with-clause-cte +)
+     (with-clause-cte-cont ++)
+
+     (case-clause 0)
+     (case-clause-item sqlind-use-anchor-indentation +)
+     (case-clause-item-cont sqlind-right-justify-clause)
+     
+     (select-clause 0)
+     (select-column sqlind-indent-select-column)
+     (select-column-continuation sqlind-indent-select-column +)
+     (select-join-condition ++)
+     (select-table sqlind-indent-select-table)
+     (select-table-continuation sqlind-indent-select-table +)
+     (in-select-clause
+      sqlind-lineup-to-clause-end)
+     
+     (insert-clause 0)
+     (in-insert-clause
+      sqlind-lineup-to-clause-end
+      ;; sqlind-right-justify-logical-operator
+      )
+     
+     (delete-clause 0)
+     (in-delete-clause
+      sqlind-lineup-to-clause-end
+      ;; sqlind-right-justify-logical-operator
+      )
+     
+     (update-clause 0)
+     (in-update-clause
+      sqlind-lineup-to-clause-end
+      ;; sqlind-right-justify-logical-operator
+      )
+     ,@sqlind-default-indentation-offsets-alist))
+  
   (sqlind-minor-mode)
   )
 
@@ -723,8 +785,8 @@ go")
 
 (defun sql-raise-frame-process ()
   (progn ; FIXME was save-frame-excursion 
-   (raise-frame
-    (get-frame sql-buffer))))
+    (raise-frame
+     (get-frame sql-buffer))))
 
 (defun sql-switch-frame-script ()
   "Switch to most recent script buffer."
@@ -826,12 +888,12 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-find-column)))
     (if func     
 	    (progn ; FIXME was save-frame-excursion 
-	     (sql-send-string
-	      (replace-regexp-in-string
-	       "PATTERN"
-	       (upcase pattern)
-	       func))
-	     (display-buffer sql-buffer))
+	      (sql-send-string
+	       (replace-regexp-in-string
+	        "PATTERN"
+	        (upcase pattern)
+	        func))
+	      (display-buffer sql-buffer))
 	  (message "no :func-find-column defined for product %s" sql-product))))
 
 (defun sql-user-tables (pattern)
@@ -840,12 +902,12 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-user-tables)))
     (if func     
 	    (progn ; FIXME was save-frame-excursion 
-	     (sql-send-string
-	      (replace-regexp-in-string
-	       "PATTERN"
-	       (upcase pattern)
-	       func))
-	     (display-buffer sql-buffer))
+	      (sql-send-string
+	       (replace-regexp-in-string
+	        "PATTERN"
+	        (upcase pattern)
+	        func))
+	      (display-buffer sql-buffer))
 	  (message "no :func-user-tables defined for product %s" sql-product))))
 
 (defun sql-user-functions ()
@@ -854,8 +916,8 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-user-functions)))
     (if func     
 	    (progn ; FIXME was save-frame-excursion 
-	     (sql-send-string func)
-	     (display-buffer sql-buffer))
+	      (sql-send-string func)
+	      (display-buffer sql-buffer))
 	  (message "no :func-user-functions defined for product %s" sql-product))))
 
 (defun sql-last-error ()
@@ -864,8 +926,8 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-last-error)))
     (if func     
 	    (progn ; FIXME was save-frame-excursion 
-	     (sql-send-string func)
-	     (display-buffer sql-buffer))
+	      (sql-send-string func)
+	      (display-buffer sql-buffer))
 	  (message "no :func-last-error defined for product %s" sql-product))))
 
 (defun sql-explain ()
@@ -874,10 +936,10 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-explain)))
     (if func
 	    (progn ; FIXME was save-frame-excursion  
-	     (sql-send-string (replace-regexp-in-string
-					       "REGION"
-					       (get-region-as-string)
-					       func)))
+	      (sql-send-string (replace-regexp-in-string
+					        "REGION"
+					        (get-region-as-string)
+					        func)))
 	  (message "no :func-explain defined for product %s" sql-product))))
 
 
