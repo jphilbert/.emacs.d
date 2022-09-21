@@ -3,6 +3,7 @@
 ;; ----------------------------------------------------------------------------
 (require 'sql)
 (require 's)
+(require 'f)
 
 ;; https://github.com/alex-hhh/emacs-sql-indent
 ;; (require 'sql-indent)             ; auto-loaded 
@@ -11,7 +12,7 @@
   (-let*
       (((con (&plist :product prod
                      :server srv
-                     :db db
+                     :database db
                      :uid uid
                      :pw pwd)) con)
        (con (s-chop-prefix ":" (symbol-name con)))
@@ -25,8 +26,8 @@
       (add-to-list 'con  `(sql-server    ,srv) t))
     (when db
       (add-to-list 'con  `(sql-database  ,db) t))
-       con
-       ))
+    con
+    ))
 (defun config-parse-all-sql-connections ()
   (-map #'config-parse-sql-connection
         (-partition 2
@@ -45,13 +46,29 @@
  sql-oracle-program         (or (config-get :applications :sql :exe :oracle)
                                 sql-oracle-program))
 
+;; TODO advise sql-set-product
+;; -> google-mode-prefix (format "SQL %s " sql-product)
+
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
 (defun config-mode-sql ()
+  (interactive)
   (make-local-variable  'sql-product)
   (sql-set-product      'oracle)
-  (sqlind-minor-mode)
+  (sqlind-minor-mode +1)
+  (sqlind-set-indentation)
+  (sqlup-mode +1)
+
+  (repl-mode +1)
+  
+  (setq
+   mode-name                    "SQL"
+   repl-interactive-mode        'sql-interactive-mode
+   repl-function-eval           #'sql-eval
+   repl-function-eval-insert    #'sql-eval-insert
+   repl-function-select         #'sql-select-repl
+   repl-function-create         #'sql-connect)
   )
 
 (defun config-mode-sql-interactive ()
@@ -60,12 +77,13 @@
   ;;           'sql-interactive-remove-continuation-prompt nil t)
   (add-hook 'comint-preoutput-filter-functions
   		    'sql-add-newline-first t t)
-
+  (sqlup-mode)
   (sql-rename-buffer)
+  (repl-mode +1)
   )
 
-(add-hook 'sql-mode                 'config-mode-sql)
-(add-hook 'sql-interactive-mode     'config-mode-sql-interactive)
+(add-hook 'sql-mode-hook                'config-mode-sql)
+(add-hook 'sql-interactive-mode-hook    'config-mode-sql-interactive)
 
 
 ;; --------------------------------------------------------------------------
@@ -90,6 +108,8 @@
 ;; Key Binding
 ;; --------------------------------------------------------------------------
 (define-many-keys sql-mode-map
+  (kbd "<return>")	'reindent-then-newline-and-indent
+  
   ;; ---------- Evaluation ----------
   [(shift return)]  'sql-eval
   [(M-return)]		'sql-eval-here
@@ -105,23 +125,7 @@
   [M-f12]           'sql-set-product
 
 
-  ;; ---------- Help ----------
-  [f1]              '(lambda ()
-                       (interactive)
-				       (google-query-at-point
-                        t
-                        (format "SQL %s " sql-product)))
-  [S-f1]            '(lambda ()
-			           (interactive)
-			           (google-query-at-point
-                        nil
-                        (format "SQL %s " sql-product)))
-  (kbd "C-h w")   	'(lambda ()
-				       (interactive)
-				       (google-query-at-point
-                        nil
-                        (format "SQL %s " sql-product)))
-  
+  ;; ---------- Help ----------  
   "\C-hf"           'sql-tables
   "\C-hF"           'sql-find-column
   ;; "\C-he"           'sql-explain
@@ -184,229 +188,278 @@
 (sql-set-product-feature
  'ms :prompt-cont-regexp "^[0-9]*>") ;new line
 
-;; Describe 
-(sql-set-product-feature
- 'postgres
- :func-desc "\\d+ PATTERN;")
+(defun sql-load-help-queries (dir)
+  (--each
+      (f-entries dir
+                 (lambda (file) (f-ext? file "sql")) t)
+    (sql-set-product-feature
+     (intern (f-filename (f-dirname it)))
+     (intern (s-concat ":query-" (f-base it)))
+     (f-read it 'utf-8))
+    (message "Loaded %s for %s"
+             (f-filename it)
+             (s-upcase (f-filename (f-dirname it))))))
 
-(sql-set-product-feature
- 'oracle
- :func-desc "
-describe PATTERN;")
-
-(sql-set-product-feature
- 'ms
- :func-desc "select left(COLUMN_NAME, 40) as COL_NAME,
-left(DATA_TYPE, 20) as DATE_TYPE, CAST(CHARACTER_MAXIMUM_LENGTH AS varchar(6)) as length, IS_NULLABLE
-from INFORMATION_SCHEMA.COLUMNS where TABLE_schema + '.' +  TABLE_NAME='PATTERN'
-GO
-")
-
-;; Show Table
-(sql-set-product-feature
- 'postgres
- :func-show-table "select * from TABLE limit 5;")
-
-(sql-set-product-feature
- 'oracle
- :func-show-table "
-select * from TABLE where rownum <= 5;")
-
-(sql-set-product-feature
- 'ms
- :func-show-table "select top (5) * from TABLE
-GO")
-
-;; Inspect Table
-(sql-set-product-feature
- 'oracle
- :func-inspect-table  "
-     SELECT
-        round(sum(bytes)/(1024*1024),1) AS size_mb,
-	sum(NUM_ROWS) as number_rows,
-	max(created) as created,
-	cast(COMMENTS as varchar2(20)) as comments
-      FROM
-	user_extents
-	JOIN
-	all_tables
-	ON segment_name = table_name
-	join
-	all_objects
-	on table_name = object_name
-	left join
-	user_tab_comments using(table_name)
-      WHERE
-        segment_type = 'TABLE'
-	   and
-	   table_name = 'TABLE_PATTERN'
-      GROUP BY
-        table_name,
-	COMMENTS
-      order by
-        table_name;
-     ")
-
-;; Initial File
-(sql-set-product-feature
- 'oracle
- :init-file (config-get :applications :sql :init :oracle))
-
-(sql-set-product-feature
- 'ms
- :init-file (config-get :applications :sql :init :ms))
-
-
-;; List Tables
-(sql-set-product-feature
- 'oracle
- :func-list-tables "
-     SELECT
-		type, substr(owner || '.' || name, 1, 70) AS name
-	FROM
-	(
-		SELECT 'V' as type, owner, view_name as name
-		FROM all_views
-		UNION
-		SELECT 'T' as type, owner, table_name as name
-		FROM all_tables)
-	WHERE owner LIKE '%OWNER_PATTERN%'
-        AND name LIKE '%TABLE_PATTERN%'
-     ORDER BY type, owner, name;")
-
-(sql-set-product-feature
- 'ms
- :func-list-tables "SELECT top 100
-    concat(left(TABLE_SCHEMA, 20), '.',
-      left(TABLE_NAME, 45)) TABLE_NAME,
-    left(TABLE_TYPE, 10) TABLE_TYPE
-FROM
-    INFORMATION_SCHEMA.TABLES
-WHERE
-    TABLE_SCHEMA LIKE '%OWNER_PATTERN%'
-    AND
-    TABLE_NAME LIKE '%TABLE_PATTERN%'
-ORDER BY 1
-go")
-
-
-
-;; Find Column
-(sql-set-product-feature
- 'oracle
- :func-find-column "SELECT
-	   substr(owner || '.' || table_name, 1, 48) AS table_name,
-	   substr(column_name, 1, 28)
-    from
-		all_tab_columns
-    where
-		column_name like '%PATTERN%'
-    order by
-		owner, table_name, column_name;")
-
-(sql-set-product-feature
- 'ms
- :func-find-column "select top 100
-	    concat(left(TABLE_SCHEMA, 20), '.',
-             left(TABLE_NAME, 45)) TABLE_NAME,
-		left(COLUMN_NAME, 30) COLUMN_NAME
-	FROM
-		INFORMATION_SCHEMA.COLUMNS
-	WHERE
-		column_name like '%PATTERN%'
-	ORDER BY
-		TABLE_SCHEMA, table_name, column_name
-go")
-
-;; Show User Tables
-(sql-set-product-feature
- 'oracle
- :func-user-tables  "SELECT
-        table_name,
-        round(sum(bytes)/(1024*1024),1) AS size_mb,
-	sum(NUM_ROWS) as number_rows,
-	max(created) as created,
-	cast(COMMENTS as varchar2(20)) as comments
-      FROM
-	user_extents
-	JOIN
-	all_tables
-	ON segment_name = table_name
-	join
-	all_objects
-	on table_name = object_name
-	left join
-	user_tab_comments using(table_name)
-      WHERE
-        segment_type = 'TABLE'
-	and
-	table_name like '%PATTERN%'
-      GROUP BY
-        table_name,
-	COMMENTS
-      order by
-        table_name;
-     SELECT
-       tablespace_name,
-       bytes / 1024 / 1024 as used_in_mb,
-       -- max_bytes / 1024 / 1024 as max_in_mb,
-	cast(trunc(100 * bytes / max_bytes) as varchar2(3)) ||
-	' %' as used
-     FROM
-       USER_TS_QUOTAS
-     WHERE
-	max_bytes > 0;")
-
-;; Show User Functions
-(sql-set-product-feature
- 'oracle
- :func-user-functions "SELECT
-	object_name,
-	object_type,
-	status
-     FROM
-	ALL_OBJECTS
-     WHERE
-	OBJECT_TYPE
-	IN ('FUNCTION','PROCEDURE') and
-	owner = user;")
-
-;; Last Error
-(sql-set-product-feature
- 'oracle
- :func-last-error "set underline off;
-	select *
-	from SYS.USER_ERRORS
-	WHERE rownum = 1
-	ORDER BY rownum DESC;
-	set underline on;")
-
-;; Explain
-(sql-set-product-feature
- 'oracle
- :func-explain  "explain plan for (REGION);
-	select plan_table_output
-	from table(dbms_xplan.display('plan_table',null,'basic +cost'))
-	union all
-	select plan_table_output
-	from table(dbms_xplan.display('plan_table',null,'basic +bytes +rows'))
-	union all
-	select plan_table_output from
-	table(dbms_xplan.display('plan_table',null,'typical -cost -bytes -rows
--partition -parallel +PREDICATE +note'));")
-
-;; Connect
-(sql-set-product-feature
- 'oracle
- :func-con "CONNECT %1s/%2s@%3s;")
-
-
-
+(when-let
+    ((dir (config-get :applications :sql :query-dir)))
+  (sql-load-help-queries dir))
 
 
 ;; --------------------------------------------------------------------------
 ;; Functions
 ;; --------------------------------------------------------------------------
+
+;; ---------- Capitalization ----------
+(defun sqlup-capitalize-keywords ()
+  (interactive)
+  (if mark-active
+      (call-interactively #'sqlup-capitalize-keywords-in-region)
+    (sqlup-capitalize-keywords-in-buffer)))
+
+(defun sqlup-capitalize-keywords-in-line ()
+  (interactive)
+  (sqlup-capitalize-keywords-in-region
+   (line-beginning-position) (line-beginning-position 2)))
+
+
+;; ---------- Indentation ----------
+(defun sqlind-indent-logic (syntax base-indentation)
+  "Indents lines starting with AND, OR, NOT"
+  (save-excursion
+    (back-to-indentation)
+    (if (looking-at "and\\|or\\|not")
+        (+ base-indentation sqlind-basic-offset)            
+      base-indentation)))
+
+(defun sqlind-indent-lineup-previous-comment (syntax base-indentation)
+  "Return the indentation for a previous comment.
+
+If we start a line comment (--) and the previous line also has a line
+comment, we line up the two comments.  Otherwise nothing (return
+BASE-INDENTATION)."
+  (save-excursion
+    (back-to-indentation)
+    (if (and (looking-at "\\s *--")
+             (progn
+               (forward-line -1)
+               (re-search-forward "--" (line-end-position) t)))
+        (progn
+          (goto-char (match-beginning 0))
+          (current-column))
+      base-indentation)))
+
+(defun sqlind-set-indentation ()
+  (interactive)
+  (setq
+   sqlind-indentation-offsets-alist
+   `((syntax-error                  sqlind-report-sytax-error)
+     
+     ;; top most indent level
+     (toplevel                      0)
+
+     ;; ------------- COMMENTS -------------
+     ;; -- comment     <- comment-start
+     ;; /*             <- comment-start
+     ;;   comment      <- comment-continuation
+     ;;  */            <- comment-continuation
+     (comment-start                 sqlind-use-previous-line-indentation
+                                    +
+                                    sqlind-indent-lineup-previous-comment)
+     (comment-continuation          sqlind-indent-comment-continuation)
+
+
+     ;; line is inside a string, ANCHOR - start of the string
+     (in-string                     sqlind-report-runaway-string)
+     (string-continuation           0)
+
+
+     ;; line is after a DECLARE keyword
+     (declare-statement             +)
+
+     ;; inside a CREATE statement
+     (create-statement              +)
+
+     ;; inside a PROCEDURE of FUNCTION definition
+     (defun-start                   +)
+
+     ;; line is just after a label.
+     (labeled-statement-start       0)
+     
+
+     ;; ------------- WITH -------------
+     ;; +A+ within WITH clause, but before the main SELECT clause          
+     (with-clause                   sqlind-use-anchor-indentation)
+     ;; after WITH but before a CTE declaration
+     (with-clause-cte               sqlind-use-anchor-indentation
+                                    +)
+     ;; after WITH but before a CTE declaration (continued line)
+     (with-clause-cte-cont          sqlind-use-anchor-indentation
+                                    +)
+
+     ;; ------------- SELECT -------------          
+     ;; +A+ line is inside a select statement, right before one of its
+     ;; clauses (from, where, order by, etc). 
+     (select-clause                 0)
+
+     ;; between SELECT and FROM
+     ;; before a column declaration
+     ;; ANCHOR = start of select statement itself
+     (select-column                 sqlind-indent-select-column)
+
+
+     ;; after SELECT but before next clause (e.g. FROM)
+     ;; inside column definition
+     ;; ANCHOR = start of select statement itself
+     (select-column-continuation    +
+                                    sqlind-indent-select-column
+                                    sqlind-lone-semicolon)
+     
+     ;; ------------- FROM -------------
+     ;; FROM               <- select-clause
+     ;;   T1               <- select-table
+     ;;   JOIN             <- select-table
+     ;;   T3 ON            <- select-table
+     ;;     c3 = c2        <- select-table-continuation
+     ;;                        ^ ANCHOR - table definition
+     ;;       AND          <- select-join-condition
+     ;;                        ^ ANCHOR - JOIN statement
+     ;;     d3 = d1        <- select-table-continuation
+     (select-table                  sqlind-indent-select-table)
+     (select-table-continuation     sqlind-indent-select-table
+                                    +
+                                    sqlind-lone-semicolon)
+     (select-join-condition         sqlind-indent-select-table
+                                    ++)      
+     
+     ;; ------------- WHERE / GROUP BY / ORDER BY -------------
+     (in-select-clause              +
+                                    sqlind-indent-logic           
+                                    sqlind-lone-semicolon)
+
+     ;; ------------- CASE -------------
+     ;; CASE           <- select-column
+     ;;   WHEN x = 2   <- case-clause
+     ;;                    ^ ANCHOR - CASE clause
+     ;;   AND          <- case-clause-item-cont
+     ;;   z = 3        <- case-clause-item-cont
+     ;;     THEN 1 +   <- case-clause-item
+     ;;                    ^ ANCHOR - CASE clause
+     ;;     3          <- case-clause-item-cont
+     ;;                    ^ ANCHOR - case keyword continuation of
+     ;;   ELSE 2       <- case-clause
+     ;; END            <- block-end
+     (case-clause                   +)          
+     (case-clause-item              0)
+     (case-clause-item-cont         sqlind-use-anchor-indentation
+                                    +)
+
+     ;; line begins with a statement that starts a block
+     (block-start                   0)
+     ;; the line contains an END statement
+     (block-end                     +)
+     ;; line is inside a block construct
+     (in-block                      +)
+     ;; line is inside a block started by a BEGIN statement
+     (in-begin-block                +)
+
+     ;; inside a package definition
+     (package                       +)
+     ;; inside a package body
+     (package-body                  +)          
+
+     ;; a statement which starts on a previous line.
+     (statement-continuation        +)
+
+     ;; ------------- BRACKETS -------------
+     ;; SUM(       <- select-column
+     ;;   x1 +     <- nested-statement-open
+     ;;     x2     <- nested-statement-continuation
+     ;;   ) AS y   <- nested-statement-close
+     (nested-statement-open         sqlind-use-anchor-indentation
+                                    +)
+     (nested-statement-continuation
+      sqlind-lineup-to-anchor
+      ;; ^ works for function-like parenthesis
+      ;; this works better for "(\n" --> 
+      ;; sqlind-use-anchor-indentation
+      ;; +
+      sqlind-indent-logic
+      1)
+     (nested-statement-close        sqlind-use-anchor-indentation
+                                    +)
+
+     ;; ------------- DELETE -------------          
+     (delete-clause                 0)
+     ;; inside a delete CLAUSE (i.e. DELETE FROM or WHERE)
+     (in-delete-clause              +
+                                    sqlind-indent-logic
+                                    sqlind-lone-semicolon)
+
+     ;; ------------- INSERT -------------
+     (insert-clause                0)
+     ;; inside the insert CLAUSE (i.e. INSERT INTO or VALUES)
+     (in-insert-clause              +
+		                            sqlind-indent-logic
+                                    sqlind-lone-semicolon)
+     
+     ;; ------------- UPDATE -------------
+     (update-clause                 0)
+     ;; inside an update CLAUSE (i.e. UPDATE, SET, or WHERE)
+     (in-update-clause              +
+                                    sqlind-indent-logic
+                                    sqlind-lone-semicolon)
+     )))
+
+(defadvice sqlind-indent-line (after sqlup-capitalize activate compile)
+  "Capitalize keywords when indenting"
+  (sqlup-capitalize-keywords-in-line))
+
+
+;; ---------- REPL ----------
+   ;; repl-function-eval           #'sql-eval
+   ;; repl-function-eval-insert    #'sql-eval-insert
+   ;; repl-function-select         #'sql-select-repl
+   ;; repl-function-create         #'sql-create-repl
+
+(defun marginalia-annotate-sql-connection (cand)
+  "Annotate variable CAND with its documentation string."
+  (when-let (sym (cdr (assoc-string cand sql-connection-alist t)))
+    
+    (let ((server
+           (-last-item
+            (--first (eq (car it) 'sql-server) sym))))
+      (marginalia--fields
+       (server :truncate 1.0 :face 'marginalia-documentation)))))
+
+(add-to-list 'marginalia-annotator-registry
+             '(sql marginalia-annotate-sql-connection builtin none))
+
+(defun sql-connections-completion (str pred flag)
+  (pcase flag
+    ('metadata
+     `(metadata
+       (category . sql)
+       ;; (annotation-function . ,(lambda (s) "xxx"))
+       ))
+    (_
+     (all-completions str (mapcar #'car sql-connection-alist) pred))))
+
+(defun sql-read-connection-filtered (orig-fun prompt initial default)
+  "Read a connection name."
+  (let ((completion-ignore-case t)
+	    (sql-connections
+	     (remove
+		  nil
+		  (mapcar
+		   #'(lambda (c) (when
+				        (eq (cadadr (assoc `sql-product
+								           (cdr c))) sql-product)
+				      (car c)))
+		   sql-connection-alist))))
+    ))
+
+
+
 ;; Filters connections by product
 (defun sql-read-connection-filtered (orig-fun prompt initial default)
   "Read a connection name."
@@ -533,112 +586,49 @@ go")
 	 (t
 	  (message "no :func-con defined for product %s" sql-product)))))
 
-(defun sql-output-here (func)
-  (interactive)
-  (cl-letf (((symbol-function 'sql-send-string)
-		     #'(lambda (str)
-  			     (sql-redirect
-  			      (sql-find-sqli-buffer)
-  			      str
-  			      " *SQL Echo Area*"))))
-    ;; (advice-add 'sql-send-string :around
-    ;; 			 #'(lambda (orig-fun &rest args)
-    ;; 				(sql-redirect
-    ;; 				 (sql-find-sqli-buffer)
-    ;; 				 args
-    ;; 				 " *SQL Echo Area*")))
-    ;; (let ((comint-preoutput-filter-functions
-    ;; 		 '(sql-interactive-remove-continuation-prompt)))
-	(funcall func)
-	;; )
-    ;; (advice-remove 'sql-send-string 
-    ;; 			    #'(lambda (orig-fun &rest args)
-    ;; 				   (sql-redirect
-    ;; 				    (sql-find-sqli-buffer)
-    ;; 				    args			  
-    ;; 				    " *SQL Echo Area*")))
-    ))
+;; (defun sql-output-here (func)
+;;   (interactive)
+;;   (cl-letf (((symbol-function 'sql-send-string)
+;; 		     #'(lambda (str)
+;;   			     (sql-redirect
+;;   			      (sql-find-sqli-buffer)
+;;   			      str
+;;   			      " *SQL Echo Area*"))))
+;;     ;; (advice-add 'sql-send-string :around
+;;     ;; 			 #'(lambda (orig-fun &rest args)
+;;     ;; 				(sql-redirect
+;;     ;; 				 (sql-find-sqli-buffer)
+;;     ;; 				 args
+;;     ;; 				 " *SQL Echo Area*")))
+;;     ;; (let ((comint-preoutput-filter-functions
+;;     ;; 		 '(sql-interactive-remove-continuation-prompt)))
+;; 	(funcall func)
+;; 	;; )
+;;     ;; (advice-remove 'sql-send-string 
+;;     ;; 			    #'(lambda (orig-fun &rest args)
+;;     ;; 				   (sql-redirect
+;;     ;; 				    (sql-find-sqli-buffer)
+;;     ;; 				    args			  
+;;     ;; 				    " *SQL Echo Area*")))
+;;     ))
 
-;; sql-prompt-regexp
+;; (defun sql-eval-here ()
+;;   (interactive)
+;;   (sql-output-here
+;;    '(lambda ()
+;; 	  (sql-eval)
+;; 	  ;; since the eval auto increments to the next line
+;; 	  (previous-non-blank-line)
+;; 	  (end-of-line)
+;; 	  (newline))))
 
-;; (let ((comint-preoutput-filter-functions
-;; 	  '(sql-interactive-remove-continuation-prompt)))
-;;   (sql-redirect
-;;    (sql-find-sqli-buffer)
-;;    "
-;; describe ADL_DEV3.NCRE_RULES;"
-;;    " *SQL Echo Area*"))
-
-
-;; (get-buffer "*SQL: <edwrpt.world-SCI>*")
-
-
-;; (save-excursion
-;;   ;; switch to SQLi buffer to get the prompt regex
-;;   (set-buffer (sql-find-sqli-buffer))
-;;   (let ((start-re (sql-starts-with-prompt-re))
-;; 		echo-size)
-
-;; 	 ;; switch to the echo to replace
-;; 	 (set-buffer (get-buffer-create " *SQL Echo Area*"))
-;; 	 (setq echo-size (1+ (buffer-size)))
-;; 	 (beginning-of-buffer)
-;; 	 (while (and (re-search-forward start-re nil t)
-;; 			   (> echo-size
-;; 				 (setq echo-size (buffer-size))))
-;; 	   (replace-match ""))
-
-;; 	 ;; delete leading empty lines
-;; 	 (beginning-of-buffer)
-;; 	 (while (re-search-forward "^[[:space:]]*$" (line-end-position) t)
-;; 	   (kill-whole-line))
-
-;; 	 ;; delete trailing empty lines
-;; 	 (delete-trailing-whitespace)
-
-
-;; 	 ;; delete end of buffer line
-;; 	 (end-of-buffer)
-;; 	 (beginning-of-line)
-;; 	 (when (= (point) (point-max))
-;; 	   (delete-char -1))
-
-;; 	 ;; append comment string to each line
-;; 	 (beginning-of-buffer)
-;;     (cl-loop repeat
-;;   	 	   (count-lines (point-min) (point-max))
-;;   	 	   do
-;;   	 	   (insert "-- ")
-;;   	 	   (forward-line 1))
-;; 	 )
-;;   )
-
-;; ;; copy buffer over to SQL file
-;; (insert-buffer-substring " *SQL Echo Area*")
-;; (next-non-blank-line)
-;; )
-
-(defun sql-eval-here ()
-  (interactive)
-  (sql-output-here
-   '(lambda ()
-	  (sql-eval)
-	  ;; since the eval auto increments to the next line
-	  (previous-non-blank-line)
-	  (end-of-line)
-	  (newline))))
+(defun sql-select-repl ()
+  (when (sql-find-sqli-buffer sql-product)
+	(sql-set-sqli-buffer)))
 
 (defun sql-eval ()
   "Evaluates SQL code."
-  (interactive)
-  ;; Pre Eval
-  (unless sql-buffer
-    (if (null (sql-find-sqli-buffer sql-product))
-	    ;; Connect
-	    (call-interactively 'sql-connect)
-	  ;; else Set
-	  (sql-set-sqli-buffer)))
-
+  (interactive)  
   (unless (and transient-mark-mode mark-active)
     (mark-paragraph))
   (sql-send-region (region-beginning) (region-end))
@@ -646,36 +636,6 @@ go")
   (forward-paragraph)
   (next-non-blank-line))
 
-;; (defun sql-eval ()
-;;   "Evaluates SQL code."
-;;   (interactive)
-;;   ;; Pre Eval
-;;   (unless sql-buffer
-;;     (if (null (sql-find-sqli-buffer))
-;; 	   ;; Connect
-;; 	   (call-interactively 'sql-connect)
-;; 	 ;; else Set
-;; 	 (sql-set-sqli-buffer)))
-
-;;   ;; Evaluate depending on mark mode
-;;   (if (and transient-mark-mode mark-active)
-;;       (progn
-;; 	   (call-interactively 'sql-send-region)
-;; 	   (deactivate-mark))
-;;     (progn
-;; 	 ;; Send Paragraph code - fix for empty lines
-;; 	 (let ((start (save-excursion
-;; 				 (backward-paragraph)
-;; 				 (next-non-blank-line)
-;; 				 (point)))
-;; 		  (end (save-excursion
-;; 			    (forward-paragraph)
-;; 			    (previous-non-blank-line)
-;; 			    (end-of-line)
-;; 			    (point))))
-;; 	   (sql-send-region start end))
-;; 	 (forward-paragraph)))
-;;   (next-non-blank-line))
 
 (defun sql-eval-file (f)
   "Evaluates an SQL file."
@@ -689,58 +649,11 @@ go")
   (let ((init-file (sql-get-product-feature sql-product :init-file)))
     (when init-file
 	  (sql-eval-file init-file))))     
+
 (advice-add 'sql-product-interactive :after
 		    #'(lambda (&rest args) (sql-eval-init)))
 
-(defun sql-fix-indent ()
-  "Fixes indents for a whole paragraph. Pretty much all one should need."
-  (interactive)
-  (save-excursion
-    (progn
-      (mark-paragraph)
-      (call-interactively 'indent-region))))
 
-
-;; ---------- Frame Commands ---------- ;;
-(defun sql-switch-frame-process ()
-  "Switch to associated process, associate with one, or create one."
-  (interactive)
-  (cond
-   ;; Does current buffer have an associated process?
-   (sql-buffer
-    ;; Yes -> raise and select
-    (display-buffer sql-buffer))
-   ;; No -> are there processes running?
-   ((sql-find-sqli-buffer sql-product)
-    ;; Yes -> associate -> raise 
-    (sql-set-sqli-buffer))
-   (t
-    ;; No -> create one -> associate -> raise 
-    (call-interactively 'sql-connect)))
-  
-  (switch-to-buffer-other-frame sql-buffer)
-  (end-of-buffer-all))
-
-(defun sql-raise-frame-process ()
-  (progn ; FIXME was save-frame-excursion 
-   (raise-frame
-    (get-frame sql-buffer))))
-
-(defun sql-switch-frame-script ()
-  "Switch to most recent script buffer."
-  (interactive)
-  (let ((loc-proc-name (buffer-name))
-	    (blist (cdr (buffer-list))))
-    (while (and blist
-			    (with-current-buffer (car blist)
-			      (not (and
-				        (equal major-mode 'sql-mode)
-				        (equal loc-proc-name sql-buffer)))))
-	  (pop blist))
-    (if blist
-	    (display-buffer (car blist) t)
-	  (message "Found no SQL associated with process %s"
-			   loc-proc-name))))
 
 
 ;; -----------------------------------------------------------------------------
@@ -764,13 +677,12 @@ go")
 (defun sql-describe ()
   "Describe the current table"
   (interactive)
-  (let ((func (sql-get-product-feature sql-product :func-desc)))
-    (if func     
-	    (sql-send-string (replace-regexp-in-string
-					      "PATTERN"
-					      (upcase (sql-table-at-point))
-					      func))
-	  (message "no :func-desc defined for product %s" sql-product))))
+  (if-let ((query (sql-get-product-feature
+                   sql-product :query-describe-table))
+           (table (upcase (sql-table-at-point))))
+      (sql-send-string (s-lex-format query))
+	(message "no :query-describe-table defined for product %s"
+             sql-product)))
 
 (defun sql-describe-here ()
   (interactive)
@@ -826,12 +738,12 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-find-column)))
     (if func     
 	    (progn ; FIXME was save-frame-excursion 
-	     (sql-send-string
-	      (replace-regexp-in-string
-	       "PATTERN"
-	       (upcase pattern)
-	       func))
-	     (display-buffer sql-buffer))
+	      (sql-send-string
+	       (replace-regexp-in-string
+	        "PATTERN"
+	        (upcase pattern)
+	        func))
+	      (display-buffer sql-buffer))
 	  (message "no :func-find-column defined for product %s" sql-product))))
 
 (defun sql-user-tables (pattern)
@@ -840,12 +752,12 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-user-tables)))
     (if func     
 	    (progn ; FIXME was save-frame-excursion 
-	     (sql-send-string
-	      (replace-regexp-in-string
-	       "PATTERN"
-	       (upcase pattern)
-	       func))
-	     (display-buffer sql-buffer))
+	      (sql-send-string
+	       (replace-regexp-in-string
+	        "PATTERN"
+	        (upcase pattern)
+	        func))
+	      (display-buffer sql-buffer))
 	  (message "no :func-user-tables defined for product %s" sql-product))))
 
 (defun sql-user-functions ()
@@ -854,8 +766,8 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-user-functions)))
     (if func     
 	    (progn ; FIXME was save-frame-excursion 
-	     (sql-send-string func)
-	     (display-buffer sql-buffer))
+	      (sql-send-string func)
+	      (display-buffer sql-buffer))
 	  (message "no :func-user-functions defined for product %s" sql-product))))
 
 (defun sql-last-error ()
@@ -864,8 +776,8 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-last-error)))
     (if func     
 	    (progn ; FIXME was save-frame-excursion 
-	     (sql-send-string func)
-	     (display-buffer sql-buffer))
+	      (sql-send-string func)
+	      (display-buffer sql-buffer))
 	  (message "no :func-last-error defined for product %s" sql-product))))
 
 (defun sql-explain ()
@@ -874,35 +786,36 @@ go")
   (let ((func (sql-get-product-feature sql-product :func-explain)))
     (if func
 	    (progn ; FIXME was save-frame-excursion  
-	     (sql-send-string (replace-regexp-in-string
-					       "REGION"
-					       (get-region-as-string)
-					       func)))
+	      (sql-send-string (replace-regexp-in-string
+					        "REGION"
+					        (get-region-as-string)
+					        func)))
 	  (message "no :func-explain defined for product %s" sql-product))))
 
 
 ;; Suppress Abbrev in Comments 
-(defun sql-mode-abbrev-expand-function (expand)
-  (if (or
-	   (nth 3 (syntax-ppss))		; inside string.
-	   (nth 4 (syntax-ppss))		; inside comment
-	   )
-	  ;; Use the text-mode abbrevs.
-	  (let ((local-abbrev-table text-mode-abbrev-table))
-	    (funcall expand))
-    ;; Else performs normal expansion.
-    (funcall expand)
-    )
-  )
+;; (defun sql-mode-abbrev-expand-function (expand)
+;;   (if (or
+;; 	   (nth 3 (syntax-ppss))		; inside string.
+;; 	   (nth 4 (syntax-ppss))		; inside comment
+;; 	   )
+;; 	  ;; Use the text-mode abbrevs.
+;; 	  (let ((local-abbrev-table text-mode-abbrev-table))
+;; 	    (funcall expand))
+;;     ;; Else performs normal expansion.
+;;     (funcall expand)
+;;     )
+;;   )
 
+;; TODO: Does this still need to be used?
 ;; Fix SQL Highlighting + Rainbow Delimiters
 ;;	sql-highlight-product overrides rainbow-delimiters so we need to reapply it
 ;;	afterwords if it was on
-(advice-add 'sql-highlight-product :around
-		    '(lambda (func)
-			   (let ((rainbow-state rainbow-delimiters-mode))
-			     (funcall func)
-			     (rainbow-delimiters-mode rainbow-state))))
+;; (advice-add 'sql-highlight-product :around
+;; 		    '(lambda (func)
+;; 			   (let ((rainbow-state rainbow-delimiters-mode))
+;; 			     (funcall func)
+;; 			     (rainbow-delimiters-mode rainbow-state))))
 
 
 ;; ------------------------------------------------------------------------- ;;
@@ -1031,3 +944,148 @@ exists\\|in\\|like\\|not\\|or\\|some\\)\\b\\)"
 
 (provide 'config-sql)
 ;;; CONFIG-SQL.EL ends here
+
+
+
+;; sql-prompt-regexp
+
+;; (let ((comint-preoutput-filter-functions
+;; 	  '(sql-interactive-remove-continuation-prompt)))
+;;   (sql-redirect
+;;    (sql-find-sqli-buffer)
+;;    "
+;; describe ADL_DEV3.NCRE_RULES;"
+;;    " *SQL Echo Area*"))
+
+
+;; (get-buffer "*SQL: <edwrpt.world-SCI>*")
+
+
+;; (save-excursion
+;;   ;; switch to SQLi buffer to get the prompt regex
+;;   (set-buffer (sql-find-sqli-buffer))
+;;   (let ((start-re (sql-starts-with-prompt-re))
+;; 		echo-size)
+
+;; 	 ;; switch to the echo to replace
+;; 	 (set-buffer (get-buffer-create " *SQL Echo Area*"))
+;; 	 (setq echo-size (1+ (buffer-size)))
+;; 	 (beginning-of-buffer)
+;; 	 (while (and (re-search-forward start-re nil t)
+;; 			   (> echo-size
+;; 				 (setq echo-size (buffer-size))))
+;; 	   (replace-match ""))
+
+;; 	 ;; delete leading empty lines
+;; 	 (beginning-of-buffer)
+;; 	 (while (re-search-forward "^[[:space:]]*$" (line-end-position) t)
+;; 	   (kill-whole-line))
+
+;; 	 ;; delete trailing empty lines
+;; 	 (delete-trailing-whitespace)
+
+
+;; 	 ;; delete end of buffer line
+;; 	 (end-of-buffer)
+;; 	 (beginning-of-line)
+;; 	 (when (= (point) (point-max))
+;; 	   (delete-char -1))
+
+;; 	 ;; append comment string to each line
+;; 	 (beginning-of-buffer)
+;;     (cl-loop repeat
+;;   	 	   (count-lines (point-min) (point-max))
+;;   	 	   do
+;;   	 	   (insert "-- ")
+;;   	 	   (forward-line 1))
+;; 	 )
+;;   )
+
+;; ;; copy buffer over to SQL file
+;; (insert-buffer-substring " *SQL Echo Area*")
+;; (next-non-blank-line)
+;; )
+
+
+
+;; (defun sql-fix-indent ()
+;;   "Fixes indents for a whole paragraph. Pretty much all one should need."
+;;   (interactive)
+;;   (save-excursion
+;;     (progn
+;;       (mark-paragraph)
+;;       (call-interactively 'indent-region))))
+
+
+;; (defun sql-eval ()
+;;   "Evaluates SQL code."
+;;   (interactive)
+;;   ;; Pre Eval
+;;   (unless sql-buffer
+;;     (if (null (sql-find-sqli-buffer))
+;; 	   ;; Connect
+;; 	   (call-interactively 'sql-connect)
+;; 	 ;; else Set
+;; 	 (sql-set-sqli-buffer)))
+
+;;   ;; Evaluate depending on mark mode
+;;   (if (and transient-mark-mode mark-active)
+;;       (progn
+;; 	   (call-interactively 'sql-send-region)
+;; 	   (deactivate-mark))
+;;     (progn
+;; 	 ;; Send Paragraph code - fix for empty lines
+;; 	 (let ((start (save-excursion
+;; 				 (backward-paragraph)
+;; 				 (next-non-blank-line)
+;; 				 (point)))
+;; 		  (end (save-excursion
+;; 			    (forward-paragraph)
+;; 			    (previous-non-blank-line)
+;; 			    (end-of-line)
+;; 			    (point))))
+;; 	   (sql-send-region start end))
+;; 	 (forward-paragraph)))
+;;   (next-non-blank-line))
+
+
+;; ---------- Frame Commands ---------- ;;
+;; (defun sql-switch-frame-process ()
+;;   "Switch to associated process, associate with one, or create one."
+;;   (interactive)
+;;   (cond
+;;    ;; Does current buffer have an associated process?
+;;    (sql-buffer
+;;     ;; Yes -> raise and select
+;;     (display-buffer sql-buffer))
+;;    ;; No -> are there processes running?
+;;    ((sql-find-sqli-buffer sql-product)
+;;     ;; Yes -> associate -> raise 
+;;     (sql-set-sqli-buffer))
+;;    (t
+;;     ;; No -> create one -> associate -> raise 
+;;     (call-interactively 'sql-connect)))
+  
+;;   (switch-to-buffer-other-frame sql-buffer)
+;;   (end-of-buffer-all))
+
+;; (defun sql-raise-frame-process ()
+;;   (progn ; FIXME was save-frame-excursion 
+;;     (raise-frame
+;;      (get-frame sql-buffer))))
+
+;; (defun sql-switch-frame-script ()
+;;   "Switch to most recent script buffer."
+;;   (interactive)
+;;   (let ((loc-proc-name (buffer-name))
+;; 	    (blist (cdr (buffer-list))))
+;;     (while (and blist
+;; 			    (with-current-buffer (car blist)
+;; 			      (not (and
+;; 				        (equal major-mode 'sql-mode)
+;; 				        (equal loc-proc-name sql-buffer)))))
+;; 	  (pop blist))
+;;     (if blist
+;; 	    (display-buffer (car blist) t)
+;; 	  (message "Found no SQL associated with process %s"
+;; 			   loc-proc-name))))
