@@ -1,40 +1,37 @@
 ;;; CONFIG-MODES.EL --- modes to load on startup
 
 ;; Mode File Inheritance
-;; <Fundamental>
+;; <Fundamental>        (File)      (REPL)
 ;; ├─ Text 
 ;; |  └─ Org
 ;; |
-;; └─ Programming
-;;    ├─ Lisp
-;;    |  └─ EMACS-Lisp
+;; └─ Programming                   COMINT
+;;    |                 
+;;    ├─ EMACS-Lisp     .el         <ielm>
 ;;    | 
-;;    ├─ CSS
-;;    ├─ Web
-;;    ├─ HTML
-;;    ├─ JS
+;;    ├─ CSS            .css
+;;    ├─ HTML           .html
+;;    ├─ JS             .js
 ;;    |
-;;    ├─ XML
-;;    ├─ YAML
-;;    ├─ Init
+;;    ├─ XML            .xml
+;;    ├─ YAML           .yaml
+;;    ├─ Config         .ini / .cfg
 ;;    |
-;;    ├─ Python
-;;    ├─ R
-;;    ├─ SQL
+;;    ├─ Python         .py         <Python>
+;;    ├─ R              .r          <R>
+;;    ├─ SQL            .sql        <SQL>
 ;;    |
-;;    ├─ Shell
-;;    └─ PowerShell
+;;    ├─ Shell          .bat        <DOS>
+;;    └─ PowerShell     .ps         <Powershell>
 ;;
-;;   ComInt
-;;    ielm = inferior-emacs-lisp-mode
-;;    shell
 
 (require 'config-text)
 ;; (require 'config-org)
 
 ;;; Programming Languages Support
 (require 'config-programming)
-(require 'config-lisp)
+
+
 (require 'config-emacs-lisp)
 
 ;; (require 'config-web)
@@ -46,7 +43,7 @@
 
 (require 'config-python)
 (require 'config-r)
-(require 'config-sql)
+;; (require 'config-sql)
 
 ;; (require 'config-shell)
 

@@ -1,39 +1,22 @@
-;;; config-global-keybindings.el --- Emacs Config: some useful keybindings.
-
-;; This file is not part of GNU Emacs.
-
-;;; Commentary:
-
-;; Lots of useful keybindings.
-
-
-;; -----------------------------------------------------------------------------
-;; KEYBINDING.EL --- General Key Binding
-;; -----------------------------------------------------------------------------
+;; -------------------------------------------------------------------------- ;;
+;; CONFIG-GLOBAL-KEYBINDINGS.EL --- Global keybindings
+;; -------------------------------------------------------------------------- ;;
 ;; Filename:		KEYBINDING.EL
-;; Author:		John P. Hilbert <jphilbert@gmail.com>
-;; Created:		2012-02-13 20:19:37
-;; Last-Updated:	2018-02-05
-;;           By:	John P. Hilbert
-;; Compatibility:	GNU Emacs 23.2.1
+;; Author:          John P. Hilbert <jphilbert@gmail.com>
+;; Created:         2022-08-14
+;; Compatibility:	GNU Emacs 27.2
 ;;
-;; Features that might be required by this library:
-;; <NONE>
-
 ;; !!!This file is NOT part of GNU Emacs!!!
 
-
-;;; Code:
-
-;; ------------------------------------------------------------------------- ;;
+;; -------------------------------------------------------------------------- ;;
 ;; General
-;; ------------------------------------------------------------------------- ;;
+;; -------------------------------------------------------------------------- ;;
 (cua-mode)
+
 ;; allows binding "C-[" without breaking "M-"
 ;; (see https://emacs.stackexchange.com/a/52334)
-(define-key input-decode-map 
-  (kbd "C-[") 
-  [control-bracketleft])
+(define-key     input-decode-map 
+  (kbd "C-[")           [control-bracketleft])
 
 ;; CUA overwrite
 ;; (define-key cua--cua-keys-keymap
@@ -44,76 +27,71 @@
  (kbd "<C-tab>")		'tab-to-tab-stop-magic
 
  ;; ---------- File ----------
- (kbd "C-s")             'save-buffer
- (kbd "C-S-s")           'write-file
- (kbd "C-o")             'find-file
+ (kbd "C-s")            'save-buffer
+ (kbd "C-S-s")          'write-file
+ (kbd "C-o")            'find-file
  (kbd "C-x d")			'dired-other-frame
 
  ;; ---------- Find / Replace ----------
- "\C-f"                  'isearch-forward
- (kbd "C-S-f")           'isearch-backward
- "\C-r"                  'query-replace
- (kbd "C-S-r")           'replace-regexp
+ (kbd "C-f")            'isearch-forward
+ (kbd "C-S-f")          'isearch-backward
+ (kbd "C-r")            'query-replace
+ (kbd "C-S-r")          'replace-regexp
  
  ;; ---------- Miscellaneous ----------
- [(f1)]				'(lambda ()
-					   (interactive)
-					   (google-query-at-point t)) 
- [(f2)]                 'occur
- [(f3)]                 'hs-toggle-hiding
- [(shift f3)]           'hs-toggle-all
+ 
+ (kbd "<f1>")           'google-at-point
+ 
+ (kbd "<f2>")           'occur
+ 
+ (kbd "<f3>")           'hs-toggle
+ (kbd "S-<f3>")         'hs-toggle-all
 
- [(f5)]                 'display-line-numbers-mode
- [(f6)]                 'explorer
+ (kbd "<f5>")           'display-line-numbers-mode
+ 
+ (kbd "<f6>")           'explorer
 
- ;; Spell Check at Point
- [(f7)]                 'flyspell-correct-at-point
- ;; Thesaurus (Web) 
- [(shift f7)]			'thesaurus-at-point
- ;; Correct Document
- [(ctrl shift f7)]		'flyspell-correct-wrapper
+ ;; Spelling and Thesaurus
+ (kbd "<f7>")           'flyspell-correct-at-point
+ (kbd "S-<f7>")			'thesaurus-at-point
+ (kbd "C-S-<f7>")		'flyspell-correct-wrapper
 
- [(f9)]                 'menu-bar-mode
- [(shift f9)]			'mode-line-toggle
+ (kbd "<f9>")           'menu-bar-mode
+ (kbd "S-<f9>")			'mode-line-toggle
 
- (kbd "S-<tab>")		'auto-complete
+ ;; (kbd "S-<tab>")		'auto-complete
  
  ;; ---------- Buffers ----------
-                                        ; Cycle File Buffers
- [(f11)]                'switch-frame-previous
- [(f10)]                'get-scratch-buffer
- 
- (kbd   "C-x k")        'frame-kill-dwim
- (kbd   "C-S-b")		'bs-show
- (kbd   "C-b")          'display-buffer-other-frame
+ ;; (kbd "<f10>")                'get-scratch-buffer
+ (kbd "<f11>")          'frame-get-last
+ ;; (kbd "<f12>")          'repl-frame
+
+ (kbd "C-b")            'consult-buffer-other-frame
+ (kbd "C-x k")          'frame-kill-dwim
+ (kbd "C-S-b")          'bs-show
 
  
  ;; ---------- Killing / Yanking ----------
- ;; (kbd   "M-z")				'tinyeat-kill-buffer-lines-main
- ;; (kbd   "M-k")                'tinyeat-kill-line-backward
- ;; (kbd   "C-S-k")			'tinyeat-zap-line
- ;; (kbd   "<M-backspace>")		'tinyeat-backward-preserve
- ;; (kbd   "<S-backspace>")		'tinyeat-delete-whole-word
- ;; (kbd   "M-d")				'tinyeat-forward-preserve
- ;; (kbd   "<C-M-backspace>")	'tinyeat-delete-paragraph
- ;; (kbd   "C-S-y")			'tinyeat-yank-overwrite
- ;; (kbd   "C-S-j")			'tinyeat-join-lines
+ (kbd "<backspace>")    'config-smart-delete-backward
+ (kbd "<delete>")       'config-smart-delete-forward
+ (kbd "C-S-<backspace>")  'config-smart-delete-line-backward
+ (kbd "C-S-<delete>")     'config-smart-delete-line-forward
 
- "\M-V"                     'yank-pop-forwards
- "\M-v"                     'cua-paste-pop
-                                        ; this doesn't work due to it being
-                                        ; key defined my CUA mode (see fix)
+ ;; "\M-V"                     'yank-pop-forwards
+ ;; "\M-v"                     'cua-paste-pop
+ ;;                                        ; this doesn't work due to it being
+ ;;                                        ; key defined my CUA mode (see fix)
 
  ;; ---------- Navigation ----------
- (kbd   "C-]")				'forward-list
+ (kbd "C-]")				'forward-list
  [control-bracketleft]		'backward-list
- (kbd   "C-}")				'down-list
- (kbd   "C-{")				'backward-up-list
+ (kbd "C-}")				'down-list
+ (kbd "C-{")				'backward-up-list
  
  
  ;; ---------- Commenting ----------
- (kbd   "M-;")				'comment-dwim-line 
- (kbd   "M-C-;")            'comment-dwim 
+ (kbd "M-;")                'comment-dwim-line 
+ (kbd "M-C-;")              'crux-duplicate-and-comment-current-line-or-region
  
 
  ;; ---------- Expand Regions ----------
@@ -122,15 +100,14 @@
  (kbd "S-SPC")				'er/expand-region
 
  ;; ---------- Help ----------
- (kbd "C-h g")				'websearch-google
-
 
  ;; ---------- Ctrl-g => Go To ---------- ;;
  (kbd "C-g")				(lookup-key esc-map (kbd "g"))
 
  ;; ********** Deletions **********
- (kbd   "C-h C-f")			nil
- (kbd   "C-\\")             nil
+ (kbd "C-h C-f")			nil
+ (kbd "C-\\")               nil
+ (kbd "M-`")                nil
  )
 
 ;; (("C-M-f" . sp-forward-sexp)
@@ -210,57 +187,55 @@
 ;; Isearch Fix
 ;; --------------------------------------------------------------------------
 (define-keys	isearch-mode-map
-  "\C-f"				'isearch-repeat-forward
-  (kbd "C-S-f")		'isearch-repeat-backward
-  (kbd "C-s")			'save-buffer
-  (kbd "C-S-s")		'write-file
-  "\C-v"				'isearch-yank-pop)
+  (kbd "C-f")           'isearch-repeat-forward
+  (kbd "C-S-f")         'isearch-repeat-backward
+  (kbd "C-s")           'save-buffer
+  (kbd "C-S-s")         'write-file
+  (kbd "C-v")           'isearch-yank-pop)
 
 ;; --------------------------------------------------------------------------
 ;; Help
 ;; --------------------------------------------------------------------------
 (eval-when-compile (require 'bookmark))
 (define-keys	goto-map
-  "l"				'goto-line
+  (kbd "l")				'goto-line
   (kbd "<up>")			'bookmark-jump
   (kbd "<down>")		'bookmark-set
   (kbd "<right>")		'bookmark-bmenu-list)
 
 (define-keys	bookmark-bmenu-mode-map
-  "j"				'bookmark-bmenu-other-window
-  "\C-c\C-c"			'bookmark-bmenu-other-window
-  "f"				'bookmark-bmenu-other-window
-  "\C-m"				'bookmark-bmenu-other-window)
+  (kbd "j")				'bookmark-bmenu-other-window
+  (kbd "C-c C-c")		'bookmark-bmenu-other-window
+  (kbd "f")				'bookmark-bmenu-other-window
+  (kbd "C-m")			'bookmark-bmenu-other-window)
 
 ;; (require 'man)
 ;; (define-key Man-mode-map		"q" 'kill-buffer-or-emacs)
 
 (define-key		help-mode-map
-  "q"				'frame-kill-buffer)
+  (kbd "q")				'frame-kill-buffer)
 
 
-(define-keys tempel-map
-  (kbd "SPC")		'corfu-insert-separator)
+(define-keys    tempel-map
+  (kbd "SPC")           'corfu-insert-separator)
 
+(define-keys    vertico-map
+  (kbd "RET")           'vertico-directory-enter
+  (kbd "DEL")           'vertico-directory-delete-char
+  (kbd "M-DEL")         'vertico-directory-delete-word)
 
+(define-keys    minibuffer-local-map
+  (kbd "M-a")           'marginalia-cycle)
 
-(define-keys vertico-map
-  (kbd "RET")		'vertico-directory-enter
-  (kbd "DEL")		'vertico-directory-delete-char
-  (kbd "M-DEL")		'vertico-directory-delete-word)
-
-(define-keys minibuffer-local-map
-  (kbd "M-a")		'marginalia-cycle)
-
-(define-keys corfu-map
-  (kbd "SPC")		'corfu-insert-separator)
+(define-keys    corfu-map
+  (kbd "SPC")           'corfu-insert-separator)
 
 ;; (define-key prog-mode-map (kbd "M-(") (config-wrap-with "("))
 ;; ;; FIXME: pick terminal friendly binding
 ;; ;; (define-key prog-mode-map (kbd "M-[") (config-wrap-with "["))
 ;; (define-key prog-mode-map (kbd "M-\"") (config-wrap-with "\""))
 
-(smartrep-define-key global-map "C-c ."
+(smartrep-define-key global-map "C-c ."  
   '(("+" . apply-operation-to-number-at-point)
     ("-" . apply-operation-to-number-at-point)
     ("*" . apply-operation-to-number-at-point)

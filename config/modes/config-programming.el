@@ -6,6 +6,8 @@
 
 ;;; Code:
 
+(require 'rainbow-mode)
+
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
@@ -27,7 +29,7 @@
   (auto-fill-only-comments-local)
   
   ;; Hide-Show
-  (hs-minor-mode)
+  (hs-minor-mode +1)
   
   ;; Turn URLs into links
   (goto-address-mode)
@@ -39,9 +41,8 @@
 ;; --------------------------------------------------------------------------
 ;; Keybinding
 ;; --------------------------------------------------------------------------
-(define-keys prog-mode-map
-  (kbd "<backspace>")       'smart-hungry-delete-backward-char
-  (kbd "<delete>")          'smart-hungry-delete-forward-char)
+;; (define-keys prog-mode-map
+;;   ) 
 
 ;; --------------------------------------------------------------------------
 ;; Syntax Coloring

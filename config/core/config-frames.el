@@ -84,6 +84,5 @@
 	       (fit-frame-always .      t)
 	       )))))
 
-
 (provide 'config-frames)
 ;;; CONFIG-FRAMES.EL ends here
