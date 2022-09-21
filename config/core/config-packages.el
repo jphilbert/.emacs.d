@@ -58,6 +58,7 @@
     ess
     yaml-mode
     sql-indent
+    sqlup-mode
 
     ;; ---------- Untested ---------- ;;
     ;; adaptive-wrap
