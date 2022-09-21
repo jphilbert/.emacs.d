@@ -82,12 +82,51 @@
 		    (append zenburn-default-colors-alist
 				  zenburn-override-colors-alist))))
 
-;; background for completions
-(make-face		'completions-candidate-face)
-(set-face-attribute 'completions-candidate-face nil
-                    :background "#6F6F6F")
+
+(defface minibuffer-face
+  '((t (:background "gray10")))
+  "Default face for the minibuffer (see `config-minibuffer-face').")
+
+(defun config-minibuffer-face ()
+  "Sets `minibuffer-face' to buffers.
+
+Primarily verifies buffers are alive, are non-empty, and sets the face
+to `minibuffer-face' for the following buffers:
+    ' *Minibuf-0*'
+    ' *Minibuf-1*'
+    ' *Echo Area 0*'
+    ' *Echo Area 1*'
+
+For some reason the face may be reset upon exiting the minibuffer so
+it is advised to add this to the `minibuffer-inactive-mode-hook'.
+
+Taken from `solaire-mode.el' (see
+https://github.com/hlissner/emacs-solaire-mode/blob/8af65fbdc50b25ed3214da949b8a484527c7cc14/solaire-mode.el#L310
+)"
+  (let ((spec
+         (--mapcat (list (car it) (face-attribute 'minibuffer-face (car it)))
+                   face-attribute-name-alist))
+        (minibuffers
+         '(" *Minibuf-0*" " *Minibuf-1*" " *Echo Area 0*" " *Echo Area 1*")))
+
+    (--each minibuffers
+      (with-current-buffer (get-buffer-create it)
+        (apply #'face-remap-set-base 'default spec)
+        ;; Minibuffers must be non-empty for face to be applied whole line.
+        (when (= (buffer-size) 0)
+          (insert " "))
+      ))))
+
+(config-minibuffer-face)                ; set it now
+(add-hook 'minibuffer-inactive-mode-hook #'config-minibuffer-face)
+
+(defface completions-candidate-face
+  '((t (:background "gray10")))
+  "Default face for completions.")
+
 (add-hook 'minibuffer-setup-hook
-		'(lambda () (buffer-face-set 'completions-candidate-face)))
+		  '(lambda () (buffer-face-set 'completions-candidate-face)))
+
 
 ;; Do not allow the cursor in the minibuffer prompt
 (setq minibuffer-prompt-properties
