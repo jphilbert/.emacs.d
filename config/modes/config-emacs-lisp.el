@@ -3,48 +3,65 @@
 ;; This file is not part of GNU Emacs.
 
 ;;; Code:
-(require 'config-lisp)
+(require 'config-programming)
+(require 'repl)
+
 
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
 (defun config-mode-emacs-lisp ()
   "Sensible defaults for `emacs-lisp-mode'."
-  (config-mode-lisp)
-  (hs-minor-mode t)
   (hs-hide-all)  
   (eldoc-mode +1)
-  (rainbow-mode +1)
-  (dash-fontify-mode)
+  (dash-fontify-mode +1)
+  (repl-mode +1)
 
   (setq-local
-   lisp-indent-function #'keyword-fix-lisp-indent-function)
+   lisp-indent-function         #'keyword-fix-lisp-indent-function)
   
-  (setq mode-name "eLISP")
+  (setq
+   mode-name                    "eLISP"
+   repl-interactive-mode        'inferior-emacs-lisp-mode
+   repl-function-eval           #'elisp-eval
+   repl-function-eval-insert    #'elisp-eval-insert
+   repl-function-select         #'elisp-select-repl
+   repl-function-create         #'elisp-setup-repl-frame)
+
 
   ;; Recompile your elc when saving an elisp file.
-  (add-hook
-   'after-save-hook
-   (lambda ()
-     (when (and
-            (string-prefix-p
-		     config-root
-		     (file-truename buffer-file-name))
-            (file-exists-p
-		     (byte-compile-dest-file buffer-file-name)))
-       (emacs-lisp-byte-compile)))
-   nil
-   t))
+  ;; (add-hook
+  ;;  'after-save-hook
+  ;;  (lambda ()
+  ;;    (when (and
+  ;;           (string-prefix-p
+  ;;   	     config-root
+  ;;   	     (file-truename buffer-file-name))
+  ;;           (file-exists-p
+  ;;   	     (byte-compile-dest-file buffer-file-name)))
+  ;;      (emacs-lisp-byte-compile)))
+  ;;  nil
+  ;;  t)
+  )
 
-(add-hook 'emacs-lisp-mode-hook 'config-mode-emacs-lisp)
+(add-hook 'emacs-lisp-mode-hook     'config-mode-emacs-lisp)
 
-;; ielm is an interactive Emacs Lisp shell
 (defun config-mode-emacs-lisp-interactive ()
-  "Sensible defaults for `ielm'."
-  (config-mode-lisp-interactive)
-  (eldoc-mode +1))
+  "Sensible defaults for `ielm'. This mode does not inherit `prog-mode'."
+  
+  ;; Smart Parenthesis
+  (smartparens-mode +1)
+  (smartparens-global-strict-mode -1)
 
-(add-hook 'ielm-mode-hook 'config-mode-emacs-lisp-interactive)
+  ;; Color Delimiters
+  (rainbow-delimiters-mode +1)
+  
+  (eldoc-mode +1)
+  (dash-fontify-mode +1)
+
+  (repl-mode +1))
+
+(add-hook 'ielm-mode-hook           'config-mode-emacs-lisp-interactive)
 
 
 ;; --------------------------------------------------------------------------
@@ -65,6 +82,14 @@
      (unsplittable .            t)
 	 ))))
 
+(add-to-list
+ 'display-buffer-alist
+ '("\\*Messages.*\\*"
+   (display-buffer-reuse-window display-buffer-pop-up-frame)
+   (cascade .                   nil)
+   (end-of-buffer-on-display .  t)
+   ))
+
 (defun frame-display-ielm-messages (buffer alist)
   (display-buffer-pop-up-frame buffer alist)
   ;; split-window-below
@@ -75,31 +100,20 @@
 ;; --------------------------------------------------------------------------
 ;; Keybinding
 ;; --------------------------------------------------------------------------
+(define-key read-expression-map (kbd "TAB") 'completion-at-point)
+
+;; Smart Parenthesis wrapping keybindings
+(define-key lisp-mode-shared-map (kbd "M-(") (config-wrap-with "("))
+(define-key lisp-mode-shared-map (kbd "M-[") (config-wrap-with "["))
+(define-key lisp-mode-shared-map (kbd "M-\"") (config-wrap-with "\""))
+
 (define-keys		emacs-lisp-mode-map
-  ;; ---------- Evaluation ----------
-  [(shift return)]  'elisp-eval
-  
   ;; ---------- Indent / Tabs ----------
   (kbd "<tab>")     'indent-for-tab-command   
-
+  
   ;; ---------- Help ----------
   "\C-hf"			'elisp-help-function
-  "\C-hv"			'elisp-help-variable
-  [f1]              '(lambda ()
-				       (interactive)
-				       (google-query-at-point t "emacs "))
-  [S-f1]            '(lambda ()
-				       (interactive)
-				       (google-query-at-point nil "emacs "))
-  (kbd "C-h w")   	'(lambda ()
-				       (interactive)
-				       (google-query-at-point nil "emacs "))
-
-  ;; ---------- Frame Switching ----------
-  [S-f12]           'elisp-frame-messages
-  [f12]             'ielm
-
-  )
+  "\C-hv"			'elisp-help-variable)
 
 (with-eval-after-load "ielm"
   (define-key ielm-map (kbd "M-(") (config-wrap-with "("))
@@ -203,20 +217,56 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
 ;; Commands
 ;; ------------------------------------------------------------------------- ;;
 (defun elisp-eval ()
-  "Evaluate a elisp defun or region and step"
-  (interactive)
-  (if (and transient-mark-mode mark-active)
-	  (call-interactively     'eval-region)
-    (call-interactively       'eval-defun))
-  (deactivate-mark)    
-  (end-of-defun))
+  (if (use-region-p)
+      (progn 
+	    (call-interactively     'eval-region)
+        (goto-char (region-end))
+        (deactivate-mark))
+    
+    (progn
+      (call-interactively       'eval-defun)
+      (end-of-defun)))
+  (buffer-goto-end "*Messages*"))
 
-(defun elisp-frame-messages ()
-  "Switch to current message buffer and move cursor to the end."
-  (interactive)
-  (with-current-buffer "*Messages*"
-    (end-of-buffer-all))
-  (display-buffer "*Messages*"))
+(defun elisp-eval-insert ()
+  (unless (use-region-p)
+    (mark-defun))
+  (let* ((region-contents-string
+          (buffer-substring-no-properties
+           (region-beginning) (region-end)))
+         (value (eval (read region-contents-string))))
+    (goto-char (region-end))
+    (deactivate-mark)
+    
+    (unless (eq (point) (point-at-bol))
+      (newline-and-indent))      
+    (insert (format ";; %S\n" value)))
+  
+  (buffer-goto-end "*Messages*"))
+
+(defun elisp-select-repl ()
+  (--first
+   (eq (buffer-local-value 'major-mode it)
+       repl-interactive-mode)
+   (buffer-list)))
+
+(defun elisp-setup-repl-frame ()
+  (save-excursion
+    (let ((current-frame (frame-get))
+          (buffer (generate-new-buffer-name "*ielm*")))
+      (ielm buffer)
+      (let* ((window (selected-window))
+             (ielm-window-height (/ (window-body-height) -3))
+             (ielm-window (split-window nil ielm-window-height)))
+        (set-window-buffer window "*Messages*")
+        (set-window-dedicated-p window 1)
+        (set-window-dedicated-p ielm-window 1)
+        (-each
+            (-filter #'frame-one-window (frame-list-with-buffer "*Messages*"))
+          #'frame-kill)
+        (select-window ielm-window))
+      (frame-display current-frame)
+      buffer)))
 
 (defun elisp-help-variable ()
   "Combines `describe-variable', `describe-function', and `describe-face' into one.  Additionally does this instantaneously and applies display-*Help*-frame (correct formatting)."
