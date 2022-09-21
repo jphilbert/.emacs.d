@@ -6,7 +6,7 @@
 (require 'f)
 
 ;; https://github.com/alex-hhh/emacs-sql-indent
-;; (require 'sql-indent)             ; auto-loaded 
+;; (require 'sql-indent)             ; auto-loaded
 
 (defun config-parse-sql-connection (con)
   (-let*
@@ -33,6 +33,7 @@
         (-partition 2
                     (config-get :applications :sql :servers))))
 
+(make-variable-buffer-local  'sql-product)
 (setq
  sql-connection-alist       (config-parse-all-sql-connections)
  sql-product                'oracle
@@ -654,6 +655,47 @@ BASE-INDENTATION)."
 		    #'(lambda (&rest args) (sql-eval-init)))
 
 
+
+;; ---------- Frame Commands ---------- ;;
+(defun sql-switch-frame-process ()
+  "Switch to associated process, associate with one, or create one."
+  (interactive)
+  (cond
+   ;; Does current buffer have an associated process?
+   (sql-buffer
+    ;; Yes -> raise and select
+    (display-buffer sql-buffer))
+   ;; No -> are there processes running?
+   ((sql-find-sqli-buffer sql-product)
+    ;; Yes -> associate -> raise 
+    (sql-set-sqli-buffer))
+   (t
+    ;; No -> create one -> associate -> raise 
+    (call-interactively 'sql-connect)))
+  
+  (switch-to-buffer-other-frame sql-buffer)
+  (end-of-buffer-all))
+
+(defun sql-raise-frame-process ()
+  (progn ; FIXME was save-frame-excursion 
+    (raise-frame
+     (get-frame sql-buffer))))
+
+(defun sql-switch-frame-script ()
+  "Switch to most recent script buffer."
+  (interactive)
+  (let ((loc-proc-name (buffer-name))
+	    (blist (cdr (buffer-list))))
+    (while (and blist
+			    (with-current-buffer (car blist)
+			      (not (and
+				        (equal major-mode 'sql-mode)
+				        (equal loc-proc-name sql-buffer)))))
+	  (pop blist))
+    (if blist
+	    (display-buffer (car blist) t)
+	  (message "Found no SQL associated with process %s"
+			   loc-proc-name))))
 
 
 ;; -----------------------------------------------------------------------------
