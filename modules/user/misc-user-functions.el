@@ -18,7 +18,7 @@
    "open"
    "explorer"
    (concat "/select,"
-		 (convert-standard-filename (expand-file-name dir))))
+		   (convert-standard-filename (expand-file-name dir))))
   )
 
 (defun get-scratch-buffer ()
@@ -26,16 +26,16 @@
   (interactive)
   (let ((scratch-buffer (get-buffer "*scratch*")))
     (unless scratch-buffer
-	 (setq scratch-buffer
-		  (set-buffer (get-buffer-create "*scratch*")))
-	 (insert initial-scratch-message)
-	 (emacs-lisp-mode))
+	  (setq scratch-buffer
+		    (set-buffer (get-buffer-create "*scratch*")))
+	  (insert initial-scratch-message)
+	  (emacs-lisp-mode))
     (unless (eq (current-buffer) scratch-buffer)
-	 (display-buffer-other-frame scratch-buffer))))
+	  (display-buffer-other-frame scratch-buffer))))
 
 (defun get-empty-buffer ()
   "Create a new empty buffer.
-New buffer will be named “untitled” or “untitled<2>”, “untitled<3>”, etc.
+New buffer will be named `untitled' or `untitled<2>', `untitled<3>', etc.
 
 It returns the buffer (for elisp programming).
 
@@ -49,106 +49,11 @@ Version 2017-11-01"
     (display-buffer buffer)
     buffer))
 
-
-(defun rename-current-buffer-file ()
-  "Renames current buffer AND file it is visiting."
-  (interactive)
-  (let* ((name (buffer-name))
-	    (filename (buffer-file-name))
-	    (basename (file-name-nondirectory filename)))
-    (if (not (and filename (file-exists-p filename)))
-        (error "Buffer '%s' is not visiting a file!" name)
-      (let ((new-name (read-file-name
-				   "New name: "
-				   (file-name-directory filename)
-				   basename nil basename)))
-        (if (get-buffer new-name)
-            (error "A buffer named '%s' already exists!" new-name)
-          (rename-file filename new-name 1)
-          (rename-buffer new-name)
-          (set-visited-file-name new-name)
-          (set-buffer-modified-p nil)
-          (message "File '%s' successfully renamed to '%s'"
-                   name (file-name-nondirectory new-name)))))))
-
 (defun mode-line-toggle ()
   (interactive)
   (if mode-line-format
-	 (setq mode-line-format nil)
+	  (setq mode-line-format nil)
     (setq mode-line-format (default-value 'mode-line-format))))
-
-
-;; ------------------------------------------------------------------------- ;;
-;; Web Searching
-;; - require expand-region <-- FIXME?
-;; ------------------------------------------------------------------------- ;;
-(defun thesaurus-at-point ()
-  "Automatically queries thesaurus.com for word (using `expand-region') at
-point."
-  (interactive)
-  (let ((url "https://www.thesaurus.com/browse/")
-	(encoding 'utf-8)
-	(minibuffer-string "Thesaurus: ")
-	query)
-    (save-excursion
-      (unless (region-active-p)
-	(er/mark-word))
-      (setq query (buffer-substring-no-properties
-			    (region-beginning) (region-end))))
-    (browse-url
-	(format "%s%s" url (url-hexify-string query)))
-    ))
-
-(defun google-query-at-point (&optional lucky prefix)
-  "Automatically queries Google for object (using `expand-region') at
-point. Additionally can use 'feeling lucky' and append a prefix (useful for
-major programming modes to filter results)"
-  (interactive)
-  (let* ((url
-	 (if lucky
-	     "https://google.com/search?btnI=1&q="
-	   "http://www.google.com/search?q="))
-	(encoding 'utf-8)
-	(minibuffer-string "Google: ")
-	(query (save-excursion
-      (unless (region-active-p)
-	   (er/mark-method-call))
-	 (buffer-substring-no-properties
-	  (region-beginning) (region-end))
-	 ))
-	(query (replace-regexp-in-string
-		   "\\`[^[:graph:]]+\\|[^[:graph:]]+\\'"  "" query))
-	(query (replace-regexp-in-string "(.*)" "" query))
-	(query (concat prefix query)))
-    (browse-url
-	(format "%s%s" url (url-hexify-string query)))
-    ))
-
-(defun google-query-mode-at-point-lucky ()
-  "Automatically queries Google object (using `expand-region') at point. Additionally appends the current buffer's mode to the search.  This is the lucky (immediate) version."
-  (interactive)
-  (let (m)
-    (setq m (replace-regexp-in-string
-	     "-.*" ""
-	     (symbol-name (with-current-buffer
-			      (current-buffer)
-			    major-mode))))
-    (message (concat m " "))
-    (google-query-at-point t (concat m " "))))
-
-(defun google-query-mode-at-point ()
-  "Automatically queries Google for object (using `expand-region') at
-point. Additionally appends the current buffer's mode to the search."
-  (interactive)
-  (let (m)
-    (setq m (replace-regexp-in-string
-	     "-.*" ""
-	     (symbol-name (with-current-buffer
-			      (current-buffer)
-			    major-mode))))
-    (message (concat m " "))
-    (google-query-at-point nil (concat m " "))))
-
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Navigation
@@ -197,16 +102,16 @@ operate from point to the end of (the accessible portion of) the buffer"
 
 (defun yank-pop-forwards (arg)
   "Opposite of `yank-pop' in that it will cycle forward to more recent yanks"
-      (interactive "p")
-      (yank-pop (- arg)))
+  (interactive "p")
+  (yank-pop (- arg)))
 
 (defun unfill-paragraph (&optional region)
   "Takes a multi-line paragraph and makes it into a single line of text."
   ;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph    
   (interactive (progn (barf-if-buffer-read-only) '(t)))
   (let ((fill-column (point-max))
-	   ;; This would override `fill-column' if it's an integer.
-	   (emacs-lisp-docstring-fill-column t))
+	    ;; This would override `fill-column' if it's an integer.
+	    (emacs-lisp-docstring-fill-column t))
     (fill-paragraph nil region)))
 
 
@@ -219,9 +124,9 @@ operate from point to the end of (the accessible portion of) the buffer"
   (if buffer-read-only
       (message "Cannot replace in read-only buffer")
     (cua--rectangle-operation 'keep nil t 1 nil
-			      '(lambda (s e l r)
-				 (if (re-search-forward "\\s-+" e t)
-				     (replace-match "" nil nil))))))
+			                  '(lambda (s e l r)
+				                 (if (re-search-forward "\\s-+" e t)
+				                     (replace-match "" nil nil))))))
 
 (defun cua-replace-blanks-in-rectangle (newtext)
   "Replace blanks with NEWTEXT in each line of CUA rectangle."
@@ -229,14 +134,15 @@ operate from point to the end of (the accessible portion of) the buffer"
   (if buffer-read-only
       (message "Cannot replace in read-only buffer")
     (cua--rectangle-operation 'keep nil t 1 nil
-						'(lambda (s e l r)
-						   (if (re-search-forward "\\s-+" e t)
-							  (replace-match newtext nil nil))))))
+						      '(lambda (s e l r)
+						         (if (re-search-forward "\\s-+" e t)
+							         (replace-match newtext nil nil))))))
 
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Utility / Non-interactive Functions
 ;; ------------------------------------------------------------------------- ;;
+;; TODO replace with `f-read'
 (defun get-string-from-file (filePath)
   "Return FILEPATH's file content."
   (with-temp-buffer
@@ -253,56 +159,51 @@ operate from point to the end of (the accessible portion of) the buffer"
   "Apply function FN to each line in a region"
   (if (and transient-mark-mode mark-active)
       (save-excursion
-	   (goto-char (region-end))
-	   (let ((end-marker (copy-marker (point-marker)))
-		    next-line-marker)
-		(goto-char (region-beginning))
-		(if (not (bolp))
-		    (forward-line 1))
-		(setq next-line-marker (point-marker))
-		(while (< next-line-marker end-marker)
-		  (let ((start nil)
-			   (end nil))
-		    (goto-char next-line-marker)
-		    (save-excursion
-			 (setq start (point))
-			 (forward-line 1)
-			 (set-marker next-line-marker (point))
-			 (setq end (point)))
-		    (save-excursion
-			 (let ((mark-active nil))
-			   (narrow-to-region start end)
-			   (funcall fn)
-			   (widen)))))
-		(set-marker end-marker nil)
-		(set-marker next-line-marker nil)))
+	    (goto-char (region-end))
+	    (let ((end-marker (copy-marker (point-marker)))
+		      next-line-marker)
+		  (goto-char (region-beginning))
+		  (if (not (bolp))
+		      (forward-line 1))
+		  (setq next-line-marker (point-marker))
+		  (while (< next-line-marker end-marker)
+		    (let ((start nil)
+			      (end nil))
+		      (goto-char next-line-marker)
+		      (save-excursion
+			    (setq start (point))
+			    (forward-line 1)
+			    (set-marker next-line-marker (point))
+			    (setq end (point)))
+		      (save-excursion
+			    (let ((mark-active nil))
+			      (narrow-to-region start end)
+			      (funcall fn)
+			      (widen)))))
+		  (set-marker end-marker nil)
+		  (set-marker next-line-marker nil)))
     (funcall fn)))
 
 (defun ac-show-quick-help ()
   "show docs for symbol at point or at beginning of list if not on a symbol"
   (interactive)
   (let ((s (save-excursion
-		   (or (symbol-at-point)
-			  (progn (backward-up-list)
-				    (forward-char)
-				    (symbol-at-point))))))
+		     (or (symbol-at-point)
+			     (progn (backward-up-list)
+				        (forward-char)
+				        (symbol-at-point))))))
     (pos-tip-show (ac-symbol-documentation s)
-			   'popup-tip-face
-			   ;; 'alt-tooltip
-			   (point)
-			   nil
-			   -1)))
+			      'popup-tip-face
+			      ;; 'alt-tooltip
+			      (point)
+			      nil
+			      -1)))
 
 (provide 'misc-user-functions)
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Package Updating
 ;; ------------------------------------------------------------------------- ;;
-
-
-
-
-
 (defun prelude-eval-after-init (form)
   "Add `(lambda () FORM)' to `after-init-hook'.
 
@@ -329,9 +230,9 @@ operate from point to the end of (the accessible portion of) the buffer"
   (interactive)
   (goto-char (point-max))
   (let ((windows (get-buffer-window-list (current-buffer) nil t)))
-      (while windows
-        (set-window-point (car windows) (point-max))
-        (setq windows (cdr windows)))))
+    (while windows
+      (set-window-point (car windows) (point-max))
+      (setq windows (cdr windows)))))
 
 ;; DEPRECATED
 ;; see SAVE-SELECTED-WINDOW, WITH-SELECTED-WINDOW, and WITH-SELECTED-FRAME
