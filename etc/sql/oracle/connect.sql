@@ -1,0 +1,1 @@
+CONNECT ${user}/${password}@${database}
