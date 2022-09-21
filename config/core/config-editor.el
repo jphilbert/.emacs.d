@@ -6,9 +6,10 @@
 
 
 ;;; Code:
+(require 'web-search)
 
 ;; ------------------------------------------------------------------------- ;;
-;; TEMP Directories
+;; Temporary Directories
 ;; ------------------------------------------------------------------------- ;;
 ;; ---------- Backups Directory and Naming ---------- ;;
 ;; [!] Backups (i.e. versions)
@@ -120,6 +121,8 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 ;; revert buffers automatically when underlying files are changed externally
 (global-auto-revert-mode t)
 
+;; Minor mode to buttonize URLs and e-mail addresses
+(goto-address-prog-mode t)
 
 ;; ---------- smart tab behavior - indent or complete ----------
 (setq tab-always-indent                 'complete)
@@ -147,9 +150,9 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 (require 'uniquify)
 (setq uniquify-buffer-name-style        'forward
       uniquify-separator                "/"
-;; rename after killing uniquified
+      ;; rename after killing uniquified
       uniquify-after-kill-buffer-p      t
-;; don't muck with special buffers
+      ;; don't muck with special buffers
       uniquify-ignore-buffers-re        "^\\*")
 
 
@@ -165,7 +168,6 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 (global-hl-line-mode 0)
 
 (require 'rect)
-(crux-with-region-or-line kill-region)
 
 (defun auto-fill-only-comments-local ()
   (set (make-local-variable 'comment-auto-fill-only-comments) t)
@@ -290,91 +292,61 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 
 ;; easy-kill
 
-;; ---------- smart-hungry-delete ----------
+;; ---------- smart-hungry-delete ---------- 
 (require 'smart-hungry-delete)
 (smart-hungry-delete-add-default-hooks)
 
-;; ---------- operate-on-number ----------
+(defun config-smart-delete-backward (arg)
+  "see `smart-hungry-delete-backward-char"
+  (interactive "P")
+  (if (use-region-p)
+      (delete-region
+       (min (mark) (point))
+       (max (mark) (point)))
+    (smart-hungry-delete-backward-char arg)))
+
+(defun config-smart-delete-forward (arg)
+  "see `smart-hungry-delete-forward-char"  
+  (interactive "P")
+  (if (use-region-p)
+      (delete-region
+       (min (mark) (point))
+       (max (mark) (point)))
+    (smart-hungry-delete-forward-char arg)))
+
+(defun config-delete-whole-line ()
+  (interactive)
+  (kill-whole-line)
+  (set-transient-map
+   (let ((kmap (make-sparse-keymap)))
+     (define-key kmap (kbd "<backspace>")   'config-delete-whole-line)
+     (define-key kmap (kbd "<delete>")      'config-delete-whole-line)
+     kmap)))
+
+(defun config-smart-delete-line-backward ()
+  (interactive)
+  (kill-line 0)
+  (indent-according-to-mode)
+  (set-transient-map
+   (let ((kmap (make-sparse-keymap)))
+     (define-key kmap (kbd "<backspace>")   'config-delete-whole-line)
+     (define-key kmap (kbd "<delete>")      'config-delete-whole-line)
+     kmap)))
+
+(defun config-smart-delete-line-forward ()
+  (interactive)
+  (kill-line nil)
+  (set-transient-map
+   (let ((kmap (make-sparse-keymap)))
+     (define-key kmap (kbd "<backspace>")   'config-delete-whole-line)
+     (define-key kmap (kbd "<delete>")      'config-delete-whole-line)
+     kmap)))
+
+
+
+;; ---------- operate-on-number ---------- ;;
 (require 'operate-on-number)
 (require 'smartrep)
-
-
-
-
-
-;; ------------------------------------------------------------------------- ;;
-;; Completion
-;; ------------------------------------------------------------------------- ;;
-(require 'vertico)
-(require 'orderless)
-(require 'vertico-directory)
-(require 'marginalia)
-(vertico-mode)
-
-;; Configure a custom style dispatcher (see the Consult wiki)
-;; (setq orderless-style-dispatchers '(+orderless-dispatch)
-;;       orderless-component-separator #'orderless-escapable-split-on-space)
-(setq completion-styles '(orderless)
-      completion-category-defaults nil
-      completion-category-overrides '((file (styles partial-completion))))
-
-
-;; Tidy shadowed file names
-(add-hook 'rfn-eshadow-update-overlay-hook 'vertico-directory-tidy)
-
-;; Enable richer annotations using the Marginalia package
-(marginalia-mode)
-
-(require 'corfu)
-(global-corfu-mode)
-
-;; try the `completion-category-sort-function' first
-(advice-add
- #'vertico--sort-function :before-until
- #'completion-category-sort-function)
-
-(defun completion-category-sort-function ()
-  (alist-get (vertico--metadata-get 'category)
-             completion-category-sort-function-overrides))
-
-(defvar completion-category-sort-function-overrides
-  '((file . directories-before-files))
-  "Completion category-specific sorting function overrides.")
-
-(defun directories-before-files (files)
-  ;; Still sort by history position, length and alphabetically
-  (setq files (vertico-sort-history-length-alpha files))
-  ;; But then move directories first
-  (nconc (seq-filter (lambda (x) (string-suffix-p "/" x)) files)
-         (seq-remove (lambda (x) (string-suffix-p "/" x)) files)))
-
-;; hippie expand is dabbrev expand on steroids
-(setq hippie-expand-try-functions-list
-      '(try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-all-abbrevs
-        try-expand-list
-        try-expand-line
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol))
-
-;; https://github.com/minad/tempel/index
-(require 'tempel)
-(setq tempel-path (config-get :config-paths :tempel))
-
-;; https://github.com/minad/cape
-(require 'cape)
-(setq-default
- completion-at-point-functions
-	  `(,(cape-super-capf
-          #'elisp-completion-at-point
-		  #'tempel-complete)
-		cape-file))
-
-(setq-default completion-ignore-case			t)
 
 ;; ---------- Hide-Show ----------
 (defvar-local hs-hide-all-state
@@ -418,6 +390,238 @@ Fix for `hs-toggle-hiding'."
 (global-hl-todo-mode 1)
 
 
+;; (require 'projectile)
+;; (fmakunbound 'project-root)
+(setq projectile-cache-file
+      (expand-file-name "projectile.cache"
+                        (config-get :config-paths :temp)))
+(setq projectile-known-projects-file
+      (expand-file-name "projectile-known-projects.eld"
+                        (config-get :config-paths :temp)))
+
+
+
+;; ------------------------------------------------------------------------- ;;
+;; Completion
+;; ------------------------------------------------------------------------- ;;
+(require 'vertico)
+(require 'orderless)
+(require 'vertico-directory)
+(vertico-mode)
+
+(setq-default completion-ignore-case			t)
+
+;; Configure a custom style dispatcher (see the Consult wiki)
+;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+;;       orderless-component-separator #'orderless-escapable-split-on-space)
+(setq
+ completion-styles              '(orderless)
+ completion-category-defaults   nil
+ completion-category-overrides  '((file (styles partial-completion))))
+
+
+;; Tidy shadowed file names
+(add-hook 'rfn-eshadow-update-overlay-hook 'vertico-directory-tidy)
+
+
+
+
+;; try the `completion-category-sort-function' first
+(advice-add
+ #'vertico--sort-function :before-until
+ #'completion-category-sort-function)
+
+(defun completion-category-sort-function ()
+  (alist-get (vertico--metadata-get 'category)
+             completion-category-sort-function-overrides))
+
+(defvar completion-category-sort-function-overrides
+  '((file . directories-before-files))
+  "Completion category-specific sorting function overrides.")
+
+(defun directories-before-files (files)
+  ;; Still sort by history position, length and alphabetically
+  (setq files (vertico-sort-history-length-alpha files))
+  ;; But then move directories first
+  (nconc (seq-filter (lambda (x) (string-suffix-p "/" x)) files)
+         (seq-remove (lambda (x) (string-suffix-p "/" x)) files)))
+
+
+
+;; ---------- Consult ---------- ;;
+(require 'consult)
+
+(setq consult-buffer-sources
+      '(
+        consult--source-hidden-buffer
+        consult--source-modified-buffer
+        consult--source-file-buffer
+        consult--source-special-buffer
+        ;; consult--source-buffer
+        consult--source-recent-file
+        consult--source-bookmark
+        ;; consult--source-project-buffer
+        ;; consult--source-project-recent-file
+        ))
+
+(setq consult--source-file-buffer
+      `(:name     "File Buffer"
+        :narrow   ?b
+        :category buffer
+        :face     consult-buffer
+        :history  buffer-name-history
+        :state    ,#'consult--buffer-state
+        :default  t
+        :items
+        ,(lambda () (consult--buffer-query
+                :sort       'alpha
+                :as         #'buffer-name
+                :exclude    "\*.*"
+                ))))
+
+(setq consult--source-special-buffer
+      `(:name     "Special Buffer"
+        :narrow   ?s
+        :category buffer
+        :face     consult-buffer
+        :history  buffer-name-history
+        :state    ,#'consult--buffer-state
+        :items
+        ,(lambda () (consult--buffer-query
+                :sort       'alpha
+                :as         #'buffer-name
+                :include    "\*.*"
+                ))))
+
+(setq consult--source-recent-file
+  `(:name       "Recent File"
+    :narrow     ?f
+    :category   file
+    :face       consult-file
+    :history    file-name-history
+    :state      ,#'consult--file-state
+    :new        ,#'consult--file-action
+    :enabled    ,(lambda () recentf-mode)
+    :hidden     t
+    :items
+    ,(lambda ()
+       (let ((ht (consult--buffer-file-hash)))
+         (mapcar #'abbreviate-file-name
+                 (seq-remove (lambda (x) (gethash x ht)) recentf-list))))))
+
+;; TODO replace FIND with CONSULT-LINE
+;; (defun consult-line-symbol-at-point ()
+;;   (interactive)
+;;   (consult-line (thing-at-point 'symbol)))
+
+;; TODO
+;; https://github.com/minad/consult/wiki#emacs-and-web-colors-list
+
+
+;; ---------- Marginalia ---------- ;;
+;; Enable richer annotations using the Marginalia package
+(require 'marginalia)
+(marginalia-mode)
+
+(defun marginalia--annotate-local-file (cand)
+  "Annotate local file CAND."
+  (when-let (attrs (ignore-errors
+                     ;; may throw permission denied errors
+                     (file-attributes (substitute-in-file-name
+                                       (marginalia--full-candidate cand))
+                                      'integer)))
+    (marginalia--fields
+     ((file-size-human-readable (file-attribute-size attrs))
+      :face 'marginalia-size :width -10)
+     ((marginalia--time (file-attribute-modification-time attrs))
+      :face 'marginalia-date :width -20))
+    ))
+
+(defun marginalia--buffer-status (buffer)
+  "Return the status of BUFFER as a string."
+  (format-mode-line
+   '((:propertize "%1&" face marginalia-modified)
+     marginalia-separator
+     (10 (-20 (:propertize mode-name face marginalia-mode))))
+   nil nil buffer))
+
+(defun marginalia--buffer-file (buffer)
+  "Return the file or process name of BUFFER."
+  (if-let (proc (get-buffer-process buffer))
+      (format
+       "(%s %s) %s"
+       proc (process-status proc)
+       (abbreviate-file-name (buffer-local-value 'default-directory buffer)))
+    
+    (abbreviate-file-name
+     (cond
+      ;; see ibuffer-buffer-file-name
+      ((buffer-file-name buffer)
+       (file-name-directory (buffer-file-name buffer)))
+      ;; ((file-name-directory (buffer-file-name buffer)))
+      ((when-let (dir (and (local-variable-p 'dired-directory buffer)
+                           (buffer-local-value 'dired-directory buffer)))
+         (expand-file-name (if (stringp dir) dir (car dir))
+                           (buffer-local-value 'default-directory buffer))))
+      ((local-variable-p 'list-buffers-directory buffer)
+       (buffer-local-value 'list-buffers-directory buffer))
+      ("")))))
+
+(defun marginalia-annotate-buffer (cand)
+  "Annotate buffer CAND with modification status, file name and major mode."
+  (when-let (buffer (get-buffer cand))
+    (marginalia--fields
+     ((marginalia--buffer-status buffer))
+     ((marginalia--buffer-file buffer)
+      :truncate -0.75 :face 'marginalia-file-name))))
+
+
+;; ---------- Corfu ---------- ;;
+(require 'corfu)
+(global-corfu-mode)
+
+;; ---------- Tempel ---------- ;;
+;; https://github.com/minad/tempel/index
+(require 'tempel)
+(setq tempel-path (config-get :config-paths :tempel))
+
+;; ---------- Cape ---------- ;;
+;; https://github.com/minad/cape
+(require 'cape)
+(setq
+ completion-at-point-functions
+ `(,(cape-super-capf
+     #'elisp-completion-at-point
+	 #'tempel-complete)
+   cape-file))
+
+
+
+
+;; (setq marginalia-annotator-registry
+;;       (assq-delete-all 'buffer marginalia-annotator-registry))
+
+;; (add-to-list 'marginalia-annotator-registry
+;;              '(buffer config-marginalia-annotate-buffer))
+
+
+
+;; hippie expand is dabbrev expand on steroids
+;; (setq hippie-expand-try-functions-list
+;;       '(try-expand-dabbrev
+;;         try-expand-dabbrev-all-buffers
+;;         try-expand-dabbrev-from-kill
+;;         try-complete-file-name-partially
+;;         try-complete-file-name
+;;         try-expand-all-abbrevs
+;;         try-expand-list
+;;         try-expand-line
+;;         try-complete-lisp-symbol-partially
+;;         try-complete-lisp-symbol))
+
+
+
+
 
 (provide 'config-editor)
 
@@ -427,30 +631,19 @@ Fix for `hs-toggle-hiding'."
 
 
 
-;; TODO: move to config-mode-shell
-;; ;; make a shell script executable automatically on save
-;; (add-hook 'after-save-hook
-;;           'executable-make-buffer-file-executable-if-script-p)
-
-;; .zsh file is shell script too
-(add-to-list 'auto-mode-alist '("\\.zsh\\'" . shell-script-mode))
-
-(goto-address-prog-mode t)
 
 
 
 
 
-(require 'rainbow-mode)
 
 
 
-(setq projectile-cache-file
-      (expand-file-name "projectile.cache"
-                        (config-get :config-paths :temp)))
-(setq projectile-known-projects-file
-      (expand-file-name "projectile-known-projects.eld"
-                        (config-get :config-paths :temp)))
+
+
+
+
+
 
 
 
