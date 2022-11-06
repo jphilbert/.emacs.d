@@ -70,6 +70,12 @@
    repl-function-eval-insert    #'sql-eval-insert
    repl-function-select         #'sql-select-repl
    repl-function-create         #'sql-connect)
+
+  (setq-local completion-at-point-functions
+		'(cape-dabbrev cape-file)
+		cape-dabbrev-min-length 4
+        dabbrev-case-distinction
+        dabbrev-check-all-buffers)
   )
 
 (defun config-mode-sql-interactive ()
@@ -264,7 +270,6 @@ BASE-INDENTATION)."
      ;;   comment      <- comment-continuation
      ;;  */            <- comment-continuation
      (comment-start                 sqlind-use-previous-line-indentation
-                                    +
                                     sqlind-indent-lineup-previous-comment)
      (comment-continuation          sqlind-indent-comment-continuation)
 
@@ -378,16 +383,15 @@ BASE-INDENTATION)."
      ;;   ) AS y   <- nested-statement-close
      (nested-statement-open         sqlind-use-anchor-indentation
                                     +)
-     (nested-statement-continuation
-      sqlind-lineup-to-anchor
-      ;; ^ works for function-like parenthesis
-      ;; this works better for "(\n" --> 
-      ;; sqlind-use-anchor-indentation
-      ;; +
-      sqlind-indent-logic
-      1)
-     (nested-statement-close        sqlind-use-anchor-indentation
+     (nested-statement-continuation sqlind-use-anchor-indentation
+                                    sqlind-indent-logic
                                     +)
+     (nested-statement-close        sqlind-use-anchor-indentation)
+
+     ;; (nested-statement-continuation sqlind-lineup-to-anchor
+     ;;                                sqlind-indent-logic
+     ;;                                1)
+     ;; (nested-statement-close        +)
 
      ;; ------------- DELETE -------------          
      (delete-clause                 0)
