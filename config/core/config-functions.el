@@ -148,7 +148,6 @@ See also `global-set-keys' and `local-set-keys'"
 (define-obsolete-function-alias
   'define-many-keys #'define-keys "2021-8-19")
 
-(require 'misc-user-functions)
 
 (provide 'config-functions)
 ;;; config-functions.el ends here

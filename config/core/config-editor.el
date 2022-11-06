@@ -7,6 +7,7 @@
 
 ;;; Code:
 (require 'web-search)
+(require 'misc-user-functions)
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Temporary Directories
@@ -29,7 +30,11 @@
                                 (config-get :config-paths :temp))
               " "
               (format-time-string "%Y%m%d-%H%M%S")
-              ".txt"))
+              ".txt")
+      auto-save-list-file-prefix 
+      (concat (expand-file-name "auto-save-list"
+                                (config-get :config-paths :temp))
+              " "))
 
 ;; [.#] Locks are done in the same path (not to be confused with Auto-saves)
 (setq create-lockfiles				nil)
@@ -588,12 +593,12 @@ Fix for `hs-toggle-hiding'."
 ;; ---------- Cape ---------- ;;
 ;; https://github.com/minad/cape
 (require 'cape)
-(setq
- completion-at-point-functions
- `(,(cape-super-capf
-     #'elisp-completion-at-point
-	 #'tempel-complete)
-   cape-file))
+;; (setq
+;;  completion-at-point-functions
+;;  `(,(cape-super-capf
+;;      #'elisp-completion-at-point
+;; 	 #'tempel-complete)
+;;    cape-file))
 
 
 
