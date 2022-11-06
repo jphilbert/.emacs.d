@@ -5,9 +5,6 @@
 (require 's)
 (require 'f)
 
-;; https://github.com/alex-hhh/emacs-sql-indent
-;; (require 'sql-indent)             ; auto-loaded
-
 (defun config-parse-sql-connection (con)
   (-let*
       (((con (&plist :product prod
@@ -30,14 +27,24 @@
     ))
 (defun config-parse-all-sql-connections ()
   (-map #'config-parse-sql-connection
-        (-partition 2
-                    (config-get :applications :sql :servers))))
+          (-partition 2
+                      (config-get :applications :sql :servers))))
+(defun config-remove-unused-products ()
+  (let ((products
+         (--map (eval (car (alist-get 'sql-product (cdr it))))
+                sql-connection-alist)))
+    (--filter (member (car it) (add-to-list 'products 'ansi))
+              sql-product-alist)))
 
 (make-variable-buffer-local  'sql-product)
+(make-variable-buffer-local  'sql-connection)
+
 (setq
  sql-connection-alist       (config-parse-all-sql-connections)
+ sql-product-alist          (config-remove-unused-products)
  sql-product                'oracle
  sql-send-terminator        nil
+ sql-pop-to-buffer-after-send-region    nil
 
  sql-ms-options             '("-w" "2000" "-y" "2000" "-s" "|" "-k")
  sql-ms-program             (or (config-get :applications :sql :exe :ms)
@@ -55,8 +62,6 @@
 ;; --------------------------------------------------------------------------
 (defun config-mode-sql ()
   (interactive)
-  (make-local-variable  'sql-product)
-  (sql-set-product      'oracle)
   (sqlind-minor-mode +1)
   (sqlind-set-indentation)
   (sqlup-mode +1)
@@ -64,12 +69,11 @@
   (repl-mode +1)
   
   (setq
-   mode-name                    "SQL"
    repl-interactive-mode        'sql-interactive-mode
    repl-function-eval           #'sql-eval
    repl-function-eval-insert    #'sql-eval-insert
-   repl-function-select         #'sql-select-repl
-   repl-function-create         #'sql-connect)
+   repl-function-set            #'sql-set-repl
+   repl-function-create         #'sql-create-repl)
 
   (setq-local completion-at-point-functions
 		'(cape-dabbrev cape-file)
@@ -82,10 +86,10 @@
   (setq comint-preoutput-filter-functions nil)
   ;; (add-hook 'comint-preoutput-filter-functions
   ;;           'sql-interactive-remove-continuation-prompt nil t)
-  (add-hook 'comint-preoutput-filter-functions
-  		    'sql-add-newline-first t t)
+  ;; (add-hook 'comint-preoutput-filter-functions
+  ;; 		    'sql-add-newline-first t t)
   (sqlup-mode)
-  (sql-rename-buffer)
+  ;; (sql-rename-buffer)
   (repl-mode +1)
   )
 
@@ -114,21 +118,21 @@
 ;; --------------------------------------------------------------------------
 ;; Key Binding
 ;; --------------------------------------------------------------------------
-(define-many-keys sql-mode-map
+(define-keys sql-mode-map
   (kbd "<return>")	'reindent-then-newline-and-indent
   
   ;; ---------- Evaluation ----------
-  [(shift return)]  'sql-eval
-  [(M-return)]		'sql-eval-here
+  [(shift return)]  nil
+  [(M-return)]		nil
 
   ;; ---------- Indent / Tabs ----------
   (kbd "<C-tab>")	'tab-to-tab-stop-magic
   ;; (kbd "<tab>")     'sql-fix-indent
 
   ;; ---------- Frame Switching ----------
-  [f12]             'sql-switch-frame-process
-  [S-f12]           'sql-connect
-  [C-f12]			'sql-set-sqli-buffer
+  [f12]             nil
+  [S-f12]           nil
+  [C-f12]			nil
   [M-f12]           'sql-set-product
 
 
@@ -142,7 +146,7 @@
   "\C-ho"           'sql-inspect-table
   )
 
-(define-many-keys sql-interactive-mode-map
+(define-keys sql-interactive-mode-map
   ;; ---------- Input / Prompt Scrolling ----------
   [C-up]			'comint-previous-prompt
   [C-down]          'comint-next-prompt
@@ -152,8 +156,8 @@
   [S-C-down]		'next-line
 
   ;; ---------- Frame Switching ----------
-  [(f12)]           'sql-switch-frame-script
-  [S-f12]           'sql-reconnect
+  [(f12)]           nil
+  ;; [S-f12]           'sql-reconnect
 
 
   ;; ---------- Completion ----------
@@ -208,8 +212,18 @@
              (s-upcase (f-filename (f-dirname it))))))
 
 (when-let
-    ((dir (config-get :applications :sql :query-dir)))
-  (sql-load-help-queries dir))
+    ((dir (config-get :applications :sql :query-directory)))
+  (sql-load-help-queries (f-expand dir config-root)))
+
+
+;; Fix SQL Highlighting + Rainbow Delimiters
+;;	sql-highlight-product overrides rainbow-delimiters so we need to reapply it
+;;	afterwords if it was on
+(advice-add 'sql-highlight-product :around
+		     '(lambda (func)
+			    (let ((rainbow-state rainbow-delimiters-mode))
+			      (funcall func)
+			      (rainbow-delimiters-mode rainbow-state))))
 
 
 ;; --------------------------------------------------------------------------
@@ -420,53 +434,8 @@ BASE-INDENTATION)."
   (sqlup-capitalize-keywords-in-line))
 
 
-;; ---------- REPL ----------
-   ;; repl-function-eval           #'sql-eval
-   ;; repl-function-eval-insert    #'sql-eval-insert
-   ;; repl-function-select         #'sql-select-repl
-   ;; repl-function-create         #'sql-create-repl
-
-(defun marginalia-annotate-sql-connection (cand)
-  "Annotate variable CAND with its documentation string."
-  (when-let (sym (cdr (assoc-string cand sql-connection-alist t)))
-    
-    (let ((server
-           (-last-item
-            (--first (eq (car it) 'sql-server) sym))))
-      (marginalia--fields
-       (server :truncate 1.0 :face 'marginalia-documentation)))))
-
-(add-to-list 'marginalia-annotator-registry
-             '(sql marginalia-annotate-sql-connection builtin none))
-
-(defun sql-connections-completion (str pred flag)
-  (pcase flag
-    ('metadata
-     `(metadata
-       (category . sql)
-       ;; (annotation-function . ,(lambda (s) "xxx"))
-       ))
-    (_
-     (all-completions str (mapcar #'car sql-connection-alist) pred))))
-
-(defun sql-read-connection-filtered (orig-fun prompt initial default)
-  "Read a connection name."
-  (let ((completion-ignore-case t)
-	    (sql-connections
-	     (remove
-		  nil
-		  (mapcar
-		   #'(lambda (c) (when
-				        (eq (cadadr (assoc `sql-product
-								           (cdr c))) sql-product)
-				      (car c)))
-		   sql-connection-alist))))
-    ))
-
-
-
-;; Filters connections by product
-(defun sql-read-connection-filtered (orig-fun prompt initial default)
+;; ---------- Connection Completion ----------
+(defun sql-read-connection-filtered (prompt &optional initial default)
   "Read a connection name."
   (let ((completion-ignore-case t)
 	    (sql-connections
@@ -482,231 +451,177 @@ BASE-INDENTATION)."
 	 prompt
 	 sql-connections
 	 nil t initial 'sql-connection-history default)))
-;; (advice-add 'sql-read-connection :around #'sql-read-connection-filtered)
 
-;; Restricts to only SQLi buffers
-(defun sql-set-sqli-buffer-filtered (orig-fun &rest args)
-  (let ((icicle-buffer-complete-fn (list)))
-    (dolist ($buf (buffer-list (current-buffer)))
-	  (with-current-buffer $buf
-	    (when (eq major-mode 'sql-interactive-mode)
-		  (add-to-list 'icicle-buffer-complete-fn
-				       (buffer-name $buf)))))
-    (apply orig-fun args)
-    )
-  )
-(advice-add 'sql-set-sqli-buffer
-		    :around #'sql-set-sqli-buffer-filtered)
+(defun sql-connection-annotate (cand)
+  "Annotate SQL connections with the server name."
+  (when-let (sym (cdr (assoc-string cand sql-connection-alist t)))
+    
+    (let ((server
+           (-last-item
+            (--first (eq (car it) 'sql-server) sym))))
+      (marginalia--fields
+       (server :truncate 1.0 :face 'marginalia-documentation)))))
 
-;; Wrap send-string with saving excursion so the current frame doesn't lose
-;; focus. This appears to be used by all all higher level SEND functions.
-;; (advice-add 'sql-send-string :around
-;; 		    #'(lambda (orig-fun &rest args)
-;; 			    (progn ; FIXME was save-frame-excursion  (apply orig-fun args))))
+(add-to-list 'marginalia-command-categories
+              '(sql-connect . sql-connection))
+;; (add-to-list 'marginalia-command-categories
+;;              '(sql-set-repl . sql-connection))
+(add-to-list 'marginalia-annotator-registry
+              '(sql-connection sql-connection-annotate builtin none))
+
+(advice-add 'sql-read-connection :override #'sql-read-connection-filtered)
 
 
-;; Fix the first line of the output
-(defun sql-add-newline-first (output)
-  "Add newline to beginning of OUTPUT for `comint-preoutput-filter-functions'"
-  ;; (message "\norg:\n%s"
-  ;; 		 output)
-  ;; (message "new:\n%s"
-  ;; 		 (sql-interactive-remove-continuation-prompt output))
-  
-  ;; (concat "\n" output)
-  (sql-interactive-remove-continuation-prompt output))
+;; ---------- Product Completion ----------
+(defun sql-read-product-no-init (prompt &optional initial)
+  "Read a valid SQL product without an initial value already selected"
+  (let ((init (or (and initial (symbol-name initial)) "ansi")))
+    (intern (completing-read
+             prompt
+             (mapcar (lambda (info) (symbol-name (car info)))
+                     sql-product-alist)
+             nil 'require-match
+             nil 'sql-product-history init))))
 
-(defun test-sql-interactive-remove-continuation-prompt (oline)
-  (when comint-prompt-regexp
-    (save-match-data
-      (let (prompt-found
-		    last-nl)
-
-        ;; Add this text to what's left from the last pass
-        (setq oline (concat sql-preoutput-hold oline)
-              sql-preoutput-hold "")
-
-        ;; If we are looking for multiple prompts
-        (when (and (integerp sql-output-newline-count)
-                   (>= sql-output-newline-count 1))
-          ;; Loop thru each starting prompt and remove it
-          (let ((start-re (sql-starts-with-prompt-re)))
-            (while (and
-				    (not (string= oline ""))
-				    (> sql-output-newline-count 0)
-				    (string-match start-re oline))
-              (setq
-			   oline (replace-match "" nil nil oline)
-			   sql-output-newline-count (1- sql-output-newline-count)
-			   prompt-found t)))
-          
-          ;; If we've found all the expected prompts, stop looking
-		  (message "%s" sql-output-newline-count)
-
-          (if (= sql-output-newline-count 0)
-              (setq
-			   sql-output-newline-count nil)
-
-            ;; Still more possible prompts, leave them for the next pass
-            (setq
-		     sql-preoutput-hold oline
-		     oline ""))
-		  )
-
-	    (message "%s" prompt-found)
-        ;; If no prompts were found, stop looking
-        (unless prompt-found
-          (setq sql-output-newline-count nil
-                oline (concat oline sql-preoutput-hold)
-                sql-preoutput-hold ""))
-
-        ;; Break up output by physical lines if we haven't hit the final prompt
-        (unless (and
-			     (not (string= oline ""))
-			     (string-match (sql-ends-with-prompt-re) oline)
-			     (>= (match-end 0) (length oline)))
-		  (message "Break up")
-          (setq last-nl 0)
-          (while (string-match "\n" oline last-nl)
-            (setq last-nl (match-end 0)))
-          (setq sql-preoutput-hold (concat (substring oline last-nl)
-                                           sql-preoutput-hold)
-                oline (substring oline 0 last-nl)))
-	    )))
-  oline)
+(advice-add 'sql-read-product :override #'sql-read-product-no-init)
 
 
-(defun sql-reconnect ()
-  "Reconnects to database using the associated sqli buffer"
+;; ---------- REPL ----------
+(defun sql-create-repl ()
+  "Connect to an interactive session using CONNECTION settings.
+
+See `sql-connection-alist' to see how to define connections and
+their settings.
+
+The user will not be prompted for any login parameters if a value
+is specified in the connection settings."
+
   (interactive)
-  (let ((func (sql-get-product-feature sql-product :func-con)))
-    (cond
-	 (func     
-	  (sql-send-string
-	   (format func
-			   (sql-default-value 'sql-user)
-			   (sql-default-value 'sql-password)
-			   (sql-default-value 'sql-database)))
-	  (sql-eval-init))
-	 (t
-	  (message "no :func-con defined for product %s" sql-product)))))
+  ;; Get connection settings
+  (let* ((connection (sql-read-connection "Connection: "))
+         (calling-buffer (current-buffer))
+         (sqli-buffer (sql-generate-buffer-name connection))
+         (connect-set
+          (cdr (assoc-string connection sql-connection-alist t)))
+         param-var login-params set-vars rem-vars)    
+    
+    (setq sql-connection connection)
 
-;; (defun sql-output-here (func)
-;;   (interactive)
-;;   (cl-letf (((symbol-function 'sql-send-string)
-;; 		     #'(lambda (str)
-;;   			     (sql-redirect
-;;   			      (sql-find-sqli-buffer)
-;;   			      str
-;;   			      " *SQL Echo Area*"))))
-;;     ;; (advice-add 'sql-send-string :around
-;;     ;; 			 #'(lambda (orig-fun &rest args)
-;;     ;; 				(sql-redirect
-;;     ;; 				 (sql-find-sqli-buffer)
-;;     ;; 				 args
-;;     ;; 				 " *SQL Echo Area*")))
-;;     ;; (let ((comint-preoutput-filter-functions
-;;     ;; 		 '(sql-interactive-remove-continuation-prompt)))
-;; 	(funcall func)
-;; 	;; )
-;;     ;; (advice-remove 'sql-send-string 
-;;     ;; 			    #'(lambda (orig-fun &rest args)
-;;     ;; 				   (sql-redirect
-;;     ;; 				    (sql-find-sqli-buffer)
-;;     ;; 				    args			  
-;;     ;; 				    " *SQL Echo Area*")))
-;;     ))
+    ;; Set the parameters and start the interactive session
+    (dolist (vv connect-set)
+      (let ((var (car vv))
+            (val (cadr vv)))
+        (set-default var (eval val))))
 
-;; (defun sql-eval-here ()
-;;   (interactive)
-;;   (sql-output-here
-;;    '(lambda ()
-;; 	  (sql-eval)
-;; 	  ;; since the eval auto increments to the next line
-;; 	  (previous-non-blank-line)
-;; 	  (end-of-line)
-;; 	  (newline))))
+    ;; :sqli-login params variable
+    (setq param-var
+          (sql-get-product-feature sql-product :sqli-login nil t))
 
-(defun sql-select-repl ()
-  (when (sql-find-sqli-buffer sql-product)
-	(sql-set-sqli-buffer)))
+    ;; :sqli-login params value
+    (setq login-params (symbol-value param-var))
+
+    ;; Params set in the connection
+    (setq set-vars
+          (mapcar
+           (lambda (v)
+             (pcase (car v)
+               ('sql-user     'user)
+               ('sql-password 'password)
+               ('sql-server   'server)
+               ('sql-database 'database)
+               ('sql-port     'port)
+               (s             s)))
+           connect-set))
+    
+    ;; the remaining params (w/o the connection params)
+    (setq rem-vars
+          (sql-for-each-login
+           login-params
+           (lambda (var vals)
+             (unless (member var set-vars)
+               (if vals (cons var vals) var)))))
+
+    ;; Start the SQLi session with revised list of login parameters
+    (eval `(let ((,param-var ',rem-vars))
+             (sql-product-interactive ',sql-product ',sqli-buffer)))    
+    (setq repl-buffer       calling-buffer
+          sql-connection    connection)
+    
+    (pop-to-buffer calling-buffer)
+    sql-buffer))
+
+(defun sql-generate-buffer-name (connection)
+  "Generate a new, unique buffer name for a SQLi buffer.
+
+Append a sequence number until a unique name is found."
+  (let ((buf-name  (format "*SQL: <%s>*" connection))
+        (buf-fmt-rest (format "*SQL: <%s> <%%d>*" connection))
+        (i 2))
+    
+    ;; See if we can find an unused buffer
+    (while
+        (or
+         (and (sql-is-sqli-buffer-p buf-name)
+              (comint-check-proc buf-name))
+         (buffer-live-p (get-buffer buf-name)))
+      
+      ;; Check a sequence number on the BASE
+      (setq buf-name (format buf-fmt-rest i)
+            i (1+ i)))
+
+    buf-name))
+
+(defun sql-set-repl ()
+  (when-let* ((this-product sql-product)
+              (default-buffer (sql-find-sqli-buffer this-product))
+              (buffer-count
+               (length (--filter
+                        (with-current-buffer it
+                          ;; AND (eq sql-product this-product)
+                          (eq major-mode 'sql-interactive-mode))
+                        (buffer-list))))
+              (new-buffer
+               (if (= buffer-count 1)
+                   default-buffer
+                 (read-buffer "New SQLi buffer to use: " default-buffer t
+                              (lambda (it)
+                                (with-current-buffer (car it)
+                                  (eq major-mode 'sql-interactive-mode)))))))
+    (if (null (sql-buffer-live-p new-buffer))
+        (user-error "Buffer %s is not a working SQLi buffer" new-buffer)
+      (when new-buffer
+        (setq sql-buffer new-buffer)
+        (run-hooks 'sql-set-sqli-hook)))
+    (setq sql-connection
+          (buffer-local-value 'sql-connection (get-buffer sql-buffer)))
+    sql-buffer))
 
 (defun sql-eval ()
   "Evaluates SQL code."
-  (interactive)  
-  (unless (and transient-mark-mode mark-active)
+  (interactive)
+
+  (unless (use-region-p)
     (mark-paragraph))
+  
   (sql-send-region (region-beginning) (region-end))
+  
   (deactivate-mark)
   (forward-paragraph)
   (next-non-blank-line))
 
-
-(defun sql-eval-file (f)
+(defun sql-eval-file (file)
   "Evaluates an SQL file."
-  (interactive "fEnter File: ")
-  (sql-send-string
-   (get-string-from-file f)))
-
-(defun sql-eval-init ()
-  "Evaluates SQL Init File."
-  (interactive)
-  (let ((init-file (sql-get-product-feature sql-product :init-file)))
-    (when init-file
-	  (sql-eval-file init-file))))     
-
-(advice-add 'sql-product-interactive :after
-		    #'(lambda (&rest args) (sql-eval-init)))
-
-
-
-;; ---------- Frame Commands ---------- ;;
-(defun sql-switch-frame-process ()
-  "Switch to associated process, associate with one, or create one."
-  (interactive)
-  (cond
-   ;; Does current buffer have an associated process?
-   (sql-buffer
-    ;; Yes -> raise and select
-    (display-buffer sql-buffer))
-   ;; No -> are there processes running?
-   ((sql-find-sqli-buffer sql-product)
-    ;; Yes -> associate -> raise 
-    (sql-set-sqli-buffer))
-   (t
-    ;; No -> create one -> associate -> raise 
-    (call-interactively 'sql-connect)))
-  
-  (switch-to-buffer-other-frame sql-buffer)
-  (end-of-buffer-all))
-
-(defun sql-raise-frame-process ()
-  (progn ; FIXME was save-frame-excursion 
-    (raise-frame
-     (get-frame sql-buffer))))
-
-(defun sql-switch-frame-script ()
-  "Switch to most recent script buffer."
-  (interactive)
-  (let ((loc-proc-name (buffer-name))
-	    (blist (cdr (buffer-list))))
-    (while (and blist
-			    (with-current-buffer (car blist)
-			      (not (and
-				        (equal major-mode 'sql-mode)
-				        (equal loc-proc-name sql-buffer)))))
-	  (pop blist))
-    (if blist
-	    (display-buffer (car blist) t)
-	  (message "Found no SQL associated with process %s"
-			   loc-proc-name))))
+  (interactive
+   (read-file-name "SQL File: " nil nil t nil
+                   (lambda (it) (or (f-ext-p it "sql")
+                               (f-dir-p it)))))
+  (sql-send-string (f-read file 'utf-8)))
 
 
 ;; -----------------------------------------------------------------------------
 ;; Help Functions
-;;	- Vary by product / in progress
 ;; -----------------------------------------------------------------------------
-(defun sql-table-at-point ()  
+(defun sql-table-at-point ()
   (let* ((table-start
 		  (save-excursion
 		    (or
@@ -720,148 +635,78 @@ BASE-INDENTATION)."
     (buffer-substring-no-properties
 	 (1+ table-start) (1- table-end))))
 
+(defun sql-eval-product-query (query)
+  "General function to that looks up a query in
+`sql-product-alist' and executes a string after formating it in
+the current context (see `s-lex-format')."
+  (if-let*
+      ((query-name (s-upcase
+                    (s-replace ":query-" "" (symbol-name query))))
+       (product-name (s-upcase (symbol-name sql-product)))
+       (query-string (sql-get-product-feature
+                      sql-product query))
+       (query-string (s-trim query-string)))
+      
+      (progn
+        (unless (s-ends-with? ";" query-string)
+          (setq query-string (s-append ";" query-string)))
+        
+        ;; (message "%s" (eval (s-lex-fmt|expand query-string)))
+        (sql-send-string (eval (s-lex-fmt|expand query-string)))
+        (repl-buffer-show))
+    
+	(message-format
+     "${query-name} not defined for product ${product-name}")))
+
 (defun sql-describe ()
   "Describe the current table"
   (interactive)
-  (if-let ((query (sql-get-product-feature
-                   sql-product :query-describe-table))
-           (table (upcase (sql-table-at-point))))
-      (sql-send-string (s-lex-format query))
-	(message "no :query-describe-table defined for product %s"
-             sql-product)))
-
-(defun sql-describe-here ()
-  (interactive)
-  (sql-output-here
-   '(lambda ()
-	  (sql-describe)
-	  (end-of-line)
-	  (newline))))
+  (when-let
+      ((table (sql-table-at-point)))
+    (sql-eval-product-query :query-describe-table)))
 
 (defun sql-show-table ()
   "Lists the top elements of a table"
   (interactive)
-  (let ((func (sql-get-product-feature sql-product :func-show-table)))
-    (if func     
-	    (sql-send-string (replace-regexp-in-string
-					      "TABLE"
-					      (upcase (sql-table-at-point))
-					      func))
-	  (message "no :func-show-table defined for product %s" sql-product))))
+  (when-let
+      ((table (sql-table-at-point)))
+    (sql-eval-product-query :query-show-table)))
 
-(defun sql-inspect-table ()
-  "Lists some table info"
+(defun sql-eval-init ()
+  "Evaluates SQL Init File."
   (interactive)
-  (let ((func (sql-get-product-feature sql-product :func-inspect-table)))
-    (if func     
-	    (sql-send-string (replace-regexp-in-string
-					      "TABLE_PATTERN"
-					      (upcase (sql-table-at-point))
-					      func))
-	  (message "no :func-inspect-table defined for product %s" sql-product))))
+  (sql-eval-product-query :query-init))
 
-
-(defun sql-tables (table-pattern owner-pattern)
+(defun sql-tables (table schema)
   "Lists tables (or views) that match table / schema pattern"
-  (interactive "sTable: \nsOwner/Schema: ")
-  (let ((func (sql-get-product-feature sql-product :func-list-tables)))
-    (if func
-        (progn
-	      (sql-send-string
-	       (replace-regexp-in-string
-	        "OWNER_PATTERN"
-	        (upcase owner-pattern)
-	        (replace-regexp-in-string
-		     "TABLE_PATTERN"
-		     (upcase table-pattern)
-		     func)))
-	      (display-buffer sql-buffer))
-	  (message "no :func-list-tables defined for product %s" sql-product))))
+  (interactive
+   (list (s-upcase (read-string "Table: " nil nil "%%"))
+         (s-upcase (read-string "Schema: " nil nil "%%"))))
+  (sql-eval-product-query :query-find-table))
 
-(defun sql-find-column (pattern)
+(defun sql-find-column (column schema)
   "Find all tables / views that contain column"
-  (interactive "sPattern: ")
-  (let ((func (sql-get-product-feature sql-product :func-find-column)))
-    (if func     
-	    (progn ; FIXME was save-frame-excursion 
-	      (sql-send-string
-	       (replace-regexp-in-string
-	        "PATTERN"
-	        (upcase pattern)
-	        func))
-	      (display-buffer sql-buffer))
-	  (message "no :func-find-column defined for product %s" sql-product))))
+  (interactive
+   (list (read-string "Column: " nil nil "%%")
+         (s-upcase (read-string "Schema: " nil nil "%%"))))
+  (sql-eval-product-query :query-find-column))
 
-(defun sql-user-tables (pattern)
-  "Show all USER tables"
-  (interactive "sPattern: ")
-  (let ((func (sql-get-product-feature sql-product :func-user-tables)))
-    (if func     
-	    (progn ; FIXME was save-frame-excursion 
-	      (sql-send-string
-	       (replace-regexp-in-string
-	        "PATTERN"
-	        (upcase pattern)
-	        func))
-	      (display-buffer sql-buffer))
-	  (message "no :func-user-tables defined for product %s" sql-product))))
-
-(defun sql-user-functions ()
-  "Shows all USER functions"
+(defun sql-reconnect ()
+  "Reconnects to database using the associated sqli buffer"
   (interactive)
-  (let ((func (sql-get-product-feature sql-product :func-user-functions)))
-    (if func     
-	    (progn ; FIXME was save-frame-excursion 
-	      (sql-send-string func)
-	      (display-buffer sql-buffer))
-	  (message "no :func-user-functions defined for product %s" sql-product))))
-
-(defun sql-last-error ()
-  "Shows last error"
-  (interactive)
-  (let ((func (sql-get-product-feature sql-product :func-last-error)))
-    (if func     
-	    (progn ; FIXME was save-frame-excursion 
-	      (sql-send-string func)
-	      (display-buffer sql-buffer))
-	  (message "no :func-last-error defined for product %s" sql-product))))
-
-(defun sql-explain ()
-  "Explain plan of code"
-  (interactive)
-  (let ((func (sql-get-product-feature sql-product :func-explain)))
-    (if func
-	    (progn ; FIXME was save-frame-excursion  
-	      (sql-send-string (replace-regexp-in-string
-					        "REGION"
-					        (get-region-as-string)
-					        func)))
-	  (message "no :func-explain defined for product %s" sql-product))))
+  (-let* ((connect-set
+           (cdr (assoc-string sql-connection sql-connection-alist t)))
+          ((&alist 'sql-user (user) 'sql-password (password)
+                    'sql-server (server) 'sql-database (database))
+           connect-set))
+    (sql-eval-product-query :query-reconnect)
+    (sql-eval-init)))
 
 
-;; Suppress Abbrev in Comments 
-;; (defun sql-mode-abbrev-expand-function (expand)
-;;   (if (or
-;; 	   (nth 3 (syntax-ppss))		; inside string.
-;; 	   (nth 4 (syntax-ppss))		; inside comment
-;; 	   )
-;; 	  ;; Use the text-mode abbrevs.
-;; 	  (let ((local-abbrev-table text-mode-abbrev-table))
-;; 	    (funcall expand))
-;;     ;; Else performs normal expansion.
-;;     (funcall expand)
-;;     )
-;;   )
 
-;; TODO: Does this still need to be used?
-;; Fix SQL Highlighting + Rainbow Delimiters
-;;	sql-highlight-product overrides rainbow-delimiters so we need to reapply it
-;;	afterwords if it was on
-;; (advice-add 'sql-highlight-product :around
-;; 		    '(lambda (func)
-;; 			   (let ((rainbow-state rainbow-delimiters-mode))
-;; 			     (funcall func)
-;; 			     (rainbow-delimiters-mode rainbow-state))))
+
+
+
 
 
 ;; ------------------------------------------------------------------------- ;;
@@ -993,6 +838,143 @@ exists\\|in\\|like\\|not\\|or\\|some\\)\\b\\)"
 
 
 
+(defun sql-send-statement ()
+  (interactive)
+  (let* ((statement-start
+		  (save-excursion (sql-beginning-of-statement 0) (point)))
+         (statement-end
+		  (save-excursion (sql-end-of-statement 0) (point))))
+    (message "%s %s" statement-start statement-end)))
+
+
+;; Suppress Abbrev in Comments 
+;; (defun sql-mode-abbrev-expand-function (expand)
+;;   (if (or
+;; 	   (nth 3 (syntax-ppss))		; inside string.
+;; 	   (nth 4 (syntax-ppss))		; inside comment
+;; 	   )
+;; 	  ;; Use the text-mode abbrevs.
+;; 	  (let ((local-abbrev-table text-mode-abbrev-table))
+;; 	    (funcall expand))
+;;     ;; Else performs normal expansion.
+;;     (funcall expand)
+;;     )
+;;   )
+
+
+;; Fix the first line of the output
+(defun sql-add-newline-first (output)
+  "Add newline to beginning of OUTPUT for `comint-preoutput-filter-functions'"
+  ;; (message "\norg:\n%s"
+  ;; 		 output)
+  ;; (message "new:\n%s"
+  ;; 		 (sql-interactive-remove-continuation-prompt output))
+  
+  ;; (concat "\n" output)
+  (sql-interactive-remove-continuation-prompt output))
+
+(defun test-sql-interactive-remove-continuation-prompt (oline)
+  (when comint-prompt-regexp
+    (save-match-data
+      (let (prompt-found
+		    last-nl)
+
+        ;; Add this text to what's left from the last pass
+        (setq oline (concat sql-preoutput-hold oline)
+              sql-preoutput-hold "")
+
+        ;; If we are looking for multiple prompts
+        (when (and (integerp sql-output-newline-count)
+                   (>= sql-output-newline-count 1))
+          ;; Loop thru each starting prompt and remove it
+          (let ((start-re (sql-starts-with-prompt-re)))
+            (while (and
+				    (not (string= oline ""))
+				    (> sql-output-newline-count 0)
+				    (string-match start-re oline))
+              (setq
+			   oline (replace-match "" nil nil oline)
+			   sql-output-newline-count (1- sql-output-newline-count)
+			   prompt-found t)))
+          
+          ;; If we've found all the expected prompts, stop looking
+		  (message "%s" sql-output-newline-count)
+
+          (if (= sql-output-newline-count 0)
+              (setq
+			   sql-output-newline-count nil)
+
+            ;; Still more possible prompts, leave them for the next pass
+            (setq
+		     sql-preoutput-hold oline
+		     oline ""))
+		  )
+
+	    (message "%s" prompt-found)
+        ;; If no prompts were found, stop looking
+        (unless prompt-found
+          (setq sql-output-newline-count nil
+                oline (concat oline sql-preoutput-hold)
+                sql-preoutput-hold ""))
+
+        ;; Break up output by physical lines if we haven't hit the final prompt
+        (unless (and
+			     (not (string= oline ""))
+			     (string-match (sql-ends-with-prompt-re) oline)
+			     (>= (match-end 0) (length oline)))
+		  (message "Break up")
+          (setq last-nl 0)
+          (while (string-match "\n" oline last-nl)
+            (setq last-nl (match-end 0)))
+          (setq sql-preoutput-hold (concat (substring oline last-nl)
+                                           sql-preoutput-hold)
+                oline (substring oline 0 last-nl)))
+	    )))
+  oline)
+
+;; (defun sql-output-here (func)
+;;   (interactive)
+;;   (cl-letf (((symbol-function 'sql-send-string)
+;; 		     #'(lambda (str)
+;;   			     (sql-redirect
+;;   			      (sql-find-sqli-buffer)
+;;   			      str
+;;   			      " *SQL Echo Area*"))))
+;;     ;; (advice-add 'sql-send-string :around
+;;     ;; 			 #'(lambda (orig-fun &rest args)
+;;     ;; 				(sql-redirect
+;;     ;; 				 (sql-find-sqli-buffer)
+;;     ;; 				 args
+;;     ;; 				 " *SQL Echo Area*")))
+;;     ;; (let ((comint-preoutput-filter-functions
+;;     ;; 		 '(sql-interactive-remove-continuation-prompt)))
+;; 	(funcall func)
+;; 	;; )
+;;     ;; (advice-remove 'sql-send-string 
+;;     ;; 			    #'(lambda (orig-fun &rest args)
+;;     ;; 				   (sql-redirect
+;;     ;; 				    (sql-find-sqli-buffer)
+;;     ;; 				    args			  
+;;     ;; 				    " *SQL Echo Area*")))
+;;     ))
+
+;; (defun sql-eval-here ()
+;;   (interactive)
+;;   (sql-output-here
+;;    '(lambda ()
+;; 	  (sql-eval)
+;; 	  ;; since the eval auto increments to the next line
+;; 	  (previous-non-blank-line)
+;; 	  (end-of-line)
+;; 	  (newline))))
+
+
+
+
+
+
+
+
 ;; sql-prompt-regexp
 
 ;; (let ((comint-preoutput-filter-functions
@@ -1002,9 +984,6 @@ exists\\|in\\|like\\|not\\|or\\|some\\)\\b\\)"
 ;;    "
 ;; describe ADL_DEV3.NCRE_RULES;"
 ;;    " *SQL Echo Area*"))
-
-
-;; (get-buffer "*SQL: <edwrpt.world-SCI>*")
 
 
 ;; (save-excursion
@@ -1095,43 +1074,71 @@ exists\\|in\\|like\\|not\\|or\\|some\\)\\b\\)"
 ;;   (next-non-blank-line))
 
 
-;; ---------- Frame Commands ---------- ;;
-;; (defun sql-switch-frame-process ()
-;;   "Switch to associated process, associate with one, or create one."
-;;   (interactive)
-;;   (cond
-;;    ;; Does current buffer have an associated process?
-;;    (sql-buffer
-;;     ;; Yes -> raise and select
-;;     (display-buffer sql-buffer))
-;;    ;; No -> are there processes running?
-;;    ((sql-find-sqli-buffer sql-product)
-;;     ;; Yes -> associate -> raise 
-;;     (sql-set-sqli-buffer))
-;;    (t
-;;     ;; No -> create one -> associate -> raise 
-;;     (call-interactively 'sql-connect)))
-  
-;;   (switch-to-buffer-other-frame sql-buffer)
-;;   (end-of-buffer-all))
 
-;; (defun sql-raise-frame-process ()
-;;   (progn ; FIXME was save-frame-excursion 
-;;     (raise-frame
-;;      (get-frame sql-buffer))))
 
-;; (defun sql-switch-frame-script ()
-;;   "Switch to most recent script buffer."
+
+;; (defun sql-user-tables (pattern)
+;;   "Show all USER tables"
+;;   (interactive "sPattern: ")
+;;   (let ((func (sql-get-product-feature sql-product :func-user-tables)))
+;;     (if func     
+;; 	    (progn ; FIXME was save-frame-excursion 
+;; 	      (sql-send-string
+;; 	       (replace-regexp-in-string
+;; 	        "PATTERN"
+;; 	        (upcase pattern)
+;; 	        func))
+;; 	      (display-buffer sql-buffer))
+;; 	  (message "no :func-user-tables defined for product %s" sql-product))))
+
+;; (defun sql-user-functions ()
+;;   "Shows all USER functions"
 ;;   (interactive)
-;;   (let ((loc-proc-name (buffer-name))
-;; 	    (blist (cdr (buffer-list))))
-;;     (while (and blist
-;; 			    (with-current-buffer (car blist)
-;; 			      (not (and
-;; 				        (equal major-mode 'sql-mode)
-;; 				        (equal loc-proc-name sql-buffer)))))
-;; 	  (pop blist))
-;;     (if blist
-;; 	    (display-buffer (car blist) t)
-;; 	  (message "Found no SQL associated with process %s"
-;; 			   loc-proc-name))))
+;;   (let ((func (sql-get-product-feature sql-product :func-user-functions)))
+;;     (if func     
+;; 	    (progn ; FIXME was save-frame-excursion 
+;; 	      (sql-send-string func)
+;; 	      (display-buffer sql-buffer))
+;; 	  (message "no :func-user-functions defined for product %s" sql-product))))
+
+;; (defun sql-last-error ()
+;;   "Shows last error"
+;;   (interactive)
+;;   (let ((func (sql-get-product-feature sql-product :func-last-error)))
+;;     (if func     
+;; 	    (progn ; FIXME was save-frame-excursion 
+;; 	      (sql-send-string func)
+;; 	      (display-buffer sql-buffer))
+;; 	  (message "no :func-last-error defined for product %s" sql-product))))
+
+;; (defun sql-explain ()
+;;   "Explain plan of code"
+;;   (interactive)
+;;   (let ((func (sql-get-product-feature sql-product :func-explain)))
+;;     (if func
+;; 	    (progn ; FIXME was save-frame-excursion  
+;; 	      (sql-send-string (replace-regexp-in-string
+;; 					        "REGION"
+;; 					        (get-region-as-string)
+;; 					        func)))
+;; 	  (message "no :func-explain defined for product %s" sql-product))))
+
+
+;; (defun sql-describe-here ()
+;;   (interactive)
+;;   (sql-output-here
+;;    '(lambda ()
+;; 	  (sql-describe)
+;; 	  (end-of-line)
+;; 	  (newline))))
+
+;; (defun sql-inspect-table ()
+;;   "Lists some table info"
+;;   (interactive)
+;;   (let ((func (sql-get-product-feature sql-product :func-inspect-table)))
+;;     (if func     
+;; 	    (sql-send-string (replace-regexp-in-string
+;; 					      "TABLE_PATTERN"
+;; 					      (upcase (sql-table-at-point))
+;; 					      func))
+;; 	  (message "no :func-inspect-table defined for product %s" sql-product))))

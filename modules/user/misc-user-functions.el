@@ -1,3 +1,16 @@
+(require 's)
+
+(defun s-format-context (format-str)
+  (eval (s-lex-fmt|expand format-str)))
+
+(defun message-format (format-string &rest args)
+  (message (s-format-context format-string) args))
+
+(defun advice-remove-all (sym)
+  "Remove all advices from symbol SYM."
+  ;; (interactive "aFunction symbol: ")
+  (advice-mapc (lambda (advice _props) (advice-remove sym advice)) sym))
+
 (defun today ()
   "Insert string for today's date nicely formatted"
   (interactive)                 ; permit invocation in minibuffer

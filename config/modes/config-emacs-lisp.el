@@ -25,7 +25,7 @@
    repl-interactive-mode        'inferior-emacs-lisp-mode
    repl-function-eval           #'elisp-eval
    repl-function-eval-insert    #'elisp-eval-insert
-   repl-function-select         #'elisp-select-repl
+   repl-function-set            #'elisp-set-repl
    repl-function-create         #'elisp-setup-repl-frame)
 
 
@@ -244,7 +244,7 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
   
   (buffer-goto-end "*Messages*"))
 
-(defun elisp-select-repl ()
+(defun elisp-set-repl ()
   (--first
    (eq (buffer-local-value 'major-mode it)
        repl-interactive-mode)

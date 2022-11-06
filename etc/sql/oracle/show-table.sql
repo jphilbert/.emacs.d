@@ -1,6 +1,6 @@
 SELECT
   *
 FROM
-  '${table}'
+  ${table}
 WHERE
   ROWNUM <= 5

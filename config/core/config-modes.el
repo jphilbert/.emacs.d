@@ -43,7 +43,7 @@
 
 (require 'config-python)
 (require 'config-r)
-;; (require 'config-sql)
+(require 'config-sql)
 
 ;; (require 'config-shell)
 
