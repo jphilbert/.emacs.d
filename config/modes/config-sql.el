@@ -43,10 +43,10 @@
  sql-connection-alist       (config-parse-all-sql-connections)
  sql-product-alist          (config-remove-unused-products)
  sql-product                'oracle
- sql-send-terminator        nil
+ sql-send-terminator        t
  sql-pop-to-buffer-after-send-region    nil
 
- sql-ms-options             '("-w" "2000" "-y" "2000" "-s" "|" "-k")
+ sql-ms-options             nil
  sql-ms-program             (or (config-get :applications :sql :exe :ms)
                                 sql-ms-program)
  
@@ -677,17 +677,35 @@ the current context (see `s-lex-format')."
   (interactive)
   (sql-eval-product-query :query-init))
 
+
+(defvar sql-prompt-history-table nil)
+
+(defun sql-prompt-read-string (prompt &optional history default)
+  (let*
+      ((prompt-input (read-string prompt nil history default))
+       (prompt-input (if (s-blank-p prompt-input) "%%"
+                       (s-with prompt-input s-upcase
+                               (s-prepend "%")
+                               (s-chop-prefix "%%")
+                               (s-append "%")
+                               (s-chop-suffix "%%")))))
+    prompt-input
+  ))
+
 (defun sql-tables (table schema)
   "Lists tables (or views) that match table / schema pattern"
   (interactive
-   (list (s-upcase (read-string "Table: " nil nil "%%"))
-         (s-upcase (read-string "Schema: " nil nil "%%"))))
+   (list
+    (s-upcase (read-string "Table: " nil nil "%%"))
+    ;; (sql-prompt-read-string "Table: " 'sql-prompt-history-table)
+    (s-upcase (read-string "Schema: " nil nil "%%"))))
   (sql-eval-product-query :query-find-table))
 
-(defun sql-find-column (column schema)
+(defun sql-find-column (column table schema)
   "Find all tables / views that contain column"
   (interactive
    (list (read-string "Column: " nil nil "%%")
+         (s-upcase (read-string "Table: " nil nil "%%"))
          (s-upcase (read-string "Schema: " nil nil "%%"))))
   (sql-eval-product-query :query-find-column))
 
@@ -699,7 +717,7 @@ the current context (see `s-lex-format')."
           ((&alist 'sql-user (user) 'sql-password (password)
                     'sql-server (server) 'sql-database (database))
            connect-set))
-    (sql-eval-product-query :query-reconnect)
+    (sql-eval-product-query :query-connect)
     (sql-eval-init)))
 
 

@@ -2,7 +2,9 @@
   "The interactive mode used for REPL")
 
 (defvar-local repl-buffer nil
-  "Assigned interactive buffer for current script.")
+  "Interactive buffer assigned to the current script.
+
+For REPL buffers, this will be the last calling script.")
 
 
 
@@ -11,14 +13,15 @@
   "Function for creating a REPL buffer
 
 The function should create and display a REPL buffer however the
-calling buffer should still have focus and be the topmost frame. If
-successful it should return the REPL BUFFER otherwise nil.")
+calling buffer should still have focus and be the topmost frame.
+If successful it should return the new buffer otherwise nil.")
 
 (defvar-local repl-function-set nil
   "Function for setting a REPL buffer
 
 The function should set and return an existing REPL buffer or
-return nil. Regardless the calling buffer should still retain focus.")
+return nil. Regardless the calling buffer should still retain
+focus.")
 
 (defvar-local repl-function-eval nil
   "Function for evaluating depending on context.
@@ -30,69 +33,64 @@ It is expected that this automatically prints this to the
   "Function for evaluating depending on context.
 
 Unlike `repl-function-eval', this function prints its output
-after the context executed. It may still utilize and print
+after the context executed. It may still utilize and print to
 `repl-buffer'")
 
 
-;; ---------- Functions ---------- ;;
-(defun repl-buffer-get ()
-  (setq
-   repl-buffer
-   (cond
-    ;; REPL Mode not active -> nil
-    ((not repl-mode) nil)
-    
-    ;; Current buffer is a REPL -> pass through
-    ((or (not repl-interactive-mode)
-         (eq repl-interactive-mode major-mode))
-     repl-buffer)
-    
-    ;; REPL buffer is set and alive -> pass through
-    ((and repl-buffer
-          (buffer-live-p (get-buffer repl-buffer)))
-     repl-buffer)
-    
-    ;; Set a REPL -> return selection
-    ((repl-buffer-set))
-    
-    ;; Create a REPL -> return new
-    ((repl-buffer-create))
 
-    ;; -> nil
-    )))
+;; ---------- Functions ---------- ;;
+(defun repl-buffer-is-current ()
+  (or (not repl-interactive-mode)
+      (eq repl-interactive-mode major-mode)))
+
+(defun repl-buffer-get ()
+  (cond
+   ;; REPL Mode not active -> nil
+   ((not repl-mode) (setq repl-buffer nil))
+   
+   ;; Current buffer is a REPL -> current buffer
+   ((repl-buffer-is-current) (current-buffer))
+   
+   ;; REPL buffer is set and alive -> pass through
+   ((and repl-buffer
+         (buffer-live-p (get-buffer repl-buffer)))
+    repl-buffer)
+   
+   ;; Set a REPL -> return selection
+   ((repl-buffer-set))
+   
+   ;; Create a REPL -> return new
+   ((repl-buffer-create))))
 
 (defun repl-buffer-show ()
   "Command for showing (i.e. raising) the `repl-buffer'.
 
 This does not create the buffer if it does not exist."
-  (when repl-buffer
-    (buffer-goto-end repl-buffer)
-    (frame-raise (frame-get repl-buffer))))
+  (when-let ((buffer (cond ((repl-buffer-is-current) (current-buffer))
+                           (repl-buffer))))
+    (buffer-goto-end buffer)
+    (frame-raise (frame-get buffer))))
 
 (defun repl-eval-post ()
   (repl-buffer-show)
-
-  (let ((script-buffer (current-buffer)))
-    (with-current-buffer repl-buffer
-      (setq
-       repl-buffer            script-buffer
-       repl-interactive-mode  major-mode))))
+  (unless (repl-buffer-is-current)
+    (let ((script-buffer (current-buffer)))
+      (with-current-buffer repl-buffer
+        (setq
+         repl-buffer            script-buffer
+         repl-interactive-mode  major-mode)))))
 
 
 ;; ---------- Commands ---------- ;;
 (defun repl-buffer-create ()
   "Create and sets a `repl-buffer' for the buffer"
   (interactive)
-  (setq
-   repl-buffer   
-   (funcall repl-function-create)))
+  (setq repl-buffer (funcall repl-function-create)))
 
 (defun repl-buffer-set ()
   "Set the `repl-buffer' for the buffer"
   (interactive)
-  (setq
-   repl-buffer
-   (funcall repl-function-set)))
+  (setq repl-buffer (funcall repl-function-set)))
 
 (defun repl-buffer-switch ()
   "Command for switching to (i.e. displaying) the `repl-buffer'.
@@ -110,7 +108,6 @@ On the other hand, if the current buffer is a script file:
 "
   (interactive)
   (if (repl-buffer-get)
-      ;; (buffer-goto-end repl-buffer)
       (display-buffer repl-buffer)
     (frame-display-last)))
 
