@@ -1,9 +1,16 @@
-;; ----------------------------------------------------------------------------
-;; SQL MODE
-;; ----------------------------------------------------------------------------
+;; -------------------------------------------------------------------------- ;;
+;; SQL MODE                                                                   ;;
+;; -------------------------------------------------------------------------- ;;
 (require 'sql)
 (require 's)
 (require 'f)
+
+(defconst sql-product-alist-default
+  sql-product-alist
+  "Back up of `sql-product-alist'")
+(defconst sql-connection-alist-default
+  sql-connection-alist
+  "Back up of `sql-connection-alist'")
 
 (defun config-parse-sql-connection (con)
   (-let*
@@ -25,41 +32,102 @@
       (add-to-list 'con  `(sql-database  ,db) t))
     con
     ))
-(defun config-parse-all-sql-connections ()
-  (-map #'config-parse-sql-connection
-          (-partition 2
-                      (config-get :applications :sql :servers))))
-(defun config-remove-unused-products ()
-  (let ((products
-         (--map (eval (car (alist-get 'sql-product (cdr it))))
-                sql-connection-alist)))
-    (--filter (member (car it) (add-to-list 'products 'ansi))
-              sql-product-alist)))
 
-(make-variable-buffer-local  'sql-product)
-(make-variable-buffer-local  'sql-connection)
+(defun config-sql-variables ()
+  (interactive)
+  
+  (make-variable-buffer-local  'sql-product)
+  (make-variable-buffer-local  'sql-connection)
+  
+  (let*
+      ((sql-servers
+        (-partition 2 (config-get :applications :sql :servers)))
+       
+       (products-original
+        (-map #'car sql-product-alist-default))
+       
+       (products)
+       
+       (connections
+        (--keep
+         (when (memq (intern (plist-get (cadr it) :product))
+                     products-original)
+           (add-to-list 'products
+                        (intern (plist-get (cadr it) :product)) t)
+           (config-parse-sql-connection it))
+         sql-servers)))
 
+    (add-to-list 'products 'ansi t)
+    
+    (setq-default sql-connection-alist
+                  connections)
+
+    (setq-default sql-product-alist
+                  (--map (assoc it sql-product-alist-default) products))
+
+    (setq-default sql-product
+                  (car products)))
+
+  (setq-from-config sql-ms-program        :applications :sql :exe :ms)
+  (setq-from-config sql-oracle-program    :applications :sql :exe :oracle))
+
+(config-sql-variables)
 (setq
- sql-connection-alist       (config-parse-all-sql-connections)
- sql-product-alist          (config-remove-unused-products)
- sql-product                'oracle
- sql-send-terminator        t
+ sql-send-terminator                    t
  sql-pop-to-buffer-after-send-region    nil
+ sql-ms-options                         nil 
+ sql-oracle-scan-on                     nil)
 
- sql-ms-options             nil
- sql-ms-program             (or (config-get :applications :sql :exe :ms)
-                                sql-ms-program)
- 
- sql-oracle-scan-on         nil 
- sql-oracle-program         (or (config-get :applications :sql :exe :oracle)
-                                sql-oracle-program))
+(advice-add 'sql-set-product :after
+            (lambda (&rest args) (setq web-search-mode-prefix
+                        (format "SQL %s " sql-product)))
+            '((name . "sql-set-web-search-mode-prefix")))
 
-;; TODO advise sql-set-product
-;; -> google-mode-prefix (format "SQL %s " sql-product)
+;; Fix SQL Highlighting + Rainbow Delimiters
+;;	sql-highlight-product overrides rainbow-delimiters so we need to reapply it
+;;	afterwords if it was on
+(advice-add 'sql-highlight-product :around
+		     '(lambda (func)
+			    (let ((rainbow-state rainbow-delimiters-mode))
+			      (funcall func)
+			      (rainbow-delimiters-mode rainbow-state)))
+             '((name . "sql-rainbow-delimiters-mode")))
 
-;; --------------------------------------------------------------------------
-;; Hooks
-;; --------------------------------------------------------------------------
+
+;; -------------------------------------------------------------------------- ;;
+;; Product Features                                                           ;;
+;; -------------------------------------------------------------------------- ;;
+(sql-set-product-feature
+ 'ms :prompt-regexp "^[0-9]*>") ;existing line
+
+(sql-set-product-feature
+ 'ms :prompt-cont-regexp "^[0-9]*>") ;new line
+
+(defun sql-load-help-queries (dir)
+  "Load helpful queries as product features.
+
+Take each SQL file in DIR with the path <product>/<file>.sql and
+loads it as a feature in `sql-product-alist' under the key
+:query-<file>."
+  (when-let*
+      ((file-list
+        (f-entries dir (lambda (file) (f-ext? file "sql")) t)))
+    (--each file-list
+      (sql-set-product-feature
+       (intern (f-filename (f-dirname it)))
+       (intern (s-concat ":query-" (f-base it)))
+       (f-read it 'utf-8))
+      (message "Loaded %s for %s"
+               (f-filename it)
+               (s-upcase (f-filename (f-dirname it)))))))
+
+(sql-load-help-queries
+ (f-expand (config-get-setting :applications :sql :query-directory) config-root))
+
+
+;; -------------------------------------------------------------------------- ;;
+;; Hooks                                                                      ;;
+;; -------------------------------------------------------------------------- ;;
 (defun config-mode-sql ()
   (interactive)
   (sqlind-minor-mode +1)
@@ -97,9 +165,9 @@
 (add-hook 'sql-interactive-mode-hook    'config-mode-sql-interactive)
 
 
-;; --------------------------------------------------------------------------
-;; Frame Settings 
-;; --------------------------------------------------------------------------
+;; -------------------------------------------------------------------------- ;;
+;; Frame Settings                                                             ;;
+;; -------------------------------------------------------------------------- ;;
 (add-to-list
  'display-buffer-alist
  '("\\*SQL.*\\*"
@@ -115,159 +183,122 @@
      (unsplittable .            t)
 	 ))))
 
-;; --------------------------------------------------------------------------
-;; Key Binding
-;; --------------------------------------------------------------------------
+
+;; -------------------------------------------------------------------------- ;;
+;; Key Binding                                                                ;;
+;; -------------------------------------------------------------------------- ;;
 (define-keys sql-mode-map
   (kbd "<return>")	'reindent-then-newline-and-indent
   
-  ;; ---------- Evaluation ----------
-  [(shift return)]  nil
-  [(M-return)]		nil
-
   ;; ---------- Indent / Tabs ----------
   (kbd "<C-tab>")	'tab-to-tab-stop-magic
-  ;; (kbd "<tab>")     'sql-fix-indent
 
   ;; ---------- Frame Switching ----------
-  [f12]             nil
-  [S-f12]           nil
-  [C-f12]			nil
   [M-f12]           'sql-set-product
-
 
   ;; ---------- Help ----------  
   "\C-hf"           'sql-tables
   "\C-hF"           'sql-find-column
-  ;; "\C-he"           'sql-explain
   "\C-hv"           'sql-describe
-  "\C-hV"           'sql-describe-here
   "\C-hs"           'sql-show-table
-  "\C-ho"           'sql-inspect-table
   )
 
 (define-keys sql-interactive-mode-map
-  ;; ---------- Input / Prompt Scrolling ----------
-  [C-up]			'comint-previous-prompt
-  [C-down]          'comint-next-prompt
-  [up]              'comint-previous-input
-  [down]			'comint-next-input
-  [S-C-up]          'previous-line
-  [S-C-down]		'next-line
-
-  ;; ---------- Frame Switching ----------
-  [(f12)]           nil
-  ;; [S-f12]           'sql-reconnect
-
-
-  ;; ---------- Completion ----------
-  ;; (kbd "<tab>")     'completion-at-point
-
   ;; ---------- Help ----------
-  [(f1)]            '(lambda ()
-                       (interactive)
-				       (google-query-at-point
-                        t
-                        (format "SQL %s " sql-product)))
-  [(S-f1)]          '(lambda ()
-			           (interactive)
-			           (google-query-at-point
-                        nil
-                        (format "SQL %s " sql-product)))
-  (kbd "C-h w")   	'(lambda ()
-				       (interactive)
-				       (google-query-at-point
-                        nil
-                        (format "SQL %s " sql-product)))
-
   "\C-hf"           'sql-tables
   "\C-hF"			'sql-find-column
-  ;; "\C-he"              'sql-explain
   "\C-hv"           'sql-describe
   "\C-hs"           'sql-show-table
   "\C-ho"           'sql-inspect-table
   )
 
 
-;; --------------------------------------------------------------------------
-;; Product Features
-;; --------------------------------------------------------------------------
-
-(sql-set-product-feature
- 'ms :prompt-regexp "^[0-9]*>") ;existing line
-
-(sql-set-product-feature
- 'ms :prompt-cont-regexp "^[0-9]*>") ;new line
-
-(defun sql-load-help-queries (dir)
-  (--each
-      (f-entries dir
-                 (lambda (file) (f-ext? file "sql")) t)
-    (sql-set-product-feature
-     (intern (f-filename (f-dirname it)))
-     (intern (s-concat ":query-" (f-base it)))
-     (f-read it 'utf-8))
-    (message "Loaded %s for %s"
-             (f-filename it)
-             (s-upcase (f-filename (f-dirname it))))))
-
-(when-let
-    ((dir (config-get :applications :sql :query-directory)))
-  (sql-load-help-queries (f-expand dir config-root)))
-
-
-;; Fix SQL Highlighting + Rainbow Delimiters
-;;	sql-highlight-product overrides rainbow-delimiters so we need to reapply it
-;;	afterwords if it was on
-(advice-add 'sql-highlight-product :around
-		     '(lambda (func)
-			    (let ((rainbow-state rainbow-delimiters-mode))
-			      (funcall func)
-			      (rainbow-delimiters-mode rainbow-state))))
-
-
-;; --------------------------------------------------------------------------
-;; Functions
-;; --------------------------------------------------------------------------
+;; -------------------------------------------------------------------------- ;;
+;; Functions                                                                  ;;
+;; -------------------------------------------------------------------------- ;;
 
 ;; ---------- Capitalization ----------
 (defun sqlup-capitalize-keywords ()
+  "Capitalize SQL keywords in buffer or region.
+
+See `sqlup-capitalize-keywords-in-region' for more info."
   (interactive)
-  (if mark-active
-      (call-interactively #'sqlup-capitalize-keywords-in-region)
-    (sqlup-capitalize-keywords-in-buffer)))
+  (with-region-or-buffer #'sqlup-capitalize-keywords-in-region))
 
 (defun sqlup-capitalize-keywords-in-line ()
-  (interactive)
-  (sqlup-capitalize-keywords-in-region
-   (line-beginning-position) (line-beginning-position 2)))
+  "Capitalize SQL keywords in line or region.
 
+See `sqlup-capitalize-keywords-in-region' for more info."
+  (interactive)
+  (with-region-or-line #'sqlup-capitalize-keywords-in-region))
+
+(advice-add 'sqlind-indent-line :after #'sqlup-capitalize-keywords-in-line)
 
 ;; ---------- Indentation ----------
+(defun sqlind-indent-directive (syntax base-indentation)
+  "Indents lines starting with a directive.
+
+See `sqlind-ms-directive', `sqlind-sqlite-directive',
+`sqlind-sqlplus-directive' for regexp.
+    "
+  (save-excursion
+    (back-to-indentation)
+    (let ((rx (cl-case (and (boundp 'sql-product) sql-product)
+                (ms sqlind-ms-directive)
+                (sqlite sqlind-sqlite-directive)
+                (oracle sqlind-sqlplus-directive)
+                (t nil))))
+      (if (looking-at rx)
+          (+ base-indentation sqlind-basic-offset)
+        base-indentation))))
+
 (defun sqlind-indent-logic (syntax base-indentation)
   "Indents lines starting with AND, OR, NOT"
   (save-excursion
     (back-to-indentation)
     (if (looking-at "and\\|or\\|not")
-        (+ base-indentation sqlind-basic-offset)            
+        (+ base-indentation sqlind-basic-offset)
       base-indentation)))
 
-(defun sqlind-indent-lineup-previous-comment (syntax base-indentation)
-  "Return the indentation for a previous comment.
+(defun sqlind-indent-comment-start-previous-line (syntax base-indentation)
+  "Return previous line's comment column if exist.
 
-If we start a line comment (--) and the previous line also has a line
-comment, we line up the two comments.  Otherwise nothing (return
-BASE-INDENTATION)."
+If we start a line comment (--) and the previous line also has a
+line comment, we line up the two comments.  Otherwise return
+BASE-INDENTATION."
   (save-excursion
     (back-to-indentation)
-    (if (and (looking-at "\\s *--")
-             (progn
-               (forward-line -1)
-               (re-search-forward "--" (line-end-position) t)))
-        (progn
-          (goto-char (match-beginning 0))
-          (current-column))
+    (when (and (looking-at "\\s *--")
+	           (progn
+	             (forward-line -1)
+	             (re-search-forward "--" (line-end-position) t)))
+	  (goto-char (match-beginning 0))
+	  (setq base-indentation (current-column)))
+    base-indentation))
+
+(defun sqlind-indent-comment-start-transparent (syntax base-indentation)
+  "Returns indentation of line as if it were not commented.
+"
+  (save-excursion
+    (back-to-indentation)    
+    (let ((sqlind-comment-start-skip "\`"))
+        (sqlind-calculate-indentation (sqlind-syntax-of-line)))))
+
+(defun sqlind-indent-select-join (syntax base-indentation)
+  "Indent lines beginning with JOIN"
+  (save-excursion
+    (back-to-indentation)
+    (if (or (looking-at sqlind-select-join-regexp)
+            (looking-at "\\bjoin\\b"))
+        (+ base-indentation sqlind-basic-offset)
       base-indentation)))
+
+(defun sqlind-set-indentation-default ()
+  "Reset `sqlind' to `sqlind-default-indentation-offsets-alist'"
+  (interactive)
+  (setq
+   sqlind-indentation-offsets-alist
+   sqlind-default-indentation-offsets-alist))
 
 (defun sqlind-set-indentation ()
   (interactive)
@@ -276,15 +307,15 @@ BASE-INDENTATION)."
    `((syntax-error                  sqlind-report-sytax-error)
      
      ;; top most indent level
-     (toplevel                      0)
+     (toplevel                      sqlind-indent-directive)
 
      ;; ------------- COMMENTS -------------
      ;; -- comment     <- comment-start
      ;; /*             <- comment-start
      ;;   comment      <- comment-continuation
      ;;  */            <- comment-continuation
-     (comment-start                 sqlind-use-previous-line-indentation
-                                    sqlind-indent-lineup-previous-comment)
+     (comment-start                 sqlind-indent-comment-start-transparent
+                                    sqlind-indent-comment-start-previous-line)
      (comment-continuation          sqlind-indent-comment-continuation)
 
 
@@ -338,18 +369,18 @@ BASE-INDENTATION)."
      ;; FROM               <- select-clause
      ;;   T1               <- select-table
      ;;   JOIN             <- select-table
-     ;;   T3 ON            <- select-table
+     ;;   T3               <- select-table
+     ;;       ON           <- select-join-condition
+     ;;                        ^ ANCHOR - JOIN statement
      ;;     c3 = c2        <- select-table-continuation
      ;;                        ^ ANCHOR - table definition
      ;;       AND          <- select-join-condition
-     ;;                        ^ ANCHOR - JOIN statement
      ;;     d3 = d1        <- select-table-continuation
-     (select-table                  sqlind-indent-select-table)
-     (select-table-continuation     sqlind-indent-select-table
-                                    +
+     (select-table                  sqlind-indent-select-table
+                                    sqlind-indent-select-join)
+     (select-table-continuation     +
                                     sqlind-lone-semicolon)
-     (select-join-condition         sqlind-indent-select-table
-                                    ++)      
+     (select-join-condition         sqlind-indent-logic)      
      
      ;; ------------- WHERE / GROUP BY / ORDER BY -------------
      (in-select-clause              +
@@ -371,6 +402,7 @@ BASE-INDENTATION)."
      (case-clause                   +)          
      (case-clause-item              0)
      (case-clause-item-cont         sqlind-use-anchor-indentation
+                                    sqlind-indent-logic
                                     +)
 
      ;; line begins with a statement that starts a block
@@ -428,10 +460,6 @@ BASE-INDENTATION)."
                                     sqlind-indent-logic
                                     sqlind-lone-semicolon)
      )))
-
-(defadvice sqlind-indent-line (after sqlup-capitalize activate compile)
-  "Capitalize keywords when indenting"
-  (sqlup-capitalize-keywords-in-line))
 
 
 ;; ---------- Connection Completion ----------
@@ -548,6 +576,7 @@ is specified in the connection settings."
           sql-connection    connection)
     
     (pop-to-buffer calling-buffer)
+    (sql-eval-init)
     sql-buffer))
 
 (defun sql-generate-buffer-name (connection)
@@ -600,14 +629,10 @@ Append a sequence number until a unique name is found."
   "Evaluates SQL code."
   (interactive)
 
+  (with-region-or-paragraph #'sql-send-region)
   (unless (use-region-p)
-    (mark-paragraph))
-  
-  (sql-send-region (region-beginning) (region-end))
-  
-  (deactivate-mark)
-  (forward-paragraph)
-  (next-non-blank-line))
+    (next-paragraph)
+    (forward-paragraph)))
 
 (defun sql-eval-file (file)
   "Evaluates an SQL file."
@@ -618,96 +643,141 @@ Append a sequence number until a unique name is found."
   (sql-send-string (f-read file 'utf-8)))
 
 
+
 ;; -----------------------------------------------------------------------------
 ;; Help Functions
 ;; -----------------------------------------------------------------------------
 (defun sql-table-at-point ()
-  (let* ((table-start
-		  (save-excursion
-		    (or
-		     (search-backward-regexp "[^._[:alnum:]]" nil t)
-		     (1- (point-min)))))
+  (save-excursion
+    (let*
+        ((table-start
+          (progn
+            (search-backward-regexp "[^._[:alnum:]]" (point-min) 1)
+            (unless (bobp)
+              (forward-char))
+            (point)))
 	     (table-end
-		  (save-excursion
-		    (or
-		     (search-forward-regexp "[^._[:alnum:]]" nil t)
-		     (1+ (point-max))))))
-    (buffer-substring-no-properties
-	 (1+ table-start) (1- table-end))))
+          (progn
+		    (search-forward-regexp "[^._[:alnum:]]" (point-max) 1)
+            (unless (eobp)
+              (backward-char))
+            (point))))
+      (buffer-substring-no-properties table-start table-end))))
+
+(defvar sql-prompt-history-table nil
+  "History list of tables used for commands")
+(defvar sql-prompt-history-schema nil
+  "History list of schema used for commands")
+
+(defun sql-prompt-read-string (prompt &optional history default)
+  "Prompt for string and wrap with wildcard, %.
+
+By default, the string is assumed to be wrapped with wildcard
+characters to facilitate WHERE ... LIKE \"%STRING%\".  On the
+other hand if the string begins or ends with %, negate them."
+  (let*
+      ((prompt-input
+        (read-string prompt nil history default))
+       (prompt-input
+        (if (s-blank-p prompt-input)
+            "%%"
+          (s-with prompt-input s-upcase
+                  (s-prepend "%")
+                  (s-chop-prefix "%%")
+                  (s-append "%")
+                  (s-chop-suffix "%%")))))
+    prompt-input
+  ))
 
 (defun sql-eval-product-query (query)
-  "General function to that looks up a query in
-`sql-product-alist' and executes a string after formating it in
-the current context (see `s-lex-format')."
+  "Execute QUERY from `sql-product-alist'.
+
+QUERY is a SQL product feature beginning with \":query-\".  Prior
+to execution, parameter strings are substituted from the current
+context using `s-lex-format', such that \"${var}\" will be replaced
+by the variable \"var\". The following is a list of variable in use:
+    - ${schema-table} - SCHEMA.TABLE string see `sql-table-at-point'
+    - ${schema} - just the SCHEMA
+    - ${table} - just the TABLE
+    - ${column}
+    - ${user} - for reconnecting and searching
+    - ${password}
+    - ${database}
+
+This is the general function for subsequent help commands."
   (if-let*
-      ((query-name (s-upcase
-                    (s-replace ":query-" "" (symbol-name query))))
+      ((query-name
+        (s-with (symbol-name query)
+          (s-replace ":query-" "")  s-upcase))
        (product-name (s-upcase (symbol-name sql-product)))
        (query-string (sql-get-product-feature
                       sql-product query))
-       (query-string (s-trim query-string)))
+       (query-string (s-trim query-string))
+       (query-string (if (s-ends-with? ";" query-string)
+                         query-string
+                       (s-append ";" query-string))))
       
       (progn
-        (unless (s-ends-with? ";" query-string)
-          (setq query-string (s-append ";" query-string)))
-        
-        ;; (message "%s" (eval (s-lex-fmt|expand query-string)))
         (sql-send-string (eval (s-lex-fmt|expand query-string)))
         (repl-buffer-show))
     
 	(message-format
      "${query-name} not defined for product ${product-name}")))
 
-(defun sql-describe ()
-  "Describe the current table"
-  (interactive)
-  (when-let
-      ((table (sql-table-at-point)))
-    (sql-eval-product-query :query-describe-table)))
 
-(defun sql-show-table ()
+;; ---------- Commands ---------- ;;
+(defun sql-describe (schema-table)
+  "Describe the current table"
+  (interactive
+   (list (sql-table-at-point)))
+  (if (stringp schema-table)
+      (sql-eval-product-query :query-describe-table)
+    (message "No SCHEMA-TABLE given.")))
+
+(defun sql-show-table (schema-table)
   "Lists the top elements of a table"
-  (interactive)
-  (when-let
-      ((table (sql-table-at-point)))
-    (sql-eval-product-query :query-show-table)))
+  (interactive
+   (list (sql-table-at-point)))
+  (if (stringp schema-table)
+      (sql-eval-product-query :query-show-table)
+    (message "No SCHEMA-TABLE given.")))
+
+(defun sql-list-grantees (table)
+  "Lists grantee privileges of a user table."
+  (interactive
+   (list (sql-table-at-point)))  
+  (if (not (stringp schema-table))
+      (message "No TABLE given.")
+    (setq table (-last-item (s-split "\\." table)))
+    (sql-eval-product-query :query-list-grantees)))
 
 (defun sql-eval-init ()
   "Evaluates SQL Init File."
   (interactive)
   (sql-eval-product-query :query-init))
 
-
-(defvar sql-prompt-history-table nil)
-
-(defun sql-prompt-read-string (prompt &optional history default)
-  (let*
-      ((prompt-input (read-string prompt nil history default))
-       (prompt-input (if (s-blank-p prompt-input) "%%"
-                       (s-with prompt-input s-upcase
-                               (s-prepend "%")
-                               (s-chop-prefix "%%")
-                               (s-append "%")
-                               (s-chop-suffix "%%")))))
-    prompt-input
-  ))
-
-(defun sql-tables (table schema)
+(defun sql-tables (schema table)
   "Lists tables (or views) that match table / schema pattern"
   (interactive
    (list
-    (s-upcase (read-string "Table: " nil nil "%%"))
-    ;; (sql-prompt-read-string "Table: " 'sql-prompt-history-table)
-    (s-upcase (read-string "Schema: " nil nil "%%"))))
+    (sql-prompt-read-string "Schema: "  'sql-prompt-history-schema)
+    (sql-prompt-read-string "Table: "   'sql-prompt-history-table)))
   (sql-eval-product-query :query-find-table))
 
-(defun sql-find-column (column table schema)
+(defun sql-find-column (column schema table)
   "Find all tables / views that contain column"
   (interactive
-   (list (read-string "Column: " nil nil "%%")
-         (s-upcase (read-string "Table: " nil nil "%%"))
-         (s-upcase (read-string "Schema: " nil nil "%%"))))
+   (list
+    (sql-prompt-read-string "Column: ")
+    (sql-prompt-read-string "Schema: "  'sql-prompt-history-schema)
+    (sql-prompt-read-string "Table: "   'sql-prompt-history-table)))
   (sql-eval-product-query :query-find-column))
+
+(defun sql-find-user (user)
+  "Find all matching users"
+  (interactive
+   (list (sql-prompt-read-string "User: ")))
+  (sql-eval-product-query :query-find-user))
 
 (defun sql-reconnect ()
   "Reconnects to database using the associated sqli buffer"
@@ -721,15 +791,9 @@ the current context (see `s-lex-format')."
     (sql-eval-init)))
 
 
-
-
-
-
-
-
-;; ------------------------------------------------------------------------- ;;
-;; Syntax Highlighting
-;; ------------------------------------------------------------------------- ;;
+;; -------------------------------------------------------------------------- ;;
+;; Syntax Highlighting                                                        ;;
+;; -------------------------------------------------------------------------- ;;
 (font-lock-add-keywords
  'sql-mode
  '(

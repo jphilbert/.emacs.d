@@ -2,7 +2,8 @@
 ;; R Mode Setup
 ;; ----------------------------------------------------------------------------
 (require 'config-programming)
-(require 'ess-site)
+(require 'repl)
+;; (require 'ess-site)
 
 
 
@@ -25,300 +26,88 @@
       ess-help-own-frame                'one
       ess-history-file                  nil
       ess-keep-dump-files               nil
-      ;; ess-r-args-electric-paren         nil
-      ;; ess-r-args-noargsmsg              "No Args"
-      ;; ess-r-args-show-as                'tooltip
-      ;; ess-r-args-show-prefix            ""
-      ;;  ess-S-assign-key			(kbd "C-=")	; StatET-like assignment 
-      ess-style                         'RStudio
-      ;; inferior-R-args "--no-restore-history --no-save"
-      inferior-R-program-name           (or
-                                         (config-get :applications :r)
-                                         inferior-R-program-name))
+      ess-style                         'RStudio)
 
-;; (setq-default
-;;  ess-local-process-name		"R"			; Set Process Name
-;; )
-;; (ess-toggle-S-assign-key		t)	     ; enable above key definition
-;; (ess-toggle-underscore		nil)	     ; leave my underscore alone
+(setq-from-config :applications :r :exe)
 
 (add-to-list 'hs-special-modes-alist
 		     '(ess-mode "{" "}" "/[*/]" nil
 				        hs-c-like-adjust-block-beginning))
 
-;; --------------------------------------------------------------------------
-;; Hooks
-;; --------------------------------------------------------------------------
+
+;; -------------------------------------------------------------------------- ;;
+;; Hooks                                                                      ;;
+;; -------------------------------------------------------------------------- ;;
 (defun config-mode-r ()
-  "Defaults for R programming."
+  "Defaults for R programming (`ess-r-mode')."
+  (repl-mode +1)
+
+  (setq
+   web-search-mode-prefix       "R"
+   repl-interactive-mode        'inferior-ess-mode
+   repl-function-eval   #'ess-eval-region-or-function-or-paragraph-and-step
+   repl-function-eval-insert #'ess-eval-region-or-function-or-paragraph-and-step
+   repl-function-set            #'R-set-repl
+   repl-function-create         #'R-create-repl)
+
   )
 
 (defun config-mode-r-interactive ()
-  "Defaults for R REPL buffer."
+  "Defaults for R REPL buffer (`inferior-ess-mode')."
+  (repl-mode +1)
   )
 
-(add-hook 'R-mode-hook                  'config-mode-r)
+(add-hook 'ess-r-mode-hook              'config-mode-r)
 (add-hook 'inferior-ess-mode-hook       'config-mode-r-interactive)
 ;; (ess-help-mode			. (lambda () (font-lock-mode t))))) 
 
 
+;; comint-move-point-for-output to 'others or t.
 
-;; --------------------------------------------------------------------------
-;; Keybinding
-;; --------------------------------------------------------------------------
-(define-many-keys ess-r-mode-map
-  ;; [(return)]		'newline-and-indent
-  (kbd "_")             #'ess-insert-assign
-  ;; ---------- Evaluation ----------
-  [(shift return)]     'R-eval
-  [(M-return)]		   'R-pander-insert
-  ;; 'ess-use-this-dir
+;; -------------------------------------------------------------------------- ;;
+;; Keybinding                                                                 ;;
+;; -------------------------------------------------------------------------- ;;
+(with-eval-after-load "ess-site" 
+  ;; ---------- Main Mode ---------- ;;
+  (define-keys          ess-r-mode-map
+    ;; [(return)]           'newline-and-indent
+    (kbd "C-=")             #'ess-insert-assign
 
-  ;; ---------- Indent / Tabs ----------
-  (kbd "<C-tab>")		'tab-to-tab-stop-magic
-  (kbd "<tab>")		'indent-for-tab-command
-  
-  
-  ;; ---------- Help ----------
-  [(f1)]		   	'(lambda ()
-				       (interactive)
-				       (google-query-at-point t "R "))
-  [(S-f1)]	   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point t "R "))
-  (kbd "C-h w")   	'(lambda ()
-				       (interactive)
-				       (google-query-at-point nil "R "))
+    ;; Indent / Tabs
+    (kbd "<C-tab>")         'tab-to-tab-stop-magic
+    (kbd "<tab>")           'indent-for-tab-command
 
-  "\C-p"			'R-pander-style
-  "\C-hf"      	'R-object-help
-  "\C-hv"      	'R-object-str
-  "\C-ho"      	'R-object-summaries
-  "\C-hn"      	'R-object-names
-  "\C-hV"      	'ess-display-vignettes
-  "\C-hH"      	'ess-handy-commands
+    ;; Help
+    "\C-p"			        'R-pander-style
+    "\C-hf"      	        'R-object-help
+    "\C-hv"      	        'R-object-str
+    "\C-ho"      	        'R-object-summaries
+    "\C-hn"      	        'R-object-names
+    "\C-hV"      	        'ess-display-vignettes
+    "\C-hH"      	        'ess-handy-commands
+    )
 
-  ;; ---------- Frame Switching ----------
-  [(f12)]			'R-switch-frame-process
-  [S-f12]			'R-process-new
-  [C-f12]			'ess-switch-process
-  )
+  ;; ---------- Inferior Mode ---------- ;;
+  (define-many-keys     inferior-ess-r-mode-map  
+    (kbd "C-=")             #'ess-insert-assign    
 
-(define-many-keys inferior-ess-r-mode-map  
-  (kbd "_")             #'ess-insert-assign
-  
-  ;; ---------- Input / Prompt Scrolling ----------
-  [C-up]               'comint-previous-prompt
-  [C-down]             'comint-next-prompt
-  [up]                 'comint-previous-input
-  [down]               'comint-next-input
-  [S-C-up]			'previous-line
-  [S-C-down]			'next-line
+    ;; Help
+    "\C-hf"                 'R-object-help
+    "\C-hv"      	        'R-object-str
+    "\C-ho"      	        'R-object-summaries
+    "\C-hn"      	        'R-object-names
+    "\C-hV"      	        'ess-display-vignettes
+    "\C-hH"      	        'ess-handy-commands) 
 
-  
-  ;; ---------- Completion ----------
-  ;; (kbd "<tab>")	'completion-at-point
+  ;; ---------- Help Mode ---------- ;;
+  (define-key           ess-help-mode-map
+    "q"                     'kill-buffer-or-emacs)
+)
 
 
-  ;; ---------- Help ----------
-  [(f1)]		   	'(lambda ()
-				       (interactive)
-				       (google-query-at-point t "R "))
-  [(S-f1)]	   	'(lambda ()
-				   (interactive)
-				   (google-query-at-point t "R "))
-  (kbd "C-h w")   	'(lambda ()
-				       (interactive)
-				       (google-query-at-point nil "R "))
-
-  "\C-hf"      	'R-object-help
-  "\C-hv"      	'R-object-str
-  "\C-ho"      	'R-object-summaries
-  "\C-hn"      	'R-object-names
-  "\C-hV"      	'ess-display-vignettes
-  "\C-hH"      	'ess-handy-commands
-  
-  ;; ---------- Frame Switching ----------
-  [(f12)]			'R-switch-frame-script
-  [S-f12]			'R-process-new
-  ) 
-
-(define-key ess-help-mode-map	"q" 'kill-buffer-or-emacs)
-
-
-
-;; --------------------------------------------------------------------------
-;; Commands
-;; --------------------------------------------------------------------------
-
-;; ---------- Evaluation ---------- ;;
-(defun R-eval ()
-  "Evaluates R code."
-  (interactive)
-  ;; Pre Eval
-  (when (eq (length (switch-frame-buffer-list '("\\*R.*") '("^ "))) 0)
-    (R-kill-all-processes)              ; No Buffers so kill them anyways
-    (R-process-new))
-  
-  ;; Eval
-  (if (and transient-mark-mode mark-active)
-      (R-eval-region)
-    (R-eval-paragraph)))
-
-(defun R-eval-region ()
-  "Evaluates R region and returns back to current frame."
-  (interactive)
-  (call-interactively 'ess-eval-region)
-  (R-raise-frame-process)
-  (deactivate-mark))
-
-(defun R-eval-paragraph ()
-  "Evaluates R region and returns back to current frame."
-  (interactive)
-  (call-interactively 'ess-eval-function-or-paragraph-and-step)
-  (R-raise-frame-process))
-
-
-;; ---------- Process Commands ---------- ;;
-(defun R-process-new ()
-  "Creates a new R-process."
-  (interactive)
-  (R)
-  (R-switch-frame-script))
-
-(defun R-kill-all-processes ()
-  "Kills all R processes and clears the name-list."
-  (interactive)
-  (mapcar #'(lambda (arg)
-             (when (get-process (car arg))
-               (kill-process (get-process (car arg)))))
-          ess-process-name-list)
-  
-  (mapcar 'kill-buffer (switch-frame-buffer-list '("\\*R.*") '("^ ")))
-  (setq ess-process-name-list nil))
-
-
-;; ---------- Frame Commands ---------- ;;
-(defun R-switch-frame-process ()
-  "Switch to associated process, associate with one, or create one."
-  (interactive)
-  ;; Does current buffer have an associated process?
-  ;; Yes -> raise and select
-  ;; No -> are there processes running?
-  ;; Yes -> associate -> raise
-  ;; No -> create one -> associate -> raise 
-  (ess-switch-to-ESS t))
-
-(defun R-raise-frame-process ()
-  (save-frame-excursion
-   (raise-frame
-    (get-frame (ess-get-process-buffer)))))
-
-(defun R-switch-frame-script ()
-  "Switch to most recent script buffer."
-  (interactive)
-  (let ((dialect ess-dialect)
-	    (loc-proc-name ess-local-process-name)
-	    (blist (cdr (buffer-list))))
-    (while (and blist
-			    (with-current-buffer (car blist)
-			      (not (or (and
-					        (memq major-mode '(ess-mode ess-julia-mode))
-					        (equal dialect ess-dialect)
-					        (null ess-local-process-name))
-					       (and 
-					        (memq major-mode '(ess-mode ess-julia-mode))
-					        (equal loc-proc-name ess-local-process-name))
-					       ))))
-	  (pop blist))
-    (if blist
-	    (ess-show-buffer (car blist) t)
-	  (message "Found no buffers for ess-dialect %s associated with process %s"
-			   dialect loc-proc-name))))
-
-
-;; ---------- Echo Results / Pander ---------- ;;
-(defun R-pander-wrap (string)
-  (format "pander:::panderOptions('table.alignment.default', 'right')\n
-pander:::pander({%s\n}, style = \"%s\")\n"
-		  string "simple"))
-
-(defun R-eval-pander ()
-  "Evaluates R code and formats output using Pander. Customize the style using `R-pander-style'"
-  (interactive)
-  (add-hook 'ess-presend-filter-functions 'R-pander-wrap)
-  (R-eval)
-  (remove-hook 'ess-presend-filter-functions 'R-pander-wrap)
-  )
-
-(defun R-pander-insert ()
-  (interactive)
-  (let
-	  ((pt-beg 0)
-	   (pt-end 0)
-	   (comment-str (concat comment-start comment-start " ")))
-    
-    ;; Get the begin and end point of code
-    (save-excursion
-	  (unless (region-active-p)
-	    (ess-mark-function-or-para)
-	    (setq pt-end -1))
-	  (setq pt-beg (region-beginning))
-	  (setq pt-end (+ pt-end (region-end))))
-    
-    (goto-char pt-end)
-    (newline)
-
-    (ess-command (R-pander-wrap (buffer-substring pt-beg pt-end))
-			     nil nil nil nil (get-process "R"))
-    
-    (save-excursion
-      (set-buffer (get-buffer-create " *ess-command-output*"))	 
-
-	  ;; Trim empty lines at the end (usually 2)
-	  (goto-char (point-max))
-      (beginning-of-line)
-      (cl-loop
-	   while (and (not (bobp))
-			      (looking-at "^[[:space:]]*$"))
-	   do (forward-line -1)
-	   )
-	  (forward-line)
-      (kill-region (1- (point)) (point-max))
-
-      ;; Trim junk lines at the start
-	  (goto-char (point-min)) 
-	  (kill-line)
-      (cl-loop
-       while (and (not (eobp))
-			      (looking-at "^[[:space:]]*$"))
-       do (kill-line))
-	  
-      ;; Insert comments on line
-      ;; (insert comment-str)
-      (cl-loop
-	   until (eobp)
-	   do
-	   (insert comment-str)
-	   (forward-line 1))
-	  )
-    (insert-buffer-substring " *ess-command-output*"))
-  (ess-next-code-line 1))
-
-(defun R-pander-style (style)
-  "Sets the Pander style for `R-eval-pander'"
-  (interactive (list (completing-read
-				      "Style: "
-				      '("multiline" "grid" "simple"
-				        "rmarkdown" "jira"))))
-  (fset 'R-pander-wrap
-	    `(lambda (string)
-		   (format
-		    "pander:::panderOptions('table.alignment.default', 'right')\n
-pander:::pander({%s}, style = \"%s\")\n"
-		    string ,style)))
-  )
-
+;; -------------------------------------------------------------------------- ;;
+;; Commands                                                                   ;;
+;; -------------------------------------------------------------------------- ;;
 
 ;; ---------- Help Commands ---------- ;;
 (defun R-object-str ()

@@ -1,47 +1,29 @@
-;; ------------------------------------------------------------------------- ;;
-;; Web Searching Commands
-;; - see also webjump.el
-;; ------------------------------------------------------------------------- ;;
-(defun thesaurus-search (word)
-  "Automatically queries thesaurus.com for word at point."
-  (interactive "MThesaurus: ")
-  (let ((url "https://www.thesaurus.com/browse/"))
-    (browse-url (format "%s%s" url (url-hexify-string word)))))
+;; -------------------------------------------------------------------------- ;;
+;; Web Searching Commands                                                     ;;
+;; - see also webjump.el                                                      ;;
+;; -------------------------------------------------------------------------- ;;
+(defvar web-search-url "https://google.com/search?q="
+  "URL used to query the web.
 
-(defun thesaurus-at-point ()
-  "Automatically queries thesaurus.com for word at point."
-  (interactive)
-  (let (pt_0 pt_1)
-    (if (use-region-p)
-        (progn
-          (setq pt_0 (region-beginning) 
-                pt_1 (region-end))
-          (deactivate-mark))
-      (save-mark-and-excursion
-	    (skip-syntax-forward "w")
-        (setq pt_1 (point))
-        (skip-syntax-backward "w")
-        (setq pt_0 (point))))
-    
-    (when (/= pt_0 pt_1)
-      (thesaurus-search (buffer-substring-no-properties pt_0 pt_1)))))
+Some options are:
+    - https://google.com/search?q=
+    - https://duckduckgo.com/?q=")
 
+(defvar web-search-url-direct "https://google.com/search?btnI=1&q="
+  "URL used to query the web and directly follow first result.
 
-(defvar web-search-url          "http://www.google.com/search?q="
-  "URL used to query the web.")
+Some options are:
+    - https://google.com/search?btnI=1&q=
+    - https://duckduckgo.com/?q=\\+")
 
-(defvar web-search-url-direct   "https://google.com/search?btnI=1&q="
-  "URL used to query the web and directly follow first result. ")
+(defvar-local web-search-mode-prefix nil
+  "Prefix to append to web-search queries.
 
-(defvar-local google-mode-prefix nil
-  "Prefix to append to google queries at point in a buffer. If
-  nil the functions will attempt to use the `major-mode' of the
-  buffer. ")
+A string (or function returning a string) which will be added to
+`web-search-at-point' searches. If nil, the `major-mode' of the
+buffer (without `-mode') will be used.")
 
-(setq web-search-url            "https://duckduckgo.com/?q="
-      web-search-url-direct     "https://duckduckgo.com/?q=\\+")
-
-(defun google-search (term &optional results)  
+(defun web-search (term &optional results)  
   (interactive "MSearch Term: ")
   (let* ((url (if results web-search-url web-search-url-direct))
 	     (term (replace-regexp-in-string
@@ -49,21 +31,19 @@
 	     (term (replace-regexp-in-string "(.*)" "" term)))
     (browse-url (format "%s%s" url (url-hexify-string term)))))
 
-(defun google-at-point (&optional results prefix)
-  "Automatically queries Google for object at point.
-Additionally can use 'feeling first-result' and append a prefix (useful
-for major programming modes to filter results)"
-  (interactive)
-  ;; Set google-mode-prefix unless already set
-  (unless google-mode-prefix
-    (setq google-mode-prefix
-          (replace-regexp-in-string
-	       "-.*" ""
-	       (symbol-name (with-current-buffer (current-buffer) major-mode)))))
+(defun web-search-at-point (&optional results prefix)
+  "Automatically queries web for object at point.
+
+Additionally can direct to first result (RESULTS is non-nil) or
+append a PREFIX (useful for programming modes to filter results)"
   
-  (let ((prefix (or prefix google-mode-prefix)) ; use prefix if given
-        (symbol-regexp "\\(\\s_\\|\\sw\\|\\.\\)+")
-        pt_0 pt_1 term)
+  (interactive)
+  ;; Set web-search-mode-prefix unless already set
+  
+  
+  (let* ((prefix (or prefix web-search-mode-prefix)) ; use prefix if given
+         (symbol-regexp "\\(\\s_\\|\\sw\\|\\.\\)+")
+         pt_0 pt_1 term)
     
     (if (use-region-p)
         (progn
@@ -81,13 +61,64 @@ for major programming modes to filter results)"
     
     (when (/= pt_0 pt_1)
       (setq term (buffer-substring-no-properties pt_0 pt_1))
+      (unless prefix
+        (setq prefix
+              (replace-regexp-in-string
+               "-+" " " (symbol-name (buffer-major-mode))))
+        (setq prefix
+              (replace-regexp-in-string
+               " *mode *" "" prefix)))
+
+      (when (functionp prefix)
+        (setq prefix (funcall prefix)))
+        
       (when (length prefix)
         (setq term (concat prefix " " term)))
-      (google-search term results))))
+      
+      (web-search term results))))
 
-(defun google-at-point-show-results ()
+(defun web-search-at-point-direct ()
+   "Queries web for object at point and directs to first result"
   (interactive)  
-  (google-at-point t))
+  (web-search-at-point t))
+
+
+
+;; -------------------------------------------------------------------------- ;;
+;; Thesaurus on the Web                                                       ;;
+;; -------------------------------------------------------------------------- ;;
+(defvar thesaurus-url "https://www.thesaurus.com/browse/"
+  "URL used to query thesaurus on the web.
+
+Some options are:
+    - https://www.thesaurus.com/browse/")
+
+(defun thesaurus-search (word)
+  "Queries thesaurus for a word on the web."
+  (interactive "MThesaurus: ")
+  (browse-url
+   (format "%s%s"
+           thesaurus-url
+           (url-hexify-string word))))
+
+(defun thesaurus-at-point ()
+  "Automatically queries thesaurus for word at point on the web."
+  (interactive)
+  (let (pt_0 pt_1)
+    (if (use-region-p)
+        (progn
+          (setq pt_0 (region-beginning) 
+                pt_1 (region-end))
+          (deactivate-mark))
+      (save-mark-and-excursion
+	    (skip-syntax-forward "w")
+        (setq pt_1 (point))
+        (skip-syntax-backward "w")
+        (setq pt_0 (point))))
+    
+    (when (/= pt_0 pt_1)
+      (thesaurus-search (buffer-substring-no-properties pt_0 pt_1)))))
+
 
 
 

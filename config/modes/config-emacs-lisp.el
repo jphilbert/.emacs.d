@@ -6,12 +6,11 @@
 (require 'config-programming)
 (require 'repl)
 
-
 ;; --------------------------------------------------------------------------
 ;; Hooks
 ;; --------------------------------------------------------------------------
 (defun config-mode-emacs-lisp ()
-  "Sensible defaults for `emacs-lisp-mode'."
+  "Defaults for eLISP programming (`emacs-lisp-mode')."
   (hs-hide-all)  
   (eldoc-mode +1)
   (dash-fontify-mode +1)
@@ -21,6 +20,7 @@
    lisp-indent-function         #'keyword-fix-lisp-indent-function)
   
   (setq
+   web-search-mode-prefix       "emacs elisp"
    mode-name                    "eLISP"
    repl-interactive-mode        'inferior-emacs-lisp-mode
    repl-function-eval           #'elisp-eval
@@ -30,24 +30,22 @@
 
 
   ;; Recompile your elc when saving an elisp file.
-  ;; (add-hook
-  ;;  'after-save-hook
-  ;;  (lambda ()
-  ;;    (when (and
-  ;;           (string-prefix-p
-  ;;   	     config-root
-  ;;   	     (file-truename buffer-file-name))
-  ;;           (file-exists-p
-  ;;   	     (byte-compile-dest-file buffer-file-name)))
-  ;;      (emacs-lisp-byte-compile)))
-  ;;  nil
-  ;;  t)
-  )
-
-(add-hook 'emacs-lisp-mode-hook     'config-mode-emacs-lisp)
+  (add-hook
+   'after-save-hook
+   (lambda ()
+     (when (and
+            (string-prefix-p
+    	     config-root
+    	     (file-truename buffer-file-name))
+            (file-exists-p
+    	     (byte-compile-dest-file buffer-file-name)))
+       (emacs-lisp-byte-compile)))
+   nil
+   t))
 
 (defun config-mode-emacs-lisp-interactive ()
-  "Sensible defaults for `ielm'. This mode does not inherit `prog-mode'."
+  "Defaults for EMACS lisp interpreter (`ielm').
+Note, this mode does not inherit `prog-mode'."
   
   ;; Smart Parenthesis
   (smartparens-mode +1)
@@ -61,6 +59,7 @@
 
   (repl-mode +1))
 
+(add-hook 'emacs-lisp-mode-hook     'config-mode-emacs-lisp)
 (add-hook 'ielm-mode-hook           'config-mode-emacs-lisp-interactive)
 
 
@@ -90,12 +89,6 @@
    (end-of-buffer-on-display .  t)
    ))
 
-(defun frame-display-ielm-messages (buffer alist)
-  (display-buffer-pop-up-frame buffer alist)
-  ;; split-window-below
-  ;; switch-buffer 
-  )
-
 
 ;; --------------------------------------------------------------------------
 ;; Keybinding
@@ -119,13 +112,14 @@
   (define-key ielm-map (kbd "M-(") (config-wrap-with "("))
   (define-key ielm-map (kbd "M-\"") (config-wrap-with "\"")))
 
+(defvar calculate-lisp-indent-last-sexp)
 (defun keyword-fix-lisp-indent-function (indent-point state)
   "This function is the normal value of the variable `lisp-indent-function'.
 The function `calculate-lisp-indent' calls this to determine
 if the arguments of a Lisp function call should be indented specially.
 
 INDENT-POINT is the position at which the line being indented begins.
-Point is located at the point to indent under (for default indentation);
+Point is located at the point to indent under (for default indentation)
 STATE is the `parse-partial-sexp' state for that position.
 
 If the current line is in a call to a Lisp function that has a non-nil
@@ -133,12 +127,12 @@ property `lisp-indent-function' (or the deprecated `lisp-indent-hook'),
 it specifies how to indent.  The property value can be:
 
 * `defun', meaning indent `defun'-style
-  \(this is also the case if there is no property and the function
-  has a name that begins with \"def\", and three or more arguments);
+  (this is also the case if there is no property and the function
+  has a name that begins with \"def\", and three or more arguments)
 
 * an integer N, meaning indent the first N arguments specially
   (like ordinary function arguments), and then indent any further
-  arguments like a body;
+  arguments like a body
 
 * a function to call that returns the indentation (or nil).
   `lisp-indent-function' calls this function with the same two arguments
@@ -218,6 +212,7 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
 ;; ------------------------------------------------------------------------- ;;
 (defun elisp-eval ()
   (if (use-region-p)
+      ;; 
       (progn 
 	    (call-interactively     'eval-region)
         (goto-char (region-end))
@@ -306,3 +301,13 @@ https://github.com/Fuco1/.emacs.d/blob/af82072196564fa57726bdbabf97f1d35c43b7f7/
 
 (provide 'config-emacs-lisp)
 ;;; CONFIG-EMACS-LISP.EL ends here
+
+
+
+
+;; (defun conditionally-enable-smartparens-mode ()
+;;   "Enable `smartparens-mode' in the minibuffer, during `eval-expression'."
+;;   (if (eq this-command 'eval-expression)
+;;       (smartparens-mode 1)))
+
+;; (add-hook 'minibuffer-setup-hook 'conditionally-enable-smartparens-mode)

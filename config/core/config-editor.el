@@ -7,7 +7,11 @@
 
 ;;; Code:
 (require 'web-search)
+(require 'comment)
+
 (require 'misc-user-functions)
+
+(setq-default fill-column 80)
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Temporary Directories
@@ -231,10 +235,12 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
   (when config-clean-whitespace-on-save
     (whitespace-cleanup)))
 
-(with-region-or-buffer indent-region)
+(advice-remove-all 'indent-region)
+
+;; (crux-with-region-or-paragraph indent-region)
 
 (require 'tabify)
-(with-region-or-buffer untabify)
+(crux-with-region-or-buffer untabify)
 
 
 (require 'recentf)
@@ -285,7 +291,7 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 ;; https://rgel.readthedocs.io/en/2.2.1/index.html
 (require 'rg)
 (rg-enable-default-bindings)
-(setq rg-executable                (config-get :applications :ripgrep))
+(setq rg-executable                (config-get :applications :ripgrep :exe))
 (setq transient-history-file
       (expand-file-name "transient_history.el" (config-get :config-paths :temp)))
 
@@ -302,7 +308,7 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 (smart-hungry-delete-add-default-hooks)
 
 (defun config-smart-delete-backward (arg)
-  "see `smart-hungry-delete-backward-char"
+  "see `smart-hungry-delete-backward-char'"
   (interactive "P")
   (if (use-region-p)
       (delete-region
@@ -311,7 +317,7 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
     (smart-hungry-delete-backward-char arg)))
 
 (defun config-smart-delete-forward (arg)
-  "see `smart-hungry-delete-forward-char"  
+  "see `smart-hungry-delete-forward-char'"  
   (interactive "P")
   (if (use-region-p)
       (delete-region

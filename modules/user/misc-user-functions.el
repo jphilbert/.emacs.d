@@ -1,15 +1,5 @@
 (require 's)
-
-(defun s-format-context (format-str)
-  (eval (s-lex-fmt|expand format-str)))
-
-(defun message-format (format-string &rest args)
-  (message (s-format-context format-string) args))
-
-(defun advice-remove-all (sym)
-  "Remove all advices from symbol SYM."
-  ;; (interactive "aFunction symbol: ")
-  (advice-mapc (lambda (advice _props) (advice-remove sym advice)) sym))
+(require 'f)
 
 (defun today ()
   "Insert string for today's date nicely formatted"
@@ -17,22 +7,154 @@
   (insert (format-time-string "%Y-%m-%d")))
 
 
+(defun advice-remove-all (func)
+  "Remove all advices from symbol FUNC."
+  (interactive "aFunction: ")
+  (advice-mapc (lambda (advice _props) (advice-remove func advice)) func))
+
+
+;; -------------------------------------------------------------------------- ;;
+;; String / Messages Functions                                                ;;
+;; -------------------------------------------------------------------------- ;;
+(defun s-format-context (format-str)
+  "`s-format' with the current environment.
+
+FORMAT-STR may use the `s-format' variable reference to refer to
+any variable:
+
+ (let ((x 1))
+   (s-lex-format \"x is: ${x}\"))
+
+The values of the variables are interpolated with \"%s\" unless
+the variable `s-lex-value-as-lisp' is `t' and then they are
+interpolated with \"%S\"."
+  (eval (s-lex-fmt|expand format-str)))
+
+(defun message-format (format-string &rest args)
+  "Display a message like `message'.
+
+The first argument is a format control string, and the rest are data
+to be formatted under control of the string.  In addition to percent
+sign (%) to denote optional arguments, FORMAT-STR may use the
+`s-format' variable reference to refer to any variable.
+
+Example:
+
+ (let ((x 1))
+   (message-format \"x is: ${x} and arg is: %s\" \"abc\"))
+
+> \"x is: 1 and arg is: (abc)\"
+"
+  (message (s-format-context format-string) args))
+
+(defun message-symbol (&rest symbols)
+  (dolist (s symbols)
+    (setq s (symbol-name s))
+    (message-format (s-concat s ": ${" s "}"))))
 
 
 ;; ------------------------------------------------------------------------- ;;
-;; File / Buffer Functions
+;; File / Buffer Functions                                                   ;;
 ;; ------------------------------------------------------------------------- ;;
-(defun explorer (dir)
-  "Launch the windows explorer in the current directory and selects current file"
+(defun generate-new-buffer-name+ (name)
+  "Generate a new buffer name based off of NAME.
+
+Returns the next available buffer name in the sequence based on
+NAME.  NAME is assumed to be of the format _*STRING_[%s]*_, where
+STRING is the base name and %s is the numeric placeholder.  The
+brackets can be any pairing (), [], {}, <>, or omitted.
+Additionally the spaces (_) and stars (*) are optional.
+
+If the placeholder %s is omitted it will be assumed NAME =
+NAME_%s. For example, if '*Scratch*' is given, the format would
+assumed to be '*Scratch %s*' thus the sequence of possible names
+would be '*Scratch*', '*Scratch 2*', '*Scratch 3*', etc.
+ 
+See also `generate-new-buffer-name'. "
+  (if-let
+      (;; ---------- Parse NAME ---------- ;;
+       ;; 1) Strip off white space and * if exist
+       (buffer0
+        (or
+         (cadr (s-match "^[[:space:]]*\\*\\(.*\\)\\*[[:space:]]*$"
+                        name))
+         name))
+       ;; 2) If wrapped in *, store
+       (outer-mask
+        (s-replace buffer0 "%s" name))
+       ;; 3) Identify spacing and wrapping for number
+       (numeric-suffix
+        (or
+         (car
+          (s-match "[[:space:]]*[\[(<{)]?%s[\]>})]?$"
+                   buffer0))
+         " %s"))
+       ;; 4) Trim off numeric part to get the bare buffer prefix
+       (buffer0
+        (s-replace numeric-suffix "" buffer0))
+
+       ;; 5) Recombine to get format of subsequent and initial buffers
+       (buffer+ (format outer-mask (s-concat buffer0 numeric-suffix)))
+       (buffer0 (format outer-mask buffer0))
+       
+       ;; ---------- Calculate Next Buffer in Sequence ---------- ;;
+       ;; If the bare buffer (initial in sequence) does not exists, break and
+       ;; return it (BUFFER0)
+       ((get-buffer buffer0))
+       (buffer2 (format buffer+ 2))
+       
+       ;; Get the list of incremented buffers
+       (buffer-numbers
+        (->> (buffer-list)
+             (--map                     ; loop through buffer list
+              (s-match
+               (format (s-concat "^" (regexp-quote buffer+) "$")
+                       "\\(\[0-9\]+\\)")
+               (buffer-name it)))
+             (-non-nil)                 ; remove unmatched
+             (-map #'-second-item)      ; get subgroup
+             (-map #'string-to-number))) ; convert to integer
+
+       ;; Get the contiguous list of buffers 
+       (full-list
+        (-iterate #'1+ 2 (max 1 (-max buffer-numbers))))
+       
+       ;; The next available is the smallest value not in buffer list
+       (next-inc
+        (-min (-difference full-list buffer-numbers))))
+
+      (format buffer+ next-inc)         ; THEN
+    (or buffer2 buffer0)                ; ELSE
+    ))
+
+(defun generate-new-buffer+ (name)
+  "Create and return a buffer with a name based on NAME.
+Choose the buffer's name using `generate-new-buffer-name+'."
+  (get-buffer-create (generate-new-buffer-name+ name)))
+
+
+(defun windows-explore (file-or-directory)
+  "Launch windows explorer in directory of FILE-OR-DIRECTORY"
   ;;; Windows explorer to open current file - Arun Ravindran
-  ;; Altered slightly to be interactive - JPH
-  (interactive "fDirectory / File to Open: ")
+  ;;; Altered slightly to be interactive - JPH
+  (interactive "fDirectory / File to Open in Explorer: ")
+  (message "%s" (concat "/select,"
+           (replace-regexp-in-string
+            "/" "\\"
+            (f-canonical file-or-directory) t t)))
   (w32-shell-execute
    "open"
    "explorer"
    (concat "/select,"
-		   (convert-standard-filename (expand-file-name dir))))
+           (replace-regexp-in-string
+            "/" "\\"
+            (f-canonical file-or-directory) t t)))
   )
+
+(defun windows-explore-this ()
+  "Launch windows explorer in this file's directory"
+  (interactive)
+  (windows-explore (f-this-file)))
 
 (defun get-scratch-buffer ()
   "Displays the scratch buffer if available, otherwise creates a new one."
@@ -55,8 +177,8 @@ It returns the buffer (for elisp programming).
 URL `http://xahlee.info/emacs/emacs/emacs_new_empty_buffer.html'
 Version 2017-11-01"
   (interactive)
-  (let ((buffer (generate-new-buffer "untitled")))
-    (set-buffer buffer)    
+  (let ((buffer (generate-new-buffer+ "untitled (%s)")))
+    (set-buffer buffer)
     (funcall initial-major-mode)
     (setq buffer-offer-save t)
     (display-buffer buffer)
@@ -67,6 +189,7 @@ Version 2017-11-01"
   (if mode-line-format
 	  (setq mode-line-format nil)
     (setq mode-line-format (default-value 'mode-line-format))))
+
 
 ;; ------------------------------------------------------------------------- ;;
 ;; Navigation
@@ -85,23 +208,34 @@ Version 2017-11-01"
   (while (and (not (bobp)) (empty-line-p))
     (previous-line)))
 
+(defun next-paragraph ()
+  "Move to start of the next paragraph.
 
-;; ------------------------------------------------------------------------- ;;
-;; Modification
-;; ------------------------------------------------------------------------- ;;
-(defun comment-dwim-line (&optional arg)
-  "Replacement for the comment-dwim command. If no region is
-selected and current line is not blank and we are not at the end
-of the line, then comment current line. Replaces default behavior
-of comment-dwim, when it inserts comment at the end of the line."
-  ;; Original idea from
-  ;; http://www.opensubscriber.com/message/emacs-devel@gnu.org/10971693.html
-  (interactive "*P")
-  (comment-normalize-vars)
-  (if (and (not (region-active-p)) (not (looking-at "[ \t]*$")))
-      (comment-or-uncomment-region (line-beginning-position) (line-end-position))
-    (comment-dwim arg)))
+Move point to the character that starts the next paragraph.
+Unlike the function `forward-paragraph', this excludes newline
+and tabs.  Functions more like the function
+`start-of-paragraph-text'."
+  (interactive)
+  (forward-paragraph)
+  (skip-chars-forward " \t\n"))
 
+(defun back-paragraph ()
+  "Move to start of current or previous paragraph.
+
+Move point to the character that starts the current paragraph
+unless point is at the start, in which case it move to the start
+of the previous paragraph.  Unlike the function
+`backward-paragraph', this excludes newline and tabs.  Functions
+more like the function `start-of-paragraph-text'."
+  (interactive)
+  (if (eq (preceding-char) ?\n) (forward-char -1))
+  (forward-paragraph -1)
+  (skip-chars-forward " \t\n"))
+
+
+;; -------------------------------------------------------------------------- ;;
+;; Modification                                                               ;;
+;; -------------------------------------------------------------------------- ;;
 (defun tab-to-tab-stop-magic ()
   "Insert tabs to line or region"
   (interactive)
@@ -152,16 +286,9 @@ operate from point to the end of (the accessible portion of) the buffer"
 							         (replace-match newtext nil nil))))))
 
 
-;; ------------------------------------------------------------------------- ;;
-;; Utility / Non-interactive Functions
-;; ------------------------------------------------------------------------- ;;
-;; TODO replace with `f-read'
-(defun get-string-from-file (filePath)
-  "Return FILEPATH's file content."
-  (with-temp-buffer
-    (insert-file-contents filePath)
-    (buffer-string)))
-
+;; -------------------------------------------------------------------------- ;;
+;; Utility / Non-interactive Functions                                        ;;
+;; -------------------------------------------------------------------------- ;;
 (defun empty-line-p ()
   "Returns t if cursor is at an empty line "
   (save-excursion
@@ -197,26 +324,20 @@ operate from point to the end of (the accessible portion of) the buffer"
 		  (set-marker next-line-marker nil)))
     (funcall fn)))
 
-(defun ac-show-quick-help ()
-  "show docs for symbol at point or at beginning of list if not on a symbol"
-  (interactive)
-  (let ((s (save-excursion
-		     (or (symbol-at-point)
-			     (progn (backward-up-list)
-				        (forward-char)
-				        (symbol-at-point))))))
-    (pos-tip-show (ac-symbol-documentation s)
-			      'popup-tip-face
-			      ;; 'alt-tooltip
-			      (point)
-			      nil
-			      -1)))
+(defun buffer-major-mode (&optional buffer-or-name)
+  "Retrieve the `major-mode' of BUFFER-OR-NAME."
+  (with-current-buffer (or buffer-or-name (current-buffer)) major-mode))
+
+
 
 (provide 'misc-user-functions)
+;;; misc-user-functions.el ends here
 
-;; ------------------------------------------------------------------------- ;;
-;; Package Updating
-;; ------------------------------------------------------------------------- ;;
+
+
+;; -------------------------------------------------------------------------- ;;
+;; Package Updating                                                           ;;
+;; -------------------------------------------------------------------------- ;;
 (defun prelude-eval-after-init (form)
   "Add `(lambda () FORM)' to `after-init-hook'.
 
@@ -231,10 +352,6 @@ operate from point to the end of (the accessible portion of) the buffer"
   (interactive)
   (byte-recompile-directory prelude-dir 0))
 
-(defun prelude-buffer-mode (buffer-or-name)
-  "Retrieve the `major-mode' of BUFFER-OR-NAME."
-  (with-current-buffer buffer-or-name
-    major-mode))
 
 
 

@@ -2,9 +2,9 @@
 ;; FRAME+.EL --- Miscellaneous Frame Functions
 ;; -----------------------------------------------------------------------------
 ;; Filename:		FRAME+.EL
-;; Description:	Miscellaneous Frame Functions
-;; Author:		John P. Hilbert <jphilbert@gmail.com>
-;; Created:		2012-02-13 20:30:16
+;; Description:     Miscellaneous Frame Functions
+;; Author:          John P. Hilbert <jphilbert@gmail.com>
+;; Created:         2012-02-13 20:30:16
 ;; Last-Updated:    2022-08-01
 ;;           By:	John P. Hilbert
 ;; URL:			
@@ -930,11 +930,6 @@ displaying is the only window."
 (defun buffer-one-window-p (&optional buffer)
   "Returns t if BUFFER (current by default) is only on one window."
   (= 1 (length (window-list-with-buffer buffer))))
-
-
-
-(get-buffer-window-list nil nil t)
-
 
 
 (provide 'frame+)

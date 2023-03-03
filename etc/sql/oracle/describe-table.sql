@@ -1,1 +1,1 @@
-DESCRIBE ${table}
+DESCRIBE ${schema-table}

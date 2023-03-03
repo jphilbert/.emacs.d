@@ -1,5 +1,6 @@
 SELECT
-  t AS TYPE, SUBSTR(owner || '.' || NAME, 1, 70) AS NAME
+  t AS TYPE,
+  SUBSTR(owner || '.' || NAME, 1, 70) AS NAME
 FROM (
   SELECT
     'VW' AS T, owner, view_name AS NAME
@@ -15,4 +16,4 @@ WHERE
     AND
   NAME LIKE '${table}'  
 ORDER BY
-  owner, NAME, T
+  2, 1

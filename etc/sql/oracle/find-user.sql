@@ -1,14 +1,8 @@
--- TODO
--- SELECT
---   TYPE,
---   SUBSTR(owner || '.' || NAME, 1, 70) AS NAME
--- FROM
---   all_users
--- WHERE
---   owner LIKE '%OWNER_PATTERN%'
---     AND
---   NAME LIKE '%TABLE_PATTERN%'
--- ORDER BY
---   TYPE,
---   owner,
---   NAME
+SELECT
+  SUBSTR(USERNAME || '.' || NAME, 1, 70) AS USERNAME
+FROM
+  all_users
+WHERE
+  USERNAME LIKE '${user}'
+ORDER BY
+  USERNAME

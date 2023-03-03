@@ -36,18 +36,11 @@
 (which-key-mode +1)
  
 
-
-
-
 ;; '(select-enable-clipboard t)
 ;; '(show-paren-mode t)
 
-
 ;; enable PRETTY-LAMBDA-MODE
 (global-prettify-symbols-mode +1)
-
-
-
 
 
 ;; Set Default Size and Font
@@ -59,6 +52,87 @@
 (require 'octicons)
 (set-face-attribute 'octicons nil
 				:font "github-octicons")
+
+
+(defvar config-colors
+  '(
+    ;; Background
+    ("config-color-bg-2"     . "#000000")
+    ("config-color-bg-1"     . "#2B2B2B")
+    ("config-color-bg-08"    . "#303030")
+    ("config-color-bg-05"    . "#383838")
+    ("config-color-bg"       . "#3F3F3F")
+    ("config-color-bg+05"    . "#494949")
+    ("config-color-bg+1"     . "#4F4F4F")
+    ("config-color-bg+2"     . "#5F5F5F")
+    ("config-color-bg+3"     . "#6F6F6F")
+    ;; Foreground
+    ("config-color-fg-1"     . "#656555")
+    ("config-color-fg-05"    . "#989890")
+    ("config-color-fg"       . "#DCDCCC")
+    ("config-color-fg+1"     . "#FFFFEF")
+    ("config-color-fg+2"     . "#FFFFFD")
+    ;; 
+    ("config-color-magenta"  . "#DC8CC3")
+    ;; Reds
+    ("config-color-red-6"    . "#6C3333")
+    ("config-color-red-5"    . "#7C4343")
+    ("config-color-red-4"    . "#8C5353")
+    ("config-color-red-3"    . "#9C6363")
+    ("config-color-red-2"    . "#AC7373")
+    ("config-color-red-1"    . "#BC8383")
+    ("config-color-red"      . "#CC9393")
+    ("config-color-red+1"    . "#DCA3A3")
+    ("config-color-red+2"    . "#ECB3B3")
+    ;; Oranges
+    ("config-color-orange-2" . "#C77138")
+    ("config-color-orange-1" . "#D28E60")
+    ("config-color-orange"   . "#DFAF8F")
+    ;; Yellows
+    ("config-color-yellow-2" . "#D0BF8F")
+    ("config-color-yellow-1" . "#E0CF9F")
+    ("config-color-yellow"   . "#F0DFAF")
+    ;; Greens
+    ("config-color-green-5"  . "#2F4F2F")
+    ("config-color-green-4"  . "#3F5F3F")
+    ("config-color-green-3"  . "#4F6F4F")
+    ("config-color-green-2"  . "#5F7F5F")
+    ("config-color-green-1"  . "#6F8F6F")
+    ("config-color-green"    . "#7F9F7F")
+    ("config-color-green+1"  . "#8FB28F")
+    ("config-color-green+2"  . "#9FC59F")
+    ("config-color-green+3"  . "#AFD8AF")
+    ("config-color-green+4"  . "#BFEBBF")
+    ;; 
+    ("config-color-cyan"     . "#93E0E3")
+    ;; Teals
+    ("config-color-teal+3"   . "#BDE0F3")
+    ("config-color-teal+2"   . "#ACE0E3")
+    ("config-color-teal"     . "#8CD0D3")
+    ("config-color-teal-1"   . "#7CB8BB")
+    ("config-color-teal-2"   . "#6CA0A3")
+    ("config-color-teal-3"   . "#5C888B")
+    ("config-color-teal-4"   . "#4C7073")
+    ("config-color-teal-5"   . "#366060")
+    ;; Blues
+    ("config-color-blue-80"  . "#A1BEF7") ; HSL[220,84,80]
+    ("config-color-blue+1"   . "#94BFF3")
+    ("config-color-blue-65"  . "#799DD2") ; HSL[216,50,65]
+    ("config-color-blue-50"  . "#597FA6") ; HSL[210,30,50]
+    ("config-color-blue-35"  . "#2D6186") ; HSL[205,50,35]
+    ("config-color-blue-20"  . "#08415E") ; HSL[200,84,20]
+    )
+  "List of colors.
+Each element has the form (NAME . HEX).")
+
+(defmacro config-with-color (&rest body)
+  "`let' bind all colors defined in `config-colors' around BODY."
+  (declare (indent 0))
+  `(let (         
+         ,@(mapcar (lambda (cons)
+                     (list (intern (car cons)) (cdr cons)))
+                   config-colors))
+     ,@body))
 
 
 (setq zenburn-override-colors-alist
@@ -134,67 +208,72 @@ https://github.com/hlissner/emacs-solaire-mode/blob/8af65fbdc50b25ed3214da949b8a
 (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
 
-(zenburn-with-color-variables
+(config-with-color
   (custom-set-faces
    `(vertico-current
 	((t
-	  (:foreground		,zenburn-fg
-	   :weight		bold
-	   :background		,zenburn-blue-4
+	  (:foreground		,config-color-fg
+	   :weight          bold
+	   :background		,config-color-teal-4
 	   :underline		nil))))
 
    `(completions-annotations
 	((t
-	  (:foreground		,zenburn-red-6))))))
-
-
-(zenburn-with-color-variables
+	  (:foreground		,config-color-blue+1))))
+   
+   `(vertico-current
+     ((t
+       (:foreground     "#DCDCCC"
+	    :weight         bold
+	    :background     ,config-color-blue-35
+	    :underline      nil))))
+  
    `(lazy-highlight
 	((t
-	  (:foreground		,zenburn-orange-2
-	   :weight		bold
-	   :background		,zenburn-bg+05))))
+	  (:foreground		,config-color-orange-2
+	   :weight          bold
+	   :background		,config-color-bg+05))))
 
    
-   ;; ---------- Auto Complete ---------- ;;
-   `(ac-candidate-face
-	((t
-	  (:height		100
-	   :slant			normal
-	   :weight		normal))))
-   `(ac-selection-face
-	((t
-	  (:height		100
-	   :slant			normal
-	   :weight		normal))))
-   `(ac-yasnippet-candidate-face
-	((t
-	  (:inherit		'ac-candidate-face
-	   :foreground		,zenburn-red-6))))
-   `(ac-yasnippet-selection-face
-	((t
-	  (:inherit		'ac-selection-face
-	   :foreground		,zenburn-yellow-2))))
+   ;; ;; ---------- Auto Complete ---------- ;;
+   ;; `(ac-candidate-face
+   ;;  ((t
+   ;;    (:height		100
+   ;;     :slant			normal
+   ;;     :weight		normal))))
+   ;; `(ac-selection-face
+   ;;  ((t
+   ;;    (:height		100
+   ;;     :slant			normal
+   ;;     :weight		normal))))
+   ;; `(ac-yasnippet-candidate-face
+   ;;  ((t
+   ;;    (:inherit		'ac-candidate-face
+   ;;     :foreground		,config-color-red-6))))
+   ;; `(ac-yasnippet-selection-face
+   ;;  ((t
+   ;;    (:inherit		'ac-selection-face
+   ;;     :foreground		,config-color-yellow-2))))
 
    ;; ---------- Comments ---------- ;;
    `(font-lock-comment-face
 	((t
-	  (:foreground		,zenburn-green-1))))
+	  (:foreground		,config-color-green-1))))
    `(font-lock-comment-delimiter-face
 	((t
-	  (:foreground		,zenburn-green-1))))
+	  (:foreground		,config-color-green-1))))
 
    ;; ---------- Relational Operators ---------- ;;
    `(font-lock-relation-operator-face
 	((t
-	  (:foreground		,zenburn-orange
+	  (:foreground		,config-color-orange
 	   :weight			bold))))
 
    ;; ---------- Numbers ---------- ;;
-   `(font-lock-number-face 
+   `(font-lock-number-face
 	((t
-	  (:foreground		,zenburn-blue-3))))
-   )
+	  (:foreground		,config-color-teal))))
+   ))
 
 ;; TO-DO:
 ;;   - add modeline-posn to modeline
@@ -666,96 +745,96 @@ type, use `frame-parameters'."
 
 
 
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ac-candidate-face
-   ((t (:height 100
-	   :slant normal
-	   :weight normal))))
- '(ac-selection-face
-   ((t (:height 100
-	   :slant normal
-	   :weight normal))))
- '(ac-yasnippet-candidate-face
-   ((t (:inherit 'ac-candidate-face
-	   :foreground "#6C3333"))))
- '(ac-yasnippet-selection-face
-   ((t (:inherit 'ac-selection-face
-	   :foreground "#D0BF8F"))))
- '(completions-annotations
-   ((t (:foreground "#6C3333"))))
- '(font-lock-comment-delimiter-face
-   ((t (:foreground "#6F8F6F"))))
- '(font-lock-comment-face
-   ((t (:foreground "#6F8F6F"))))
- '(font-lock-number-face
-   ((t (:foreground "#5C888B"))) t)
- '(font-lock-relation-operator-face
-   ((t (:foreground "#DFAF8F"
-	   :weight bold))) t)
- '(lazy-highlight
-   ((t (:foreground "#C77138"
-	   :weight bold
-	   :background "#494949"))))
- '(mode-line
-   ((t (:foreground "#8FB28F"
-	   :background "#000000"
-	   :height 80
-	   :box (:line-width -1
-		    :style released-button)))))
- '(mode-line-1
-   ((t (:inherit mode-line
-	   :background "#2B2B2B"))))
- '(mode-line-1-inactive
-   ((t (:inherit mode-line-inactive
-	   :background "#3F3F3F"))))
- '(mode-line-2
-   ((t (:inherit mode-line
-	   :background "#3F3F3F"))))
- '(mode-line-2-inactive
-   ((t (:inherit mode-line-inactive
-	   :background "#4F4F4F"))))
- '(mode-line-column-warn-face
-   ((t (:inherit mode-line-position-face
-	   :inverse-video t
-	   :weight bold))))
- '(mode-line-inactive
-   ((t (:inherit mode-line
-	   :foreground "#AFD8AF"
-	   :background "#2B2B2B"))))
- '(mode-line-mode-face
-   ((t (:inherit mode-line-2
-	   :foreground "#94BFF3"
-	   :background nil
-	   :weight bold))))
- '(mode-line-mode-inactive-face
-   ((t (:inherit mode-line-2-inactive
-	   :foreground "#8CD0D3"))))
- '(mode-line-modified-face
-   ((t (:inherit mode-line
-	   :foreground "#CC9393"
-	   :background nil
-	   :weight bold
-	   :box (:line-width 2
-		    :color "#CC9393")))))
- '(mode-line-process-face
-   ((t (:inherit mode-line-2	   
-	   :foreground "#F0DFAF"	   
-	   :background nil	   
-	   :weight bold))))
- '(mode-line-process-inactive-face
-   ((t (:inherit mode-line-2-inactive
-	   :foreground "#E0CF9F"))))
- '(mode-line-read-only-face
-   ((t (:foreground "#AC7373"))))
- '(vertico-current
-   ((t (:foreground "#DCDCCC"
-	   :weight bold
-	   :background "#4C7073"
-	   :underline nil)))))
+;; (custom-set-faces
+;;  ;; custom-set-faces was added by Custom.
+;;  ;; If you edit it by hand, you could mess it up, so be careful.
+;;  ;; Your init file should contain only one such instance.
+;;  ;; If there is more than one, they won't work right.
+;;  '(ac-candidate-face
+;;    ((t (:height 100
+;; 	   :slant normal
+;; 	   :weight normal))))
+;;  '(ac-selection-face
+;;    ((t (:height 100
+;; 	   :slant normal
+;; 	   :weight normal))))
+;;  '(ac-yasnippet-candidate-face
+;;    ((t (:inherit 'ac-candidate-face
+;; 	   :foreground "#6C3333"))))
+;;  '(ac-yasnippet-selection-face
+;;    ((t (:inherit 'ac-selection-face
+;; 	   :foreground "#D0BF8F"))))
+;;  '(completions-annotations
+;;    ((t (:foreground "#6C3333"))))
+;;  '(font-lock-comment-delimiter-face
+;;    ((t (:foreground "#6F8F6F"))))
+;;  '(font-lock-comment-face
+;;    ((t (:foreground "#6F8F6F"))))
+;;  '(font-lock-number-face
+;;    ((t (:foreground "#5C888B"))) t)
+;;  '(font-lock-relation-operator-face
+;;    ((t (:foreground "#DFAF8F"
+;; 	   :weight bold))) t)
+;;  '(lazy-highlight
+;;    ((t (:foreground "#C77138"
+;; 	   :weight bold
+;; 	   :background "#494949"))))
+;;  '(mode-line
+;;    ((t (:foreground "#8FB28F"
+;; 	   :background "#000000"
+;; 	   :height 80
+;; 	   :box (:line-width -1
+;; 		    :style released-button)))))
+;;  '(mode-line-1
+;;    ((t (:inherit mode-line
+;; 	   :background "#2B2B2B"))))
+;;  '(mode-line-1-inactive
+;;    ((t (:inherit mode-line-inactive
+;; 	   :background "#3F3F3F"))))
+;;  '(mode-line-2
+;;    ((t (:inherit mode-line
+;; 	   :background "#3F3F3F"))))
+;;  '(mode-line-2-inactive
+;;    ((t (:inherit mode-line-inactive
+;; 	   :background "#4F4F4F"))))
+;;  '(mode-line-column-warn-face
+;;    ((t (:inherit mode-line-position-face
+;; 	   :inverse-video t
+;; 	   :weight bold))))
+;;  '(mode-line-inactive
+;;    ((t (:inherit mode-line
+;; 	   :foreground "#AFD8AF"
+;; 	   :background "#2B2B2B"))))
+;;  '(mode-line-mode-face
+;;    ((t (:inherit mode-line-2
+;; 	   :foreground "#94BFF3"
+;; 	   :background nil
+;; 	   :weight bold))))
+;;  '(mode-line-mode-inactive-face
+;;    ((t (:inherit mode-line-2-inactive
+;; 	   :foreground "#8CD0D3"))))
+;;  '(mode-line-modified-face
+;;    ((t (:inherit mode-line
+;; 	   :foreground "#CC9393"
+;; 	   :background nil
+;; 	   :weight bold
+;; 	   :box (:line-width 2
+;; 		    :color "#CC9393")))))
+;;  '(mode-line-process-face
+;;    ((t (:inherit mode-line-2	   
+;; 	   :foreground "#F0DFAF"	   
+;; 	   :background nil	   
+;; 	   :weight bold))))
+;;  '(mode-line-process-inactive-face
+;;    ((t (:inherit mode-line-2-inactive
+;; 	   :foreground "#E0CF9F"))))
+;;  '(mode-line-read-only-face
+;;    ((t (:foreground "#AC7373"))))
+;;  '(vertico-current
+;;    ((t (:foreground "#DCDCCC"
+;; 	   :weight bold
+;; 	   :background "#4C7073"
+;; 	   :underline nil)))))
 
 
 

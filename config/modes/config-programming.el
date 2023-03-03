@@ -8,10 +8,14 @@
 
 (require 'rainbow-mode)
 
+(setq-default
+ comint-scroll-to-bottom-on-input       t
+ comint-scroll-to-bottom-on-output      t)
 
-;; --------------------------------------------------------------------------
-;; Hooks
-;; --------------------------------------------------------------------------
+
+;; -------------------------------------------------------------------------- ;;
+;; Hooks                                                                      ;;
+;; -------------------------------------------------------------------------- ;;
 (defun config-mode-programming ()
   "Default coding hook, useful with any programming language."
 
@@ -42,7 +46,21 @@
 ;; Keybinding
 ;; --------------------------------------------------------------------------
 ;; (define-keys prog-mode-map
-;;   ) 
+;;   )
+
+(with-eval-after-load "comint"
+  (define-keys      comint-mode-map
+    [down]              'comint-next-matching-input-from-input
+    [up]				'comint-previous-matching-input-from-input
+
+    [C-down]			'comint-next-prompt
+    [C-up]              'comint-previous-prompt
+    
+    [S-C-down]          'next-line
+    [S-C-up]			'previous-line
+    ))
+
+
 
 ;; --------------------------------------------------------------------------
 ;; Syntax Coloring

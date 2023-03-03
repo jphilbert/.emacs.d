@@ -3,16 +3,29 @@
 
 ;;; Code:
 (require 'config-programming)
+(require 'repl)
 (require 'python)
 
 (setq
  python-guess-indent                nil
  python-indent                      4
  python-indent-guess-indent-offset  nil
- python-indent-offset               4
- python-shell-interpreter           (or
-                                     (config-get :applications :python)
-                                     python-shell-interpreter))
+ python-indent-offset               4)
+
+(setq-from-config python-shell-interpreter      :applications :python :exe)
+(setq-from-config python-shell-interpreter-args :applications :python :args)
+
+
+(setq smart-hungry-delete-major-mode-dedent-function-alist
+      (--remove (eq 'python-mode (car it))
+                smart-hungry-delete-major-mode-dedent-function-alist))
+(add-to-list
+ 'smart-hungry-delete-major-mode-dedent-function-alist
+ '(python-mode
+   .
+   (lambda ()
+     (interactive)
+     (python-indent-dedent-line-backspace 1))))
 
 
 ;; --------------------------------------------------------------------------
@@ -21,15 +34,24 @@
 (defun config-mode-python ()
   "Defaults for Python programming."
   (subword-mode +1)
-  ;; (eldoc-mode +1)
+  (eldoc-mode +1)
+  (repl-mode +1)
+  (setq
+   repl-interactive-mode        'inferior-emacs-lisp-mode
+   repl-function-eval           #'python-eval
+   ;; repl-function-eval-insert    #'python-eval-insert
+   repl-function-set            #'python-set-repl
+   repl-function-create         #'python-create-repl)
+
+
   ;; (setq-local electric-layout-rules
   ;;             '((?: . (lambda ()
   ;;                       (and (zerop (first (syntax-ppss)))
   ;;                            (python-info-statement-starts-block-p)
   ;;                            'after)))))
-  ;; (when (fboundp #'python-imenu-create-flat-index)
-  ;;   (setq-local imenu-create-index-function
-  ;;               #'python-imenu-create-flat-index))
+  (when (fboundp #'python-imenu-create-flat-index)
+    (setq-local imenu-create-index-function
+                #'python-imenu-create-flat-index))
   ;; (add-hook 'post-self-insert-hook
   ;;           #'electric-layout-post-self-insert-function nil 'local)
   ;; (when config-python-mode-set-encoding-automatically
@@ -38,200 +60,258 @@
 
 (defun config-mode-python-interactive ()
   "Defaults for Python REPL buffer."
+  (repl-mode +1)
   )
 
-(add-hook 'python-mode              'config-mode-python)
-(add-hook 'inferior-python-mode     'config-mode-python-interactive)
+(add-hook 'python-mode-hook              'config-mode-python)
+(add-hook 'inferior-python-mode-hook     'config-mode-python-interactive)
+
+
+;; --------------------------------------------------------------------------
+;; Frame Settings
+;; --------------------------------------------------------------------------
+(add-to-list
+ 'display-buffer-alist
+ '("\\*Python.*\\*"
+   (display-buffer-reuse-window display-buffer-pop-up-frame)
+   (cascade .                   nil)
+   (font-size .                 100)
+
+   (pop-up-frame-parameters
+    .
+    ((top .                     20)
+	 (left .                    810) 
+	 (height .                  0.6) 
+     (unsplittable .            t)
+	 ))))
 
 
 ;; --------------------------------------------------------------------------
 ;; Keybinding
 ;; --------------------------------------------------------------------------
 (define-keys python-mode-map
-  [(return)]			'newline-and-indent
-  (kbd "<C-next>")		'python-nav-forward-defun
-  (kbd "<C-prior>")		'python-nav-backward-defun
+  (kbd "<C-next>")		'python-nav-next-defun
+  (kbd "<C-prior>")		'python-nav-back-defun
   
   ;; ---------- Evaluation ----------
-  [(shift return)]		'python-eval
-  [(M return)]			'python-eval-echo
+  ;; [(shift return)]		'python-eval
+  ;; [(M return)]			'python-eval-echo
   ;; [(M return)]			'python-print-last
 
   ;; ---------- Indent / Tabs ----------
   (kbd "<S-tab>")		'tab-to-tab-stop-magic
-  (kbd "<tab>")		'indent-for-tab-command
+  (kbd "<tab>")         'indent-for-tab-command
   (kbd "C-<")			'python-indent-shift-left
   (kbd "C->")			'python-indent-shift-right
 
   ;; ---------- Help ----------
-  [(f1)]				'(lambda ()
-					   (interactive)
-					   (google-query-at-point t "Python "))
-  [(S-f1)]			'(lambda ()
-					   (interactive)
-					   (google-query-at-point nil "Python "))
-  (kbd "C-h w")		'(lambda ()
-					   (interactive)
-					   (google-query-at-point nil "Python "))
-  (kbd "C-h f")		'python-object-help
+  (kbd "C-h f")         'python-object-help
   "\C-hv"				'python-object-info
-  
-  ;; ---------- Frame Switching ----------
-  [(f12)]				'python-switch-frame-process
-  [S-f12]				'python-process-new
-  [C-f12]				'python-process-set 
   )
 
 (define-keys inferior-python-mode-map
-  [S-C-up]			'previous-line
-  [S-C-down]			'next-line
+  ;; [S-C-up]			'previous-line
+  ;; [S-C-down]			'next-line
   
   ;; ---------- Help ----------
-  [(f1)]				'(lambda ()
-					   (interactive)
-					   (google-query-at-point t "Python "))
-  [(S-f1)]			'(lambda ()
-					   (interactive)
-					   (google-query-at-point nil "Python "))
-  (kbd "C-h w")		'(lambda ()
-					   (interactive)
-					   (google-query-at-point nil "Python "))
-  (kbd "C-h f")		'python-object-help
+  (kbd "C-h f")         'python-object-help
   "\C-hv"				'python-object-info
-
-  ;; ---------- Frame Switching ----------
-  [(f12)]				'python-switch-frame-script
   )
 
 ;; --------------------------------------------------------------------------
 ;; Commands
 ;; --------------------------------------------------------------------------
+(defun python-nav-back-defun ()
+  "Move point to last DEF.
+
+Same as `python-nav-backward-defun' but also moves to beginning
+of statement (see `python-nav-beginning-of-statement')."
+  (interactive)
+  (python-nav-backward-defun)
+  (python-nav-beginning-of-statement))
+
+(defun python-nav-next-defun ()
+  "Move point to next DEF.
+
+Similar to `python-nav-forward-defun' but also moves to beginning
+of statement (see `python-nav-beginning-of-statement') as oppose
+to end of definition. Unlike `python-nav-forward-defun', this
+moves to the next regardless where a point is on a current
+definition line."
+  (interactive)
+  (when (python-info-looking-at-beginning-of-defun)
+    (end-of-line))
+  (python-nav-forward-defun)
+  (python-nav-beginning-of-statement))
+
+(defun python-info-defun-bounds (&optional ignore-decorators)
+  "Finds the start and end point of current Python definition.
+
+Return a list with the start and end points of the root defun
+POINT is currently in, otherwise nil when the point is not in a
+definition. Argument IGNORE-DECORATORS is non-nil do not include
+decorators. Code extracted from `python-shell-send-defun'."
+  (save-excursion
+    (when-let
+        (;; Save the current point
+         (pt_cur (point))
+         ;; Move back to a top-level definition
+         ;;   Since python-nav-beginning-of-defun will move point even if
+         ;;   not within a defun, this will exit if so.
+         ((progn
+            (end-of-line 1)
+            (while (and (or (python-nav-beginning-of-defun)
+                            (beginning-of-line 1))
+                        (> (current-indentation) 0)))
+            (python-info-looking-at-beginning-of-defun)))
+
+         ;; Return the point after checking for decorators
+         (pt0
+          (progn
+            (unless ignore-decorators
+              (while (and
+                      (eq (forward-line -1) 0)
+                      (if (looking-at (python-rx decorator))
+                          t
+                        (forward-line 1)
+                        nil))))
+            (point-marker)))
+
+         ;; Go to the end of the defun and return
+         (pt1
+          (progn
+            (or (python-nav-end-of-defun)
+                (end-of-line 1))
+            (point-marker)))
+
+         ;; Check to make sure initial point was before the end
+         ((< pt_cur pt1)))
+
+      ;; Success
+      (list pt0 pt1))))
+
+(defun python-info-block-bounds ()
+  "Finds the start and end point of current Python block.
+
+Return a list with the start and end points of the block POINT is
+currently in, otherwise nil when the point is not in a
+definition."
+  (save-excursion
+    (when-let
+        (;; Move back to start of block
+         ;;   Exit if not a block start
+         ((progn
+            (python-nav-beginning-of-block)
+            (python-info-beginning-of-block-p)))
+
+         (pt0 (point-marker))
+
+         (pt1
+          (progn
+            (python-nav-end-of-block)
+            (point-marker))))
+
+      ;; Success
+      (list pt0 pt1))))
+
+;; ---------- Process Commands ---------- ;;
+(make-variable-buffer-local 'python-shell-buffer-name)
+
+(defun python-create-repl ()
+  "Creates a new Python process and frame."
+  (interactive) 
+  (setq python-shell-buffer-name
+        (s-with
+            (default-value 'python-shell-buffer-name)
+          (format "*%s [%%s]*")
+          (generate-new-buffer-name+)
+          (s-replace "*" "")))
+  
+  (let ((calling-frame
+         (frame-get))
+        (python-buffer
+         (python-shell-make-comint
+          (python-shell-calculate-command)
+          python-shell-buffer-name
+          t)))
+    (raise-frame calling-frame)
+    python-buffer))
+
+(buffer-name (car (--filter
+ (with-current-buffer it
+   (eq major-mode 'inferior-python-mode))
+ (buffer-list))))
+
+(defun python-set-repl ()
+  (interactive)
+  (when-let*
+      ((buffers
+         (--filter
+          (with-current-buffer it
+            (eq major-mode 'inferior-python-mode))
+          (buffer-list)))
+       (new-buffer
+        (cond
+         ((> (length buffers) 1)
+          (read-buffer "Python REPL buffer to use: "
+                       nil t
+                       (lambda (it)
+                         (with-current-buffer (car it)
+                           (eq major-mode 'inferior-python-mode)))))
+         ((= (length buffers) 1)
+          (car buffers)))))
+    (setq python-shell-buffer-name (s-replace "*" "" (buffer-name new-buffer)))
+    new-buffer))
 
 ;; ---------- Evaluation ---------- ;;
 (defun python-eval ()
   "Evaluates python code based on context."
   (interactive)
-
-  ;; Start a shell if needed
-  (unless (python-shell-get-process)
-    (run-python (python-shell-parse-command) nil))
-  
-  ;; Eval
   (cond
-   ((and transient-mark-mode mark-active)
-    (python-eval-region))
-   ((or (> (current-indentation) 0)
-	   (python-info-looking-at-beginning-of-defun))
-    (python-eval-defun))
+   ((python-eval-region))
+   ((python-eval-defun))
+   ((python-eval-block))
    (t
-    (python-eval-paragraph)))
-  (python-nav-forward-statement)
-  (python-raise-frame-process))
-
-(defun python-eval-paragraph ()
-  "Evaluates python region"
-  (interactive)
-  (save-excursion
-    (progn (mark-paragraph)
-		 (call-interactively 'python-shell-send-region)))
-  (forward-paragraph))
+    (python-shell-send-statement t)
+    (python-nav-forward-statement))))
 
 (defun python-eval-region ()
-  "Evaluates python region"
+  "Evaluates a region of Python code.
+
+Same as `python-shell-send-region' except SEND-MAIN is non-nil
+and moves mark to the end after deactivating region. This does
+nothing if `use-region-p' is nil."
   (interactive)
-  (let ((end-mark (region-end)))
-    (call-interactively 'python-shell-send-region)
+  (when-let
+      (((use-region-p))
+       (end-mark (region-end)))
+    (python-shell-send-region (region-beginning) (region-end) t)
     (goto-char end-mark)
     (deactivate-mark)))
-
-(defun python-eval-defun ()
-  "Evaluates python function"
-  (interactive)
-  (call-interactively 'python-shell-send-defun)
-  (end-of-defun))
-
-;; ---------- Process Commands ---------- ;;
-(make-variable-buffer-local 'python-shell-buffer-name)
-(defun python-process-new ()
-  "Creates a new python-process."
-  (interactive)
   
-  ;; Get and Set new Python Shell Name
-  (let ((v 0))
-    ;; Count all the Python Shells
-    (dolist (elt (buffer-list) v)
-	 (let* ((buf (buffer-name elt))
-		   (pos (string-match "^\\*Python\[ \]*\\(\[0-9\]*\\)\\*" buf)))
-	   (when pos
-		(message buf)	   
-		(setq v (max 1 v (string-to-int (match-string 1 buf))))
-		)))
-    ;; If there is one, increment
-    (if (> v 0)
-	   (setq v (concat " " (number-to-string (1+ v))))
-	 (setq v ""))
-    ;; Set this buffer's python-shell
-    (setq python-shell-buffer-name (concat "Python" v)))
+(defun python-eval-defun ()
+  "Evaluates current Python defun.
 
-  ;; Run
-  (run-python (python-shell-parse-command))
-  (python-raise-frame-process)		; raise but not select
-  )
-
-(defun python-process-set ()
+Similar to `python-shell-send-defun' except SEND-MAIN is non-nil
+and moves point to the next statement. This does nothing if point
+is not within a defun."
   (interactive)
-  ;; Get the list of python-shell buffers
-  (let ((icicle-buffer-complete-fn (list)))
-    (dolist ($buf (buffer-list (current-buffer)))
-	 (with-current-buffer $buf
-	   (when (eq major-mode 'inferior-python-mode)
-		(add-to-list 'icicle-buffer-complete-fn
-				   (buffer-name $buf)))))
+  (-when-let*
+      (((pt0 pt1) (python-info-defun-bounds)))
+    (python-shell-send-region pt0 pt1 t)
+    (goto-char pt1)
+    (python-nav-forward-statement)
+    t))
 
-    ;; ask, delete the *, and set
-    (setq
-	python-shell-buffer-name
-	(replace-regexp-in-string
-	 "\*" ""
-	 (read-buffer
-	  "New Python Buffer: "
-	  (concat "*" python-shell-buffer-name "*")
-	  t)))))
-
-
-;; ---------- Frame Commands ---------- ;;
-(defun python-switch-frame-process ()
-  "Switch to associated process, associate with one, or create one."
+(defun python-eval-block ()
+  "Evaluates current Python block."
   (interactive)
-  ;; Does current buffer have an associated process?
-  ;; Yes -> raise and select
-  ;; No -> are there processes running?
-  ;; Yes -> associate -> raise
-  ;; No -> create one -> associate -> raise 
-  (python-shell-switch-to-shell)
-  (end-of-buffer-all))
-
-(defun python-raise-frame-process ()
-  (save-frame-excursion
-   (raise-frame
-    (get-frame (concat "*" python-shell-buffer-name "*")))))
-
-(defun python-switch-frame-script ()
-  "Switch to most recent script buffer."
-  (interactive)
-  (let ((loc-proc-name python-shell-buffer-name)
-	   (blist (cdr (buffer-list))))
-    (while (and blist
-			 (with-current-buffer (car blist)
-			   (not (and
-				    (equal major-mode 'python-mode)
-				    (equal loc-proc-name python-shell-buffer-name)))))
-	 (pop blist))
-    (if blist
-	   (display-buffer (car blist) t)
-	 (message "Found no python buffers for process %s"
-			loc-proc-name))))
-
+  (-when-let*
+      (((pt0 pt1) (python-info-block-bounds)))
+    (python-shell-send-region pt0 pt1 t)
+    (goto-char pt1)
+    (python-nav-forward-statement)
+    t))
 
 ;; ---------- Echo Results ---------- ;;
 (defun python-print-last ()
@@ -269,7 +349,6 @@
   (cl-letf (((symbol-function 'python-shell-send-region)
 		   #'python-shell-send-region-echo))
     (call-interactively 'python-eval))) 
-
 
 ;; ---------- Help Commands ---------- ;;
 (defun python-object-help()
@@ -317,53 +396,6 @@
 		    (concat "print('\\n'.join([i for i in dir(" objname
 				  ") if i[0] != '_']))"))))))
 
-
-;;; Encoding detection/insertion logic
-;;
-;; Adapted from ruby-mode.el
-;; This logic was useful in Python 2, but it's not really needed in Python 3.
-(defun python--encoding-comment-required-p ()
-  (re-search-forward "[^\0-\177]" nil t))
-
-(defun python--detect-encoding ()
-  (let ((coding-system
-         (or save-buffer-coding-system
-             buffer-file-coding-system)))
-    (if coding-system
-        (symbol-name
-         (or (coding-system-get coding-system 'mime-charset)
-             (coding-system-change-eol-conversion coding-system nil)))
-      "ascii-8bit")))
-
-(defun python--insert-coding-comment (encoding)
-  (let ((newlines (if (looking-at "^\\s *$") "\n" "\n\n")))
-    (insert (format "# coding: %s" encoding) newlines)))
-
-(defun python-mode-set-encoding ()
-  "Insert a magic comment header with the proper encoding if necessary."
-  (save-excursion
-    (widen)
-    (goto-char (point-min))
-    (when (config-python--encoding-comment-required-p)
-      (goto-char (point-min))
-      (let ((coding-system (config-python--detect-encoding)))
-        (when coding-system
-          (if (looking-at "^#!") (beginning-of-line 2))
-          (cond ((looking-at
-                  "\\s *#\\s *.*\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)")
-                 ;; update existing encoding comment if necessary
-                 (unless (string= (match-string 2) coding-system)
-                   (goto-char (match-beginning 2))
-                   (delete-region (point) (match-end 2))
-                   (insert coding-system)))
-                ((looking-at "\\s *#.*coding\\s *[:=]"))
-                (t (config-python--insert-coding-comment coding-system)))
-          (when (buffer-modified-p)
-            (basic-save-buffer-1)))))))
-
-
-
-
 ;; ------------------------------------------------------------------------- ;;
 ;; Syntax Highlighting
 ;; ------------------------------------------------------------------------- ;;
@@ -371,14 +403,14 @@
  'python-mode        
  '(
    ;; Numbers
-   ("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b"
+   ("[-+]?\\_<[0-9]+\\(?:\\.?[0-9]+\\)*\\(?:[eE][-+]?[0-9]+\\)?\\_>"
     .
     'font-lock-number-face)
    
    ;; Relational Operators
    ;;  - These we don't require a space
-   ("\\(\\sw\\|\\s\"\\|\\s-\\)\\([<=>]=\\|[!<>]\\)\\(\\sw\\|\\s\"\\|\\s-\\)"
-    2
+   ("\\([<=>]=\\|[!<>]\\)"
+    .
     'font-lock-relation-operator-face)
    ;;  - These must have a white space before and after
    ("\\s-\\([<=>]=\\|[!<>]\\|and\\|or\\|not\\|in\\|is\\)\\s-"
@@ -387,12 +419,10 @@
 
 (font-lock-add-keywords
  'inferior-python-mode
- '(("[-+]?\\b[0-9]*\\.?[0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\b"
+ '(("[-+]?\\_<[0-9]+\\(?:\\.?[0-9]+\\)*\\(?:[eE][-+]?[0-9]+\\)?\\_>"
     .
     'font-lock-number-face)))
 
 
 (provide 'config-python)
 ;;; CONFIG-PYTHON.EL ends here
-
-

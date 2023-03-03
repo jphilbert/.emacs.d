@@ -84,5 +84,11 @@
 	       (fit-frame-always .      t)
 	       )))))
 
+
+;; (set-frame-parameter (frame-get "*Help*") 'minibuffer
+;;                      (minibuffer-window (frame-get "config-frame.el")))
+
+
+
 (provide 'config-frames)
 ;;; CONFIG-FRAMES.EL ends here

@@ -1,3 +1,8 @@
+;; -------------------------------------------------------------------------- ;;
+;; REPL Minor Mode                                                            ;;
+;; Simple minor mode to encapsulate common REPL (read-eval-print-loop)        ;;
+;; commands                                                                   ;;
+;; -------------------------------------------------------------------------- ;;
 (defvar-local repl-interactive-mode nil
   "The interactive mode used for REPL")
 
@@ -5,7 +10,6 @@
   "Interactive buffer assigned to the current script.
 
 For REPL buffers, this will be the last calling script.")
-
 
 
 ;; ---------- Function Variables ---------- ;;
@@ -37,11 +41,10 @@ after the context executed. It may still utilize and print to
 `repl-buffer'")
 
 
-
 ;; ---------- Functions ---------- ;;
 (defun repl-buffer-is-current ()
-  (or (not repl-interactive-mode)
-      (eq repl-interactive-mode major-mode)))
+  (and repl-interactive-mode
+       (eq repl-interactive-mode major-mode)))
 
 (defun repl-buffer-get ()
   (cond
@@ -95,7 +98,7 @@ This does not create the buffer if it does not exist."
 (defun repl-buffer-switch ()
   "Command for switching to (i.e. displaying) the `repl-buffer'.
 
-This functions different depending on the mode and state of the
+This functions differs depending on the mode and state of the
 current buffer. If the current buffer is a REPL buffer:
     1) If `repl-buffer' is set and alive, switch to it.
     2) Otherwise, switch to the last selected buffer.
@@ -108,7 +111,7 @@ On the other hand, if the current buffer is a script file:
 "
   (interactive)
   (if (repl-buffer-get)
-      (display-buffer repl-buffer)
+      (pop-to-buffer repl-buffer)
     (frame-display-last)))
 
 (defun repl-eval ()

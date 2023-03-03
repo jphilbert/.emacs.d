@@ -4,48 +4,52 @@
 
 (message "[Config] Initializing Emacs %s... " emacs-version)
 
-(defvar config-root         (file-name-directory load-file-name)
-  "The root dir of the Emacs configuration.")
-
-(defvar config-file         (expand-file-name "config.yaml" config-root)
-  "The configuration YAML file")
-
-
 ;; ------------------------------------------------------------------------- ;;
 ;; Functionality to retrieve info from CONFIG YAML file
 ;; ------------------------------------------------------------------------- ;;
-;; Find and add YAML package to load path
-(let* 
-    ((elpa-dir
-      (with-temp-buffer
-        (insert-file-contents config-file)
-        (keep-lines "elpa-modules" (point-min) (point-max)) 
-        (when (string-match "elpa-modules:[[:space:]]+\"?\\([[:alnum:]/]*\\)"
-                            (buffer-string))
-          (match-string 1 (buffer-string)))))
-     (yaml-dir
-      (car (directory-files (expand-file-name elpa-dir config-root)
-                            t "yaml-"))))
-  (add-to-list 'load-path yaml-dir))
-(require 'yaml)
+(defvar config-root         nil
+  "The root dir of the Emacs configuration.")
+(defvar config-file         nil
+  "The configuration YAML file")
+(defvar config-settings     nil
+  "plist of general settings loaded from `config-file'.
+See `config-load-settings'.")
 
 ;; Load and parse config yaml
-(defun yaml-parse-file (file &rest args)
-  (setq args
-        (or args
-            (list :object-type 'plist :sequence-type 'array)))
+(defun config-load-settings (&optional file)
+  "Loads YAML FILE into plist `config-settings'.
+
+If FILE is not given, `config-file' is used."
+  (setq file (or file config-file))
   (with-temp-buffer
     (insert-file-contents file)
-    (apply #'yaml-parse-string (buffer-string) args)))
-(defvar config-plist (yaml-parse-file config-file))
+    (setq config-settings
+          (apply #'yaml-parse-string
+                 (buffer-string)
+                 (list :object-type 'plist :sequence-type 'array)))))
 
-;; Function to easily get data from config file
-(defun config-get (&rest keys)
+;; Get data from config file
+(defun config-get-setting (&rest keys)
+  "Retrieve the value from the path of KEYS in `config-settings'.
+
+Has the added effect of expanding the file name if the key is in
+:config-paths. Also returns nil if not found."
   (let (
-        (value (seq-reduce #'plist-get keys config-plist)))
-    (if (eq :config-paths (car keys))
+        (value (seq-reduce #'plist-get keys config-settings)))
+    (if (and value (eq :config-paths (car keys)))
         (expand-file-name value config-root)
       value)))
+
+(defalias 'config-get 'config-get-setting)
+
+;; Get data from config file AND set variable
+(defmacro setq-from-config (sym &rest keys)
+  "Sets SYM from the path of KEYS if found in `config-settings'."
+  `(setq ,sym (or (apply 'config-get-setting ',keys) ,sym)))
+
+(defmacro setq-default-from-config (sym &rest keys)
+  "Sets the default of SYM from the path of KEYS if found in `config-settings'."
+  `(setq-default ,sym (or (apply 'config-get-setting ',keys) ,sym)))
 
 ;; Function to easily add directory to load-path
 (defun config-add-to-load-path (dir &optional subfolders)
@@ -61,12 +65,40 @@ to 'only add sub-folders while excluding DIR."
       (when (file-directory-p f)                   
         (config-add-to-load-path f t)))))
 
+(defun add-to-load-path-from-config (&rest keys)
+  "Adds the directory from the path of KEYS if found in `config-settings'."
+  (let*
+      ((subfolders (car (last keys)))
+       (subfolders (and (not (keywordp subfolders)) subfolders))
+       (keys (if subfolders (butlast keys) keys))
+       (dir (apply 'config-get-setting keys)))
+     (when dir
+       (config-add-to-load-path dir subfolders))))
+
 
 ;; ------------------------------------------------------------------------- ;;
-;; User Settings
+;; Fundamental Settings
 ;; ------------------------------------------------------------------------- ;;
-(setq user-full-name               (config-get :user-info :full-name))
-(setq user-mail-address            (config-get :user-info :mail-address))
+(setq config-root         (file-name-directory load-file-name))
+(setq config-file         (expand-file-name "config.yaml" config-root))
+
+(let* 
+    ((elpa-dir
+      (with-temp-buffer
+        (insert-file-contents config-file)
+        (keep-lines "elpa-modules" (point-min) (point-max)) 
+        (when (string-match "elpa-modules:[[:space:]]+\"?\\([[:alnum:]/]*\\)"
+                            (buffer-string))
+          (match-string 1 (buffer-string)))))
+     (yaml-dir
+      (car (directory-files (expand-file-name elpa-dir config-root)
+                            t "yaml-"))))
+  (add-to-list 'load-path yaml-dir))
+(require 'yaml)
+(config-load-settings)
+
+(setq-from-config user-full-name               :user-info :full-name)
+(setq-from-config user-mail-address            :user-info :mail-address)
 (defvar config-user
   (getenv (if (equal system-type 'windows-nt) "USERNAME" "USER"))
   "The system user name")
@@ -78,19 +110,19 @@ to 'only add sub-folders while excluding DIR."
 ;; ------------------------------------------------------------------------- ;;
 ;; Directory Structure
 ;; ------------------------------------------------------------------------- ;;
-(setq-default default-directory    (config-get :config-paths :default))
+(setq-default-from-config default-directory    :config-paths :default)
 
 ;; Core Functionality
-(config-add-to-load-path           (config-get :config-paths :core))
+(add-to-load-path-from-config                   :config-paths :core)
 
 ;; Mode Configurations
-(config-add-to-load-path           (config-get :config-paths :mode))
+(add-to-load-path-from-config                   :config-paths :mode)
 
 ;; ELPA packages
-(setq package-user-dir             (config-get :config-paths :elpa-modules))
+(setq-from-config       package-user-dir        :config-paths :elpa-modules)
 
 ;; User packages that are manually installed
-(config-add-to-load-path           (config-get :config-paths :user-modules) t)
+(add-to-load-path-from-config                   :config-paths :user-modules t)
 
 
 ;; ------------------------------------------------------------------------- ;;
@@ -144,8 +176,7 @@ to 'only add sub-folders while excluding DIR."
 
 
 ;; The file where emacs stores configuration from customize UI
-(setq custom-file
-      (config-get :config-paths :custom-file))
+(setq-from-config       custom-file         :config-paths :custom-file)
 
 (message "[Config] Initialization Complete")
 ;;; init.el ends here

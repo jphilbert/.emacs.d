@@ -1,51 +1,29 @@
 ;;; CONFIG-MODES.EL --- modes to load on startup
 
-;; Mode File Inheritance
-;; <Fundamental>        (File)      (REPL)
-;; ├─ Text 
-;; |  └─ Org
-;; |
-;; └─ Programming                   COMINT
-;;    |                 
-;;    ├─ EMACS-Lisp     .el         <ielm>
-;;    | 
-;;    ├─ CSS            .css
-;;    ├─ HTML           .html
-;;    ├─ JS             .js
-;;    |
-;;    ├─ XML            .xml
-;;    ├─ YAML           .yaml
-;;    ├─ Config         .ini / .cfg
-;;    |
-;;    ├─ Python         .py         <Python>
-;;    ├─ R              .r          <R>
-;;    ├─ SQL            .sql        <SQL>
-;;    |
-;;    ├─ Shell          .bat        <DOS>
-;;    └─ PowerShell     .ps         <Powershell>
-;;
+;; ----- Configuration File ---- ;; -------- Mode File Inheritance ---------- ;;
+;;                               ;; <Fundamental>       (File)  (REPL)
+(require 'config-text)           ;; ├─ Text 
+;; (require 'config-org)         ;; |  └─ Org
+;;                               ;; |
+(require 'config-programming)    ;; └─ Programming      .*      <comint>
+;;                               ;;    |                 
+(require 'config-emacs-lisp)     ;;    ├─ EMACS-Lisp    .el     <ielm>
+;;                               ;;    | 
+;; (require 'config-web)         ;;    ├─ CSS           .css
+;; (require 'config-css)         ;;    ├─ HTML          .html
+;; (require 'config-js)          ;;    ├─ JS            .js
+;;                               ;;    |
+;; (require 'config-xml)         ;;    ├─ XML           .xml
+(require 'config-yaml)           ;;    ├─ YAML          .yaml
+;;                               ;;    ├─ Config        .ini / .cfg
+;;                               ;;    |
+(require 'config-python)         ;;    ├─ Python        .py     <Python>
+(require 'config-r)              ;;    ├─ R             .r      <R>
+(require 'config-sql)            ;;    ├─ SQL           .sql    <SQL>
+;;                               ;;    |
+;; (require 'config-shell)       ;;    ├─ Shell         .bat    <DOS>
+;;                               ;;    └─ PowerShell    .ps     <Powershell>
 
-(require 'config-text)
-;; (require 'config-org)
-
-;;; Programming Languages Support
-(require 'config-programming)
-
-
-(require 'config-emacs-lisp)
-
-;; (require 'config-web)
-;; (require 'config-css)
-;; (require 'config-js)
-
-;; (require 'config-xml)
-(require 'config-yaml)
-
-(require 'config-python)
-(require 'config-r)
-(require 'config-sql)
-
-;; (require 'config-shell)
 
 (provide 'config-modes)
 ;;; CONFIG-MODES.EL ends here

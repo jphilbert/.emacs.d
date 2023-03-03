@@ -23,6 +23,8 @@
 ;;   (kbd "M-v") 'cua-paste-pop) 
 
 (global-set-keys
+ (kbd "M-X")			'eval-expression
+ 
  (kbd "RET")			'reindent-then-newline-and-indent
  (kbd "<C-tab>")		'tab-to-tab-stop-magic
 
@@ -40,7 +42,7 @@
  
  ;; ---------- Miscellaneous ----------
  
- (kbd "<f1>")           'google-at-point
+ (kbd "<f1>")           'web-search-at-point-direct
  
  (kbd "<f2>")           'occur
  
@@ -49,7 +51,7 @@
 
  (kbd "<f5>")           'display-line-numbers-mode
  
- (kbd "<f6>")           'explorer
+ (kbd "<f6>")           'windows-explore-this
 
  ;; Spelling and Thesaurus
  (kbd "<f7>")           'flyspell-correct-at-point
@@ -63,7 +65,7 @@
  
  ;; ---------- Buffers ----------
  ;; (kbd "<f10>")                'get-scratch-buffer
- (kbd "<f11>")          'frame-get-last
+ (kbd "<f11>")          'consult-imenu
  ;; (kbd "<f12>")          'repl-frame
 
  (kbd "C-b")            'consult-buffer-other-frame

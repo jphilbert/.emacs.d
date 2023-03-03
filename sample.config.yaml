@@ -4,14 +4,14 @@
 # All paths are relative to config-root (.emacs.d/) if they are not absolute
 ## .emacs.d/					--> config-root
 ##   init.el
-##	 config/				
+##	 config/
 ##	   core/
 ##     modes/
 ##     custom.el
 ##	 modules/
 ##     elpa/
 ##     user/
-##	 temp/	
+##	 temp/
 ##     backup/
 ##	   autosave/
 
@@ -33,37 +33,48 @@ config-paths:
 
   # Temporary settings
   temp:                 "temp"
-  backup:               "temp/backup"                     
-  autosave:             "temp/autosave"                   
+  backup:               "temp/backup"
+  autosave:             "temp/autosave"
+
+  # Snippets
+  tempel:               "etc/snippets/tempel.snippets"
 
 ## ------------------------------------------------------------------------- ##
 ## User Info
-## ------------------------------------------------------------------------- ## 
+## ------------------------------------------------------------------------- ##
 user-info:
-  full-name:            ""
-  mail-address:         ""
+  full-name:            "John P. Hilbert"
+  mail-address:         "jphilbert@gmail.com"
 
 ## ------------------------------------------------------------------------- ##
 ## Specific Application Paths / Settings
-## ------------------------------------------------------------------------- ## 
+## ------------------------------------------------------------------------- ##
 applications:
   spell:
+    exe:                "C:/bin/hunspell/bin/hunspell.exe"
+    dict:               "C:/bin/hunspell/share/hunspell/en_US.aff"
+  ripgrep:
+    exe:                "C:/bin/ripgrep/rg.exe"
+  r:
+    exe:                "rterm.exe"
+  python:
+    exe:                "ipython"
+    args:               "-i --simple-prompt --InteractiveShell.display_page=True --TerminalInteractiveShell.prompts_class=IPython.terminal.prompts.ClassicPrompts"
+  zip7:
     exe:                ""
-    dict:               ""
-  ripgrep:              ""
-  r:                    ""
-  python:               ""
-  zip7:                 ""
-  git:                  ""
-  pandoc:               ""
-  sql:                  
-    exe:                
-      oracle:           ""
-      ms:               ""
-    servers:            
-      name:             
-        product:        ""         
+  git:
+    exe:                ""
+  pandoc:
+    exe:                ""
+
+  sql:
+    exe:
+      oracle:           sqlplus
+      ms:               ~/apps/sqlcmdline.bat
+    query-directory:    etc/sql
+
+    servers:
+      name:
+        product:        ""
         uid:            ""
         pw:             ""
-
-

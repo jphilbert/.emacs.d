@@ -5,20 +5,16 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(cape tempel "tempel" zenburn-theme yasnippet yaml-mode yaml which-key vertico swiper smartrep smartparens smart-hungry-delete rg rainbow-mode rainbow-delimiters projectile powerline orderless operate-on-number markdown-mode marginalia hl-todo flyspell-correct-popup f expand-region ess embark crux corfu consult)))
+   '(zenburn-theme yaml-mode yaml which-key vertico tempel sqlup-mode sql-indent smartrep smartparens smart-hungry-delete rg rainbow-mode rainbow-delimiters projectile powerline orderless operate-on-number markdown-mode marginalia hl-todo flyspell-correct-popup f expand-region ess embark crux corfu consult cape)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ac-candidate-face ((t (:height 100 :slant normal :weight normal))))
- '(ac-selection-face ((t (:height 100 :slant normal :weight normal))))
- '(ac-yasnippet-candidate-face ((t (:inherit 'ac-candidate-face :foreground "#6C3333"))))
- '(ac-yasnippet-selection-face ((t (:inherit 'ac-selection-face :foreground "#D0BF8F"))))
- '(completions-annotations ((t (:foreground "#6C3333"))))
+ '(completions-annotations ((t (:foreground "#94BFF3"))))
  '(font-lock-comment-delimiter-face ((t (:foreground "#6F8F6F"))))
  '(font-lock-comment-face ((t (:foreground "#6F8F6F"))))
- '(font-lock-number-face ((t (:foreground "#5C888B"))) t)
+ '(font-lock-number-face ((t (:foreground "#8CD0D3"))) t)
  '(font-lock-relation-operator-face ((t (:foreground "#DFAF8F" :weight bold))) t)
  '(lazy-highlight ((t (:foreground "#C77138" :weight bold :background "#494949"))))
  '(mode-line ((t (:foreground "#8FB28F" :background "#000000" :height 80 :box (:line-width -1 :style released-button)))))
