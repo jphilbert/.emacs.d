@@ -1,17 +1,28 @@
-# Windows Junk
+# ---------- Windows Junk ---------- #
 Thumbs.db
 Desktop.ini
 
-#Emacs
-\#*
+# ---------- Config File ---------- #
+# !!! this file can contains risky info !!! 
+config.yaml
+
+# ---------- Byte Compiled Code ---------- #
 *.elc
 
-temp/*
-
+# ---------- ELPA Modules ---------- #
+# these will be installed per ./config/core/config-packages.el
 modules/elpa/*
 !modules/elpa/yaml-[0-9]*
 
-config.yaml
+# ---------- Temporary Files ---------- #
+# Keep directory, not the files
+temp/*
+
+# EWW directory 
+url
+
+#Emacs
+\#*
 
 network-security.data
 config/custom.el
