@@ -1,6 +1,6 @@
 ;; -------------------------------------------------------------------------- ;;
-;; Takes a region if active OR uses OTHER-FUNC to select one and applies      ;;
-;; DO-FUNC to it. This is the general case of all subsequent functions.       ;;
+;; Applies DO-FUNC to an active region. If one is not active, uses OTHER-FUNC ;;
+;; to select one. This is the general case of all subsequent functions.       ;;
 ;; -------------------------------------------------------------------------- ;;
 (defun with-region-or- (do-func other-func &rest pass-thru-args)
   "Apply a command to a region or something else.
