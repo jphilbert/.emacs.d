@@ -21,7 +21,7 @@ temp/*
 # EWW directory 
 url
 
-#Emacs
+# Emacs
 \#*
 
 network-security.data
