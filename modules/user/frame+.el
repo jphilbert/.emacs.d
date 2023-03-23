@@ -387,9 +387,11 @@ This function has the added effect of setting the frame parameter
 This does not alter `frame-list-select-order' list (see `frame-update-order' for
 updating the order)."
   (->> frame-list-select-order
-	   (-filter #'frame-live-p)
-	   (-remove-item (selected-frame))
-	   (-cons* (selected-frame))))
+	   (-filter #'frame-live-p)         ; Remove dead frames
+	   (-remove-item (selected-frame))  ; Remove the current frame
+	   (-cons* (selected-frame))        ; Add the current frame to the top
+       (-union (frame-list-z-order))    ; Add any frames we missed
+       ))
 
 (defun frame-update-order ()
   "Adds the current frame to `frame-list-select-order'.
