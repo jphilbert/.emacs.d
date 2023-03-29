@@ -3,6 +3,7 @@
 ;; ----- Configuration File ---- ;; -------- Mode File Inheritance ---------- ;;
 ;;                               ;; <Fundamental>       (File)  (REPL)
 (require 'config-text)           ;; ├─ Text 
+(require 'config-markdown)       ;; |  |  Markdown      .md
 ;; (require 'config-org)         ;; |  └─ Org
 ;;                               ;; |
 (require 'config-programming)    ;; └─ Programming      .*      <comint>
