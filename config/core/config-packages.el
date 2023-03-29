@@ -1,18 +1,10 @@
-;;; config-packages.el --- Emacs Config: default package selection.
-
-;;;; Packages / Features: 
- ; Set first
-
+;; ========================================================================== ;;
+;; CONFIG-PACKAGES.EL --- Emacs Config: default package selection.            ;;
+;; ========================================================================== ;;
 (require 'cl-lib)
 (require 'package)
 
-;;; Code:
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
-
-(package-initialize)
-;; (package-refresh-contents t)
-
+;; List of packages to ensure are installed at launch
 (defvar config-packages
   '(
     ;; ---------- Utilities ---------- ;;
@@ -26,6 +18,8 @@
     rainbow-delimiters			; Colors delimiters
     zenburn-theme
     powerline					; Mode Line
+    rainbow-mode
+    hl-todo
 ;;    octicons
 
     ;; ---------- Minor ---------- ;;
@@ -34,7 +28,6 @@
     which-key					; Help on keys when needed
     smartparens
     smart-hungry-delete
-    hl-todo
     
     ;; ---------- Complete ---------- ;;
     vertico						; Minimalistic vertical completion UI
@@ -59,6 +52,15 @@
     yaml-mode
     sql-indent
     sqlup-mode
+    powershell
+
+    ;; Misc Activated - dependency? 
+    popup
+    transient
+    compat
+    wgrep
+    which-key
+
 
     ;; ---------- Untested ---------- ;;
     ;; adaptive-wrap
@@ -84,6 +86,14 @@
       )
   "A list of packages to ensure are installed at launch.")
 
+;; Add MELPA
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
+
+
+;; -------------------------------------------------------------------------- ;;
+;; Functions                                                                  ;;
+;; -------------------------------------------------------------------------- ;;
 (defun config-packages-installed-p ()
   "Check if all packages in `config-packages' are installed."
   (cl-every #'package-installed-p config-packages))
@@ -93,6 +103,7 @@
   ;; Add package to list
   (unless (memq package config-packages)
     (add-to-list 'config-packages package))
+
   ;; Check if installed
   (unless (package-installed-p package)
     (package-install package)))
@@ -112,6 +123,21 @@ Missing packages are installed automatically."
     ;; install the missing packages
     (config-require-packages config-packages)))
 
+;; Initialize Packages
+(package-initialize)
+;; TODO: maybe use `package-quickstart'?
+
+;; Refresh and Install (if needed)
+(config-install-packages)
+
+
+(provide 'config-packages)
+;; Local Variables:
+;; byte-compile-warnings: (not cl-functions)
+;; End:
+
+;;; CONFIG-PACKAGES.EL ends here
+
 
 ;; (require 'epl)
 ;; (defun config-update-packages (&optional arg)
@@ -127,13 +153,3 @@ Missing packages are installed automatically."
 ;;                                      (epl-installed-packages))))
 ;;     (message "Update finished. Restart Emacs to complete the process.")))
 
-
-;; run package installation
-(config-install-packages)
-
-(provide 'config-packages)
-;; Local Variables:
-;; byte-compile-warnings: (not cl-functions)
-;; End:
-
-;;; config-packages.el ends here
