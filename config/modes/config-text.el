@@ -3,7 +3,7 @@
 ;; Hooks
 ;; --------------------------------------------------------------------------
 (defun config-mode-text ()
-  "Default coding hook, useful with any programming language."
+  "Default text hook for non-programming modes"
 
   ;; Spelling
   (flyspell-mode)
