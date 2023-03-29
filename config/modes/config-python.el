@@ -341,7 +341,26 @@ is not within a defun."
     
     (set-buffer buffer)
     (python-shell-send-string original-string
-    						process)))
+    						  process)))
+
+(defun python-shell-send-region-echo (start end &optional send-main msg)
+  "Send the region delimited by START and END to inferior Python process.
+When optional argument SEND-MAIN is non-nil, allow execution of
+code inside blocks delimited by \"if __name__== \\='__main__\\=':\".
+When called interactively SEND-MAIN defaults to nil, unless it's
+called with prefix argument.  When optional argument MSG is
+non-nil, forces display of a user-friendly message if there's no
+process running; defaults to t when called interactively."
+  (interactive
+   (list (region-beginning) (region-end) current-prefix-arg t))
+  (let* ((string (python-shell-buffer-substring start end (not send-main)))
+         (process (python-shell-get-process-or-error msg))
+         (original-string (buffer-substring-no-properties start end))
+         (_ (string-match "\\`\n*\\(.*\\)" original-string))
+         (output (python-shell-send-string-no-output original-string process)))
+    ;; (message "Sent: %s..." (match-string 1 original-string))
+    (message "%s" output)))
+
 
 (defun python-eval-echo ()
   "Evaluates python code based on context and echo."
@@ -349,6 +368,8 @@ is not within a defun."
   (cl-letf (((symbol-function 'python-shell-send-region)
 		   #'python-shell-send-region-echo))
     (call-interactively 'python-eval))) 
+
+;; (python-shell-send-string-no-output "2+2")
 
 ;; ---------- Help Commands ---------- ;;
 (defun python-object-help()
