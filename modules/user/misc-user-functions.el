@@ -12,6 +12,34 @@
   (interactive "aFunction: ")
   (advice-mapc (lambda (advice _props) (advice-remove func advice)) func))
 
+(defun browse-file-as-chrome-app (filename &optional position size user-data)
+  "Opens FILENAME in Chrome in application mode.
+
+Opens file in Chrome using --app=FILENAME switch. Optionally, the
+SIZE and POSITION can be specified for the window as a coordinate
+list (x y). If either are given, --user-data-dir will be set
+to variable `temporary-file-directory' unless explicitly set." 
+  (if size
+      (-let (((x y) size))
+        (setq size (s-format-context " --window-size=${y},${x}"))
+        (setq user-data (or user-data temporary-file-directory)))
+    (setq size ""))
+  
+  (if position
+      (-let (((x y) position))
+        (setq position (s-format-context " --window-position=${x},${y}"))
+        (setq user-data (or user-data temporary-file-directory)))
+    (setq position ""))
+
+  (if user-data
+      (setq user-data (s-format-context " --user-data-dir=${user-data}"))
+    (setq user-data ""))
+
+  (w32-shell-execute
+   "open"
+   "chrome.exe"
+   (s-format-context "--app=${filename}${size}${position}${user-data}")))
+
 
 ;; -------------------------------------------------------------------------- ;;
 ;; String / Messages Functions                                                ;;
