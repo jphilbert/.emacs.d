@@ -28,6 +28,16 @@
 
 (require 'dash+)
 
+(defun frame--parse-arguments-frame-x-y (&rest arg-list)
+  "Parse ARG-LIST into a frame and two numeric coordinates"
+  (-let*
+	  ((frame		(or (-first #'framep arg-list)
+				        (selected-frame)))
+	   (x			(--first (and (listp it) it) arg-list))
+	   ((x y)		(or x
+				        (--filter (or (integerp it) (null it)) arg-list))))
+    (list frame x y)))
+
 ;; ------------------------------------------------------------------------- ;;
 ;; Frame <--> Window / Buffer Methods
 ;; ------------------------------------------------------------------------- ;;
@@ -82,12 +92,8 @@ selected frame is used if a FRAME is not given.
 
 Returns a list of the width and height of FRAME"
   (-let*
-	  ((arguments	(list frame x y))
-	   (frame		(or (-first #'framep arguments)
-				        (selected-frame)))
-	   (x			(--first (and (listp it) it) arguments))
-	   ((x y)		(or x
-				        (--filter (or (natnump it) (null it)) arguments))))
+	  (((frame x y)
+        (frame--parse-arguments-frame-x-y frame x y)))
     
     (when x 
 	  (set-frame-width frame x nil t))
@@ -109,16 +115,12 @@ frame is used if a FRAME is not given.
 
 Returns a list of upper left (X, Y) coordinates of FRAME"
   (-let*
-	  ((arguments	(list frame x y))
-	   (frame		(or (-first #'framep arguments)
-				        (selected-frame)))
-	   (x			(--first (and (listp it) it) arguments))
-	   ((x y)		(or x
-				        (--filter (or (integerp it) (null it)) arguments)))
+	  (((frame x y)
+        (frame--parse-arguments-frame-x-y frame x y))
 	   
 	   ((&alist
-	     'outer-position			(current-x .	current-y)
-	     'external-border-size	(border-x .	border-x))
+	     'outer-position		(current-x . current-y)
+	     'external-border-size	(border-x .  border-x))
 	    (frame-geometry frame))
 
 	   (current-x	(or x (+ current-x border-x)))
@@ -172,23 +174,28 @@ additional padding between the window and frame size."
 ;; ------------------------------------------------------------------------- ;;
 ;; Display Attributes 
 ;; ------------------------------------------------------------------------- ;;
-(defun frame-display-position (&optional frame)
+(defun frame-display-position (&optional frame x y)
   "Gets the upper left coordinates of display FRAME is on."
-  (-take 2 (frame-monitor-workarea frame)))
+  (-let* (((_ x y)
+           (frame--parse-arguments-frame-x-y frame x y)))
+    (-take 2 (frame-monitor-workarea frame x y))))
 
-(defun frame-display-size (&optional frame)
+(defun frame-display-size (&optional frame x y)
   "Gets the usable size of display FRAME is on.
 
 This the usable size of the frame is calculated by:
 	X = work area width
 	Y = work area height - border height - title height"
-  (-let* (((&alist
-		    'external-border-size	(border-x . border-y)
-		    'title-bar-size		(_ . title))
-		   (frame-geometry frame)))
+  (-let* (((default-frame x y)
+           (frame--parse-arguments-frame-x-y frame x y))
+          ((&alist
+		    'external-border-size   (border-x . border-y)
+		    'title-bar-size         (_ .        title))
+		   (frame-geometry default-frame)))
+    
     (--update-at 1
 			     (- it border-y title 1)
-			     (-take-last 2 (frame-monitor-workarea frame)))))
+			     (-take-last 2 (frame-monitor-workarea frame x y)))))
 
 (defun frame-display-left-position ()
   "Returns the coordinates of the left most (minimum X) display"
@@ -687,9 +694,11 @@ position) off screen, that coordinate will wrap around from the other display
 edge."
   (let*
 	  ((frame-pos		(or position (frame-position frame)))
-	   (display-pos		(frame-display-position frame))	  
+	   (display-pos		(frame-display-position
+                         frame frame-pos))	  
 	   (extra-space		(-mapcar #'-
-						         (frame-display-size frame)
+						         (frame-display-size
+                                  frame frame-pos)
 						         (frame-size frame)))
 	   (offset			(or offset frame-cascade-offset 25)))
     
