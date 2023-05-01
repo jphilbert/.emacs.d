@@ -10,9 +10,10 @@
 (require 'comment)
 
 (require 'misc-user-functions)
+(require 'with-region-or)
 
 (setq-default fill-column 80)
-
+(setq-default sentence-end-double-space nil)
 ;; ------------------------------------------------------------------------- ;;
 ;; Temporary Directories
 ;; ------------------------------------------------------------------------- ;;

@@ -235,6 +235,17 @@ See `sqlup-capitalize-keywords-in-region' for more info."
 (advice-add 'sqlind-indent-line :after #'sqlup-capitalize-keywords-in-line)
 
 ;; ---------- Indentation ----------
+(defun sqlind-syntax-of-line-recursive ()
+  (let* ((syntax-of-line (sqlind-syntax-of-line)))
+    (if (memq (sqlind-syntax-symbol syntax-of-line)
+              '(nested-statement-open
+                nested-statement-continuation
+                nested-statement-close))
+        (save-excursion
+          (goto-char (sqlind-anchor-point syntax-of-line))
+          (cons (car syntax-of-line) (sqlind-syntax-of-line-recursive)))
+      syntax-of-line)))
+
 (defun sqlind-indent-directive (syntax base-indentation)
   "Indents lines starting with a directive.
 
