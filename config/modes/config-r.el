@@ -28,7 +28,7 @@
       ess-keep-dump-files               nil
       ess-style                         'RStudio)
 
-(setq-from-config :applications :r :exe)
+(setq-from-config inferior-ess-r-program :applications :r :exe)
 
 (add-to-list 'hs-special-modes-alist
 		     '(ess-mode "{" "}" "/[*/]" nil
