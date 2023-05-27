@@ -642,8 +642,7 @@ Append a sequence number until a unique name is found."
 
   (with-region-or-paragraph #'sql-send-region)
   (unless (use-region-p)
-    (next-paragraph)
-    (forward-paragraph)))
+    (next-paragraph)))
 
 (defun sql-eval-file (file)
   "Evaluates an SQL file."
