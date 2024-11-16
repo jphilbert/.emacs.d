@@ -65,7 +65,8 @@
 ;; Keybinding                                                                 ;;
 ;; -------------------------------------------------------------------------- ;;
 (with-eval-after-load 'markdown-mode
-  (define-key markdown-mode-map (kbd "C-c C-e") #'markdown-do))
+  (define-key markdown-mode-map (kbd "C-c C-e") #'markdown-do)
+  (visual-line-mode t))
 
 (define-keys        markdown-mode-map
   [(tab)]				#'complete-symbol
