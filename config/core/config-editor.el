@@ -83,6 +83,76 @@
 (server-force-delete)                   ; just in case delete
 (server-start)                          ; start the server
 
+(defun server--visit-files-override (files proc &optional nowait)
+  "Replacement SERVER-VISIT-FILES."
+
+  ;; Bind last-nonmenu-event to force use of keyboard, not mouse, for queries.
+  (let ((last-nonmenu-event t)
+        client-record)
+
+    ;; Restore the current buffer afterward, but not using save-excursion,
+    ;; because we don't want to save point in this buffer
+    ;; if it happens to be one of those specified by the server.
+    (save-current-buffer
+      (dolist (file files)
+
+        ;; If there is an existing buffer modified or the file is
+	    ;; modified, revert it.  If there is an existing buffer with
+	    ;; deleted file, offer to write it.
+	    (let* ((minibuffer-auto-raise   (or server-raise-frame
+                                            minibuffer-auto-raise))
+	           (filen                   (car file))
+	           (obuf                    (get-file-buffer filen)))
+	      (add-to-history 'file-name-history filen)
+
+	      (if (null obuf)
+              ;; Open File
+              (find-file-other-frame filen)
+
+            ;; Else already open
+            (set-buffer obuf)
+	        ;; separately for each file, in sync with post-command hooks,
+	        ;; with the new buffer current:
+	        (run-hooks 'pre-command-hook)
+            (cond ((file-exists-p filen)
+                   (when (not (verify-visited-file-modtime obuf))
+                     (revert-buffer t nil)))
+                  (t
+                   (when (y-or-n-p
+                          (concat "File no longer exists: " filen
+                                  ", write buffer to file? "))
+                     (write-file filen))))
+            (unless server-buffer-clients
+              (setq server-existing-buffer t)))
+          
+          (server-goto-line-column (cdr file))
+          (run-hooks 'server-visit-hook)
+
+          ;; hooks may be specific to current buffer:
+	      (unless obuf
+            (run-hooks 'post-command-hook)))
+        
+	    (unless nowait
+	      ;; When the buffer is killed, inform the clients.
+	      (add-hook 'kill-buffer-hook #'server-kill-buffer nil t)
+	      (push proc server-buffer-clients))
+        
+        ;; Add this buffer to the list
+        (push (current-buffer) client-record)
+        )
+      )
+    
+    (unless nowait
+      (process-put proc 'buffers
+                   (nconc (process-get proc 'buffers) client-record)))
+
+    ;; Return the list of buffers
+    client-record))
+
+(advice-add 'server-visit-files
+		    :override #'server--visit-files-override)
+
+
 (defadvice server-visit-files
     (before parse-numbers-in-lines (files proc &optional nowait) activate)
   "Open file with emacsclient with cursors positioned on requested line.
@@ -108,8 +178,6 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 
 
 ;; ------------------------------------------------------------------------- ;;
-
-
 (require 'crux)
 
 ;; '(cua-mode t nil (cua-base))
@@ -197,14 +265,29 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 (require 'flyspell)
 (require 'flyspell-correct)
 (require 'flyspell-correct-popup)
-(setenv "LANG" "en_US")
+
 (setq
  ispell-program-name                (config-get :applications :spell :exe)
+ ispell-dictionary                  "en_US"
  ispell-extra-args                  '("--sug-mode=ultra")
- ispell-hunspell-dict-paths-alist   `(("en_US" ,(config-get
-                                                 :applications :spell :dict)))
- ispell-local-dictionary-alist      '(("en_US" "[[:alpha:]]" "[^[:alpha:]]"
-                                       "[']" nil ("-d" "en_US") nil utf-8)))
+ ispell-hunspell-dictionary-alist   '(("en_US" "[[:alpha:]]" "[^[:alpha:]]"
+                                       "[']" nil ("-d" "en_US") nil utf-8))
+ ;; ispell-local-dictionary-alist      nil
+ ;; ispell-hunspell-dict-paths-alist   `(("en_US" ,(config-get
+ ;;                                                 :applications :spell :dict)))
+ ;; ispell-local-dictionary-alist      '(("en_US" "[[:alpha:]]" "[^[:alpha:]]"
+ ;;                                       "[']" nil ("-d" "en_US") nil utf-8))
+ )
+
+;; Per https://emacs.stackexchange.com/questions/21378/spell-check-with-multiple-dictionaries
+;; (setq ispell-program-name "hunspell")
+;;     ;; you could set `ispell-dictionary` instead but `ispell-local-dictionary' has higher priority
+;;     (setq ispell-local-dictionary "en_US")
+;;     (setq ispell-local-dictionary-alist '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US,en_US-med") nil utf-8)))
+;;     ;; new variable `ispell-hunspell-dictionary-alist' is defined in Emacs
+;;     ;; If it's nil, Emacs tries to automatically set up the dictionaries.
+;;     (when (boundp 'ispell-hunspell-dictionary-alist)
+;;       (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist))
 
 
 ;; enable narrowing commands
