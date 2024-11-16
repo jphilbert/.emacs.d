@@ -1,8 +1,38 @@
 ;; ----------------------------------------------------------------------------
 ;; SHELL Mode Setup
 ;; ----------------------------------------------------------------------------
-(provide 'powershell-setup)
-(require 'interactive-shell)
+(provide 'config-powershell)
+(require 'powershell)
+
+(setq powershell-indent 2)
+
+(defconst powershell-function-names-regex
+  ;; Syntax detected is [scope:]verb-noun
+  ;; Match 0 is the entire name.
+  ;; Match 1 is the scope if any.
+  ;; Match 2 is the function name (which must exist)
+  (concat
+   "\\_<\\(?:" (regexp-opt powershell-scope-names t) ":\\)?"
+   "\\([A-Z][a-zA-Z0-9]*-[A-Z0-9][a-zA-Z0-9-]*\\)\\_>")
+  "Identifies legal function & filter names.")
+
+(setq-default powershell-font-lock-keywords-3
+  (append
+   powershell-font-lock-keywords-2
+   `( ;; user variables
+     (,powershell-variables-regexp
+      (0 font-lock-variable-name-face)
+      (1 (cons font-lock-type-face '(underline)) t t)
+      (2 (cons font-lock-type-face '(underline)) t t))
+     ;; function argument names
+     (,powershell-function-switch-names-regexp
+      (0 font-lock-constant-face)
+      (1 (cons font-lock-type-face '(underline)) t t)
+      (2 (cons font-lock-type-face '(underline)) t t))
+     ;; function names
+     (,powershell-function-names-regex
+      (0 font-lock-function-name-face)
+      (1 (cons font-lock-type-face '(underline)) t t)))))
 
 
 ;; --------------------------------------------------------------------------
@@ -83,33 +113,10 @@
 ;; --------------------------------------------------------------------------
 ;; Functions
 ;; --------------------------------------------------------------------------
-(defun shell-eval ()
-  "Evaluates Shell commands in a script"
-  (interactive) 
-  (if (and transient-mark-mode mark-active)
-      (shell-eval-region)
-    ;; May want to change this to paragraph depending on style of use
-    (shell-eval-line-and-step)))
-
-(defun switch-frame-next-powershell ()
-  "Switch to next shell buffer." 
-  (interactive)
-  (switch-frame-next-buffer '("\\*PowerShell") '("^ ") t)
-  (end-of-buffer-all))
-
-(defun switch-frame-previous-powershell ()
-  "Switch to previous shell buffer." 
-  (interactive)
-  (switch-frame-previous-buffer '("\\*PowerShell") '("^ ") t)
-  (end-of-buffer-all))
-
-(defun switch-frame-current-powershell ()
-  "Displays the current associated shell buffer."
-  (interactive)
-  (display-buffer current-shell-buffer)
-  (end-of-buffer))
-
-
-;; (use-package powershell-setup
-;;   :hook ((powershell-launch		. my-powershell-hook)
-;; 	    (powershell-mode		. my-powershell-mode-hook)))
+;; (defun shell-eval ()
+;;   "Evaluates Shell commands in a script"
+;;   (interactive) 
+;;   (if (and transient-mark-mode mark-active)
+;;       (shell-eval-region)
+;;     ;; May want to change this to paragraph depending on style of use
+;;     (shell-eval-line-and-step)))
