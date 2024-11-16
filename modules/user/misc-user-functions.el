@@ -84,6 +84,36 @@ Example:
 ;; ------------------------------------------------------------------------- ;;
 ;; File / Buffer Functions                                                   ;;
 ;; ------------------------------------------------------------------------- ;;
+(defun scratch-buffer ()
+  "Displays the scratch buffer if available, otherwise creates a new one."
+  (interactive)
+  (let* ((buffer-name "*scratch*")
+         (scratch-buffer (get-buffer buffer-name)))
+    (unless scratch-buffer
+	  (setq scratch-buffer
+		    (set-buffer (get-buffer-create buffer-name)))
+	  (insert initial-scratch-message)
+      (funcall initial-major-mode))
+    (display-buffer scratch-buffer)))
+
+(defvar new-file-name "untitled (%s)"
+  "Name of new files.
+%s can be used as a placeholder for increment. See
+ `generate-new-buffer+'")
+
+(defun new-file ()
+  "Create a new empty buffer with `initial-major-mode'.
+New buffer will be named using `new-file-name'.  The default
+\"untitled (%s)\" yields the sequence of \"untitled\",
+\"untitled (2)\", \"untitled (3)\" etc."
+  (interactive)
+  (let ((buffer (generate-new-buffer+ new-file-name)))
+    (set-buffer buffer)
+    (funcall initial-major-mode)
+    (setq buffer-offer-save t)
+    (display-buffer buffer)))
+
+
 (defun generate-new-buffer-name+ (name)
   "Generate a new buffer name based off of NAME.
 
@@ -184,33 +214,6 @@ Choose the buffer's name using `generate-new-buffer-name+'."
   (interactive)
   (windows-explore (f-this-file)))
 
-(defun get-scratch-buffer ()
-  "Displays the scratch buffer if available, otherwise creates a new one."
-  (interactive)
-  (let ((scratch-buffer (get-buffer "*scratch*")))
-    (unless scratch-buffer
-	  (setq scratch-buffer
-		    (set-buffer (get-buffer-create "*scratch*")))
-	  (insert initial-scratch-message)
-	  (emacs-lisp-mode))
-    (unless (eq (current-buffer) scratch-buffer)
-	  (display-buffer-other-frame scratch-buffer))))
-
-(defun get-empty-buffer ()
-  "Create a new empty buffer.
-New buffer will be named `untitled' or `untitled<2>', `untitled<3>', etc.
-
-It returns the buffer (for elisp programming).
-
-URL `http://xahlee.info/emacs/emacs/emacs_new_empty_buffer.html'
-Version 2017-11-01"
-  (interactive)
-  (let ((buffer (generate-new-buffer+ "untitled (%s)")))
-    (set-buffer buffer)
-    (funcall initial-major-mode)
-    (setq buffer-offer-save t)
-    (display-buffer buffer)
-    buffer))
 
 (defun mode-line-toggle ()
   (interactive)
